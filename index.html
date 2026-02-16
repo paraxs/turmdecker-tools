@@ -100,39 +100,73 @@
     }
 
     .hero {
-  min-height: 75vh;
-  color: #fff;
-  border-bottom: 1px solid var(--gray-200);
-  display: grid;
-  align-items: center;
+	  position: relative;
+	  isolation: isolate;
 
-  /* Fallback */
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
-    url("./hero-tools-1200.webp") 70% center/cover no-repeat;
+	  min-height: 75vh;
+	  color: #fff;
+	  border-bottom: 1px solid var(--gray-200);
+	  display: grid;
+	  align-items: center;
 
-  /* HiDPI (Safari) */
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
-    -webkit-image-set(
-      url("./hero-tools-1200.webp") 1x,
-      url("./hero-tools-2400.webp") 2x
-    ) 70% center/cover no-repeat;
+	  /* Bild (Fallback + HiDPI) */
+	  background: url("./hero-tools-1200.webp") 60% 35%/cover no-repeat;
+	  background: -webkit-image-set(
+		  url("./hero-tools-1200.webp") 1x,
+		  url("./hero-tools-2400.webp") 2x
+		) 60% 35%/cover no-repeat;
+	  background: image-set(
+		  url("./hero-tools-1200.webp") 1x,
+		  url("./hero-tools-2400.webp") 2x
+		) 60% 35%/cover no-repeat;
+	}
 
-  /* HiDPI (Standard) */
-  background:
-    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
-    image-set(
-      url("./hero-tools-1200.webp") 1x,
-      url("./hero-tools-2400.webp") 2x
-    ) 70% center/cover no-repeat;
-}
+	/* Scrim / Verlauf über dem Bild */
+	.hero::before {
+	  content: "";
+	  position: absolute;
+	  inset: 0;
+	  z-index: 0;
 
+	  background:
+		linear-gradient(90deg,
+		  rgba(0,0,0,.82) 0%,
+		  rgba(0,0,0,.62) 46%,
+		  rgba(0,0,0,.25) 72%,
+		  rgba(0,0,0,.48) 100%
+		),
+		linear-gradient(180deg,
+		  rgba(0,0,0,.20) 0%,
+		  rgba(0,0,0,.05) 55%,
+		  rgba(0,0,0,.58) 100%
+		);
+	}
 
-    .hero-inner {
-      max-width: 720px;
-      padding: 132px 0 78px;
-    }
+	/* Inhalt über dem Scrim */
+	.hero-inner {
+	  position: relative;
+	  z-index: 1;
+
+	  max-width: 720px;
+	  padding: 132px 0 78px;
+	}
+
+	/* Leseblock */
+	.hero-card {
+	  max-width: 740px;
+	  padding: 26px 26px 22px;
+	  border-radius: 16px;
+
+	  background: rgba(10, 10, 10, 0.58);
+	  border: 1px solid rgba(255, 255, 255, 0.14);
+	  backdrop-filter: blur(10px);
+	  box-shadow: 0 18px 60px rgba(0,0,0,0.45);
+	}
+
+	.hero-card h1,
+	.hero-card p {
+	  text-shadow: 0 2px 18px rgba(0,0,0,0.45);
+	}
 
     .hero-kicker {
       margin: 0 0 10px;
@@ -489,7 +523,7 @@
     @media (max-width: 980px) {
       .split { grid-template-columns: 1fr; gap: 24px; }
       .grid { grid-template-columns: 1fr; }
-      .hero { min-height: 65vh; background-position: center; }
+      .hero { min-height: 65vh; background-position: 55% 30%; }
       .hero-inner { padding: 106px 0 66px; }
       .brand span { display: none; }
       .footer-grid { grid-template-columns: 1fr; gap: 18px; }
@@ -527,7 +561,8 @@
   </header>
 
   <section class="hero">
-    <div class="container hero-inner">
+  <div class="container hero-inner">
+    <div class="hero-card">
       <p class="hero-kicker">Digitale Werkzeuge für Planung und Ausführung</p>
       <h1>TOOLS FÜR BAUPRAXIS,<br /><span class="accent">AUFMASS UND KALKULATION.</span></h1>
       <p class="hero-text">
@@ -539,7 +574,8 @@
         <a class="btn btn-primary" href="#tools">Tools ansehen</a>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
   <section class="section-white">
     <div class="container">
