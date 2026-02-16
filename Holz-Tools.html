@@ -1,0 +1,1715 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Holz-Tools – Festmeter & Balken-Stamm (All-in-One)</title>
+  <style>
+    /* Menü-Design an Festmeter angelehnt – jetzt Full-Width */
+    :root {
+      --green: #4CAF50;
+      --green-hover:#45a049;
+      --bg:#f4f4f4;
+      --txt:#222;
+      --border:#d9d9d9;
+    }
+    html, body {
+      height: 100%;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, system-ui, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+      display: flex;
+      flex-direction: column;
+      min-height: 100%;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 12px;
+    }
+    .container {
+      width: 100%;
+      max-width: 100%;
+      margin: 0;
+      padding: 0 8px;
+      box-sizing: border-box;
+    }
+    h1 {
+      margin: 6px 0 8px;
+      text-align: left;
+      color: #333;
+      font-size: 1.4em;
+      font-weight: 600;
+    }
+    .tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin: 6px 0 4px;
+    }
+    .tabs button {
+      padding: 10px 16px;
+      background: var(--green);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      line-height: 1;
+      transition: background .15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,.06);
+    }
+    .tabs button:hover { background: var(--green-hover); }
+    .tabs button.secondary {
+      background: #5bc0de;
+    }
+    .tabs button.secondary:hover { background:#31b0d5; }
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .frame-wrap {
+      flex: 1;
+      width: 100%;
+      margin: 0;
+      border-top: 1px solid var(--border);
+      background: #fff;
+      overflow: hidden;
+    }
+    iframe.tool-frame {
+      width: 100%;
+      height: 90vh; /* größer, nutzt Bildschirm besser aus */
+      border: 0;
+      display: none;
+      background: #fff;
+    }
+    iframe.tool-frame.active {
+      display: block;
+    }
+    footer {
+      text-align: center;
+      padding: 8px 0 12px;
+      color: #666;
+      font-size: .9rem;
+    }
+  </style>
+  <link rel="stylesheet" href="./td-shell.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="theme-color" content="#8F1D1D" />
+</head>
+<body>
+<div class="td-shell" role="banner">
+  <div class="td-shell__inner">
+    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
+      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
+      <div class="td-shell__text">
+        <strong>TURMDECKER</strong>
+        <span>Tools & Rechner</span>
+      </div>
+    </a>
+    <div class="td-shell__nav" aria-label="Navigation">
+      <a class="td-btn" href="./index.html">↩ Übersicht</a>
+      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
+      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
+    </div>
+  </div>
+</div>
+
+  <header>
+    <div class="container">
+      <h1>Holz-Tools – Festmeter & Balken-Stamm</h1>
+      <div class="tabs" role="tablist" aria-label="Werkzeuge auswählen">
+        <button id="tab-festmeter" role="tab" aria-controls="pane-festmeter" aria-selected="true">Festmeter-Rechner</button>
+        <button id="tab-balken" role="tab" aria-controls="pane-balken" aria-selected="false" class="secondary">Balken-Stamm Pro</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="frame-wrap">
+      <!-- iframes werden aus den Templates gefüllt -->
+      <iframe id="pane-festmeter" class="tool-frame active" title="Festmeter-Rechner"></iframe>
+      <iframe id="pane-balken" class="tool-frame" title="Balken-Stamm Pro"></iframe>
+    </div>
+  </main>
+
+  <footer>© Kofler e. U. – All-in-One Version | 2025-08-31</footer>
+
+  <!-- Original HTML als Templates (unverändert eingebettet) -->
+  <template id="tmpl-festmeter">
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Festmeter-Rechner Pro v3.2</title> <!-- Version erhöht -->
+  <style>
+    /* --- CSS bleibt unverändert --- */
+    /* Basis-Styling */
+    body {
+      font-family: Arial, sans-serif;
+      padding: 15px; /* Etwas weniger Padding auf Mobile */
+      max-width: 900px;
+      margin: 0 auto;
+      font-size: 16px; /* Basis-Schriftgröße */
+      line-height: 1.5;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 1.8em;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Mindestbreite leicht erhöht */
+      gap: 15px;
+      align-items: start;
+      margin-bottom: 20px;
+    }
+    .form-grid > fieldset {
+      margin: 0;
+      padding: 15px;
+    }
+    fieldset {
+      border: 1px solid #ccc;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+    legend {
+      font-weight: bold;
+      color: #4CAF50;
+      padding: 0 8px; /* Mehr Padding */
+      font-size: 1.1em;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.95em;
+      font-weight: 500;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 12px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1em;
+      background-color: #fff; /* Sicherstellen, dass Hintergrund weiß ist */
+    }
+    /* Konsistente Button-Größe */
+    button, .button { /* Klasse für konsistentes Styling */
+      display: inline-block; /* Wichtig für Padding/Margin */
+      padding: 10px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 1em;
+      margin-right: 5px;
+      margin-bottom: 5px; /* Abstand auch nach unten */
+      text-align: center;
+      vertical-align: middle;
+    }
+    button:disabled, .button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+    button:hover:not(:disabled), .button:hover:not(:disabled) {
+      background-color: #45a049;
+    }
+
+    /* Spezifische Buttons */
+    #calculateBtn {
+        /* Keine speziellen Styles mehr nötig, nutzt .button */
+    }
+    .action-buttons button { /* Buttons in der Tabelle */
+      padding: 5px 8px;
+      font-size: 0.9em;
+      margin-right: 3px;
+    }
+    .action-buttons button.delete-btn {
+        background-color: #d9534f;
+    }
+     .action-buttons button.delete-btn:hover {
+        background-color: #c9302c;
+    }
+
+    #result {
+      margin-top: 15px;
+      margin-bottom: 15px; /* Abstand auch nach unten */
+      font-size: 1.1em;
+      font-weight: bold;
+      color: #d9534f; /* Rot für Fehler */
+      min-height: 1.2em;
+      text-align: center;
+      padding: 10px;
+      border-radius: 4px;
+      background-color: #f2dede; /* Leichter roter Hintergrund für Fehler */
+      display: none; /* Standardmäßig ausblenden */
+    }
+    #result.success { /* Klasse für Erfolgsmeldungen */
+        color: #3c763d;
+        background-color: #dff0d8;
+    }
+
+
+    /* Tabelle und deren Wrapper */
+    .table-wrapper {
+       overflow-x: auto;
+       width: 100%;
+       margin-top: 20px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      /* min-width: 800px; */ /* Mindestbreite kann helfen, muss aber getestet werden */
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+      vertical-align: middle;
+      font-size: 0.95em;
+    }
+    th {
+      background-color: #f2f2f2;
+      font-size: 0.9em;
+      white-space: nowrap; /* Header nicht umbrechen */
+    }
+    /* Summenzeile hervorheben */
+    tr.sum-row td {
+        background-color: #f9f9f9;
+        font-weight: bold;
+        border-top: 2px solid #333;
+    }
+    tr.sum-row td:nth-child(4) { /* Stückzahl zentrieren */
+       text-align: center;
+    }
+    tr.sum-row td:nth-child(6) { /* Summe Volumen rechtsbündig */
+        text-align: right;
+        padding-right: 10px; /* Etwas Abstand rechts */
+    }
+
+    /* Style für Inline-Editing Inputs */
+    .editing input, .editing select {
+      background-color: #e8f5e9 !important; /* Wichtig, um andere Styles zu überschreiben */
+      padding: 6px !important;
+      font-size: 0.95em !important;
+      margin-bottom: 2px !important; /* Weniger Abstand im Edit-Modus */
+    }
+    .editing td { /* Kein extra Padding in editierbaren Zellen */
+        padding: 5px !important;
+    }
+
+
+    /* Dropdown-Menü */
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      margin-top: 10px;
+      margin-left: 5px;
+    }
+    .dropdown > button {
+       background-color: #5bc0de; /* Blau für Aktionen-Button */
+       padding: 10px 12px; /* Konsistent mit anderen Buttons */
+    }
+    .dropdown > button:hover:not(:disabled) {
+       background-color: #31b0d5;
+    }
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #f9f9f9;
+      min-width: 220px;
+      box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+      z-index: 10;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      margin-top: 2px; /* Kleiner Abstand zum Button */
+    }
+    .dropdown-content button {
+      background-color: transparent; /* Kein Hintergrund */
+      color: #333; /* Normale Schriftfarbe */
+      border: none;
+      padding: 10px 16px;
+      text-align: left;
+      display: block;
+      width: 100%;
+      cursor: pointer;
+      font-size: 0.95em;
+      border-bottom: 1px solid #eee; /* Leichte Trennlinie */
+      border-radius: 0; /* Keine abgerundeten Ecken innen */
+      margin: 0; /* Kein Margin innen */
+    }
+     .dropdown-content button:last-child {
+        border-bottom: none;
+     }
+    .dropdown-content button:hover {
+      background-color: #eee; /* Heller Hintergrund beim Hover */
+      color: #000;
+    }
+     .dropdown-content button:disabled {
+        color: #aaa;
+        background-color: transparent;
+        cursor: not-allowed;
+     }
+    /* Dropdown anzeigen beim Hover/Fokus */
+    .dropdown:hover .dropdown-content,
+    .dropdown button:focus + .dropdown-content,
+    .dropdown .dropdown-content:hover {
+      display: block;
+    }
+
+    /* Einstellungs-Modal */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 100;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5); /* Etwas dunkler */
+    }
+    .modal-content {
+        background-color: #fefefe;
+        margin: 10% auto;
+        padding: 25px;
+        border: 1px solid #888;
+        width: 90%; /* Breiter standardmäßig */
+        max-width: 550px; /* Max-Breite leicht erhöht */
+        border-radius: 5px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+    .modal-content h2 {
+        margin-top: 0;
+        margin-bottom: 20px; /* Mehr Abstand */
+        color: #4CAF50;
+        text-align: center;
+        font-size: 1.5em;
+    }
+    .modal-content label {
+        margin-top: 15px; /* Mehr Abstand */
+    }
+    .modal-content .button-group {
+        text-align: right;
+        margin-top: 25px; /* Mehr Abstand */
+    }
+     .modal-content .button-group button {
+        margin-left: 10px;
+        padding: 8px 12px; /* Kleinere Buttons im Modal */
+        font-size: 0.95em;
+     }
+      .modal-content .button-group button#saveSettingsBtn {
+         background-color: #4CAF50; /* Grün für Speichern */
+      }
+       .modal-content .button-group button:first-child {
+         background-color: #aaa; /* Grau für Abbrechen */
+       }
+        .modal-content .button-group button:first-child:hover {
+         background-color: #999;
+        }
+
+
+    .close-btn {
+        color: #aaa;
+        float: right;
+        font-size: 30px; /* Größer */
+        font-weight: bold;
+        cursor: pointer;
+        line-height: 1; /* Verhindert extra Höhe */
+        padding: 0 5px;
+    }
+    .close-btn:hover,
+    .close-btn:focus {
+        color: black;
+        text-decoration: none;
+    }
+    #barkValueSetting {
+      /* display wird per JS gesteuert */
+    }
+
+    footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 15px;
+      border-top: 1px solid #eee;
+      font-size: 0.9em;
+      color: #666;
+    }
+
+    /* Responsive Anpassungen */
+    @media (max-width: 650px) { /* Etwas höherer Breakpoint */
+      body {
+          padding: 10px;
+          font-size: 15px; /* Kleinere Basis-Schriftgröße auf Mobile */
+      }
+       h1 {
+           font-size: 1.6em;
+       }
+      .form-grid {
+        display: block; /* Fieldsets untereinander */
+      }
+      .form-grid > fieldset {
+          margin-bottom: 15px;
+          padding: 12px;
+      }
+      /* Eingabefelder und Buttons gut bedienbar */
+      input, select, button, .button {
+        font-size: 1rem; /* Relative Einheit */
+        padding: 12px 14px; /* Einheitliches Padding */
+      }
+
+      /* Tabellen-Styling für Mobile */
+       .table-wrapper {
+           /* Styling für Wrapper bleibt gleich (overflow-x) */
+       }
+      #resultsTable {
+           /* Kein min-width setzen, Scrolling regelt das */
+      }
+      th, td {
+        font-size: 0.8em; /* Schrift in Tabelle kleiner */
+        padding: 6px 8px;   /* Weniger Padding in Zellen */
+        white-space: nowrap; /* Verhindert Zeilenumbruch IN Zellen */
+        vertical-align: middle;
+      }
+       th { /* Header dürfen umbrechen, aber auch nowrap ist oft ok */
+           /* white-space: normal; */
+       }
+       tr.sum-row td {
+           font-size: 0.85em; /* Summenzeile etwas größer */
+       }
+        tr.sum-row td:nth-child(6) { /* Summe Volumen rechtsbündig */
+            padding-right: 8px;
+        }
+
+      /* Aktionsbuttons in Tabelle */
+      .action-buttons button {
+        padding: 6px 8px;
+        font-size: 1em;
+        margin-right: 2px;
+      }
+
+      /* Modal-Anpassungen für Mobile */
+      .modal-content {
+          width: 95%;
+          margin: 5% auto;
+          padding: 20px 15px; /* Weniger horizontales Padding */
+      }
+       .modal-content h2 {
+           font-size: 1.3em;
+       }
+       .modal-content label {
+           font-size: 0.95em;
+       }
+       .modal-content .button-group button {
+           padding: 10px 12px;
+           font-size: 0.95em;
+           width: auto; /* Nicht volle Breite */
+           display: inline-block;
+       }
+        .modal-content .button-group {
+            text-align: center; /* Buttons zentrieren auf mobile */
+        }
+
+      /* Dropdown Positionierung auf Mobile */
+      .dropdown {
+          position: static; /* Dropdown normal im Fluss */
+          display: block; /* Volle Breite einnehmen */
+          margin-left: 0;
+          margin-right: 0;
+      }
+      .dropdown > button {
+         width: 100%; /* Button auf volle Breite */
+         margin-bottom: 5px;
+      }
+      .dropdown-content {
+          position: relative; /* Nicht mehr absolut */
+          width: 100%;
+          box-shadow: none;
+          border: 1px solid #ccc;
+          margin-top: 0;
+          display: none; /* Wird durch JS gesteuert oder :hover */
+      }
+       /* Manuelles Anzeigen/Verstecken per JS wäre besser für Mobile */
+      .dropdown:hover .dropdown-content,
+      .dropdown button:focus + .dropdown-content,
+      .dropdown .dropdown-content:hover {
+        /* Dieses Hover-Verhalten ist auf Touch nicht ideal, besser per Klick umschalten */
+        /* Wir lassen es vorerst drin, aber ein Klick-Toggle wäre besser */
+        display: block;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- HTML bleibt unverändert -->
+  <h1>Festmeter-Rechner Pro</h1>
+
+  <!-- Einstellungs-Modal -->
+  <div id="settingsModal" class="modal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeSettingsModal()">×</span>
+      <h2>Einstellungen</h2>
+
+      <label for="calcMethodSetting">Standard-Berechnungsformel:</label>
+      <select id="calcMethodSetting" name="calcMethodSetting" title="Globale Standard-Formel für neue Einträge">
+        <option value="huber_mid">Huber (Mittendurchmesser)</option>
+        <option value="huber_avg_ends">Huber (Mittel aus D1/D2)</option>
+        <option value="smalian">Smalian (Enddurchmesser D1/D2)</option>
+      </select>
+
+      <label for="barkTypeSetting">Rindenabzug:</label>
+      <select id="barkTypeSetting" name="barkTypeSetting" title="Art des Rindenabzugs">
+        <option value="none">Kein Abzug</option>
+        <option value="%">% vom Durchmesser</option>
+        <option value="cm">cm vom Durchmesser</option>
+      </select>
+
+      <label for="barkValueSetting" id="barkValueLabel" style="display: none;">Wert für Rindenabzug:</label>
+      <input type="number" id="barkValueSetting" name="barkValueSetting" step="0.1" min="0" placeholder="z.B. 1,5 oder 2" title="Wert für % oder cm Abzug" style="display: none;">
+
+      <div class="button-group">
+        <button type="button" onclick="closeSettingsModal()">Abbrechen</button>
+        <button type="button" id="saveSettingsBtn">Speichern & Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Formular -->
+  <form id="fmForm" class="form-grid" onsubmit="return false;">
+    <fieldset>
+      <legend>Projektdaten & Details</legend>
+      <label for="projectName">Projektname:</label>
+      <input type="text" id="projectName" name="projectName" placeholder="z.B. Polter Waldweg_1" title="Geben Sie den Namen des Projekts/Polters ein" aria-label="Projektname">
+
+      <label for="holzart">Holzart:</label>
+      <input type="text" id="holzart" name="holzart" list="holzartList" placeholder="z.B. Fichte" title="Holzart eingeben oder auswählen" aria-label="Holzart">
+      <datalist id="holzartList">
+        <option value="Fichte"></option> <option value="Tanne"></option> <option value="Kiefer"></option>
+        <option value="Lärche"></option> <option value="Douglasie"></option> <option value="Buche"></option>
+        <option value="Eiche"></option> <option value="Esche"></option> <option value="Ahorn"></option>
+        <option value="Birke"></option> <option value="Erle"></option>
+      </datalist>
+
+      <label for="qualitaet">Qualität:</label>
+      <input type="text" id="qualitaet" name="qualitaet" list="qualitaetList" placeholder="z.B. B/C, Industrieholz" title="Qualitätsklasse eingeben oder auswählen" aria-label="Qualitätsklasse">
+       <datalist id="qualitaetList">
+        <option value="A"></option> <option value="B"></option> <option value="C"></option> <option value="D"></option>
+        <option value="B/C"></option> <option value="C/D"></option> <option value="Abschnitt"></option>
+        <option value="Industrieholz"></option> <option value="Papierholz"></option> <option value="Brennholz"></option>
+      </datalist>
+
+    </fieldset>
+
+    <fieldset>
+      <legend>Maße eingeben</legend>
+      <label for="method">Messmethode wählen:</label>
+      <select id="method" name="method" title="Wählen Sie, welche Durchmesser gemessen wurden" aria-label="Messmethode auswählen">
+        <option value="huber_mid">Mittendurchmesser (Huber)</option>
+        <option value="huber_avg_ends">Enddurchmesser D1/D2 (für Huber)</option>
+        <option value="smalian">Enddurchmesser D1/D2 (für Smalian)</option>
+      </select>
+
+      <!-- Eingabefelder, dynamisch angezeigt -->
+      <div id="standardInputs"> <!-- Angezeigt für huber_mid -->
+        <label for="length">Länge (m):</label>
+        <input type="number" id="length" name="length" step="0.01" min="0.01" placeholder="z.B. 4,00" title="Länge in Metern" aria-label="Länge in Metern">
+        <label for="diameter">Mittendurchm. (cm):</label>
+        <input type="number" id="diameter" name="diameter" step="0.1" min="0.1" placeholder="z.B. 35,5" title="Mittendurchmesser in Zentimetern" aria-label="Mittendurchmesser in Zentimetern">
+      </div>
+      <div id="alternativeInputs" style="display: none;"> <!-- Angezeigt für huber_avg_ends & smalian -->
+        <label for="lengthAlt">Länge (m):</label>
+        <input type="number" id="lengthAlt" name="lengthAlt" step="0.01" min="0.01" placeholder="z.B. 5,10" title="Länge in Metern" aria-label="Länge in Metern">
+        <label for="d1">D1 (cm):</label>
+        <input type="number" id="d1" name="d1" step="0.1" min="0.1" placeholder="z.B. 32,0" title="Kleinerer Enddurchmesser (cm)" aria-label="Kleinerer Enddurchmesser in Zentimetern">
+        <label for="d2">D2 (cm):</label>
+        <input type="number" id="d2" name="d2" step="0.1" min="0.1" placeholder="z.B. 38,5" title="Größerer Enddurchmesser (cm)" aria-label="Größerer Enddurchmesser in Zentimetern">
+      </div>
+    </fieldset>
+  </form>
+
+  <!-- Aktionsbuttons -->
+  <div style="margin-top: 5px; margin-bottom: 15px;"> <!-- Abstände angepasst -->
+    <button type="button" id="calculateBtn" class="button">Position hinzufügen</button>
+    <!-- Dropdown-Menü für Aktionen -->
+    <div class="dropdown">
+      <button type="button" id="dropdownBtn" class="button">Aktionen ▼</button>
+      <div class="dropdown-content">
+        <button type="button" id="settingsBtn" onclick="openSettingsModal()">Einstellungen ändern</button>
+        <button type="button" id="exportExcelBtn" disabled>Export als Excel</button>
+        <button type="button" id="exportPdfBtn" disabled>Export als PDF</button>
+        <button type="button" id="clearDataBtn">Alle Daten löschen</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Fehlermeldungen oder Hinweise -->
+  <div id="result" aria-live="polite"></div>
+
+  <!-- Ergebnistabelle im Wrapper -->
+   <div class="table-wrapper">
+     <table id="resultsTable" style="display: none;">
+       <thead>
+         <tr>
+           <th>Projekt</th> <!-- Kürzer -->
+           <th>Holzart</th>
+           <th>Qualität</th>
+           <th>Länge</th> <!-- Einheit (m) ist klar -->
+           <th>D (cm)</th>
+           <th>Vol (Fm³)</th>
+           <th>Aktionen</th>
+         </tr>
+       </thead>
+       <tbody></tbody>
+     </table>
+   </div>
+
+  <footer>© Kofler e. U. | Version 3.2 Pro</footer> <!-- Version erhöht -->
+
+  <!-- Externe Bibliotheken -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+
+  <script>
+    'use strict';
+    document.addEventListener('DOMContentLoaded', () => {
+      // --- Globale Variablen und Konstanten ---
+      const methodSelect = document.getElementById('method');
+      const standardInputs = document.getElementById('standardInputs');
+      const alternativeInputs = document.getElementById('alternativeInputs');
+      const calculateBtn = document.getElementById('calculateBtn');
+      const exportExcelBtn = document.getElementById('exportExcelBtn');
+      const exportPdfBtn = document.getElementById('exportPdfBtn');
+      const clearDataBtn = document.getElementById('clearDataBtn');
+      const resultDiv = document.getElementById('result');
+      const resultsTable = document.getElementById('resultsTable');
+      const resultsTbody = resultsTable.querySelector('tbody');
+      const settingsModal = document.getElementById('settingsModal');
+      const saveSettingsBtn = document.getElementById('saveSettingsBtn');
+      const barkTypeSelect = document.getElementById('barkTypeSetting');
+      const barkValueInput = document.getElementById('barkValueSetting');
+      const barkValueLabel = document.getElementById('barkValueLabel');
+
+      // Keys für Local Storage mit neuer Version
+      const CALC_DATA_KEY = 'festmeterCalculations_v3_2';
+      const CONFIG_KEY = 'festmeterConfig_v3_2';
+
+      let calculations = []; // Array für Berechnungen
+      let config = { // Standard-Konfiguration
+          calculationMethod: 'huber_mid',
+          barkDeductionType: 'none', // '%', 'cm'
+          barkDeductionValue: 0
+      };
+
+      // --- Hilfsfunktionen ---
+      function toThreeDecimals(value) {
+          if (typeof value !== 'number' || isNaN(value)) return '-';
+          const truncated = Math.floor(value * 1000) / 1000;
+          return truncated.toFixed(3).replace('.', ',');
+      }
+
+      function toOneDecimal(value) {
+        if (typeof value !== 'number' || isNaN(value)) return '-';
+        return value.toFixed(1).replace('.', ',');
+      }
+
+      function showMessage(message, isSuccess = false) {
+          resultDiv.textContent = message;
+          resultDiv.className = isSuccess ? 'success' : '';
+          resultDiv.style.display = 'block';
+      }
+
+      function clearMessage() {
+          resultDiv.textContent = '';
+          resultDiv.style.display = 'none';
+      }
+
+      function parseFloatInput(value) {
+          if (typeof value !== 'string') value = String(value);
+          return parseFloat(value.replace(',', '.'));
+      }
+
+
+      // --- Konfigurationsmanagement ---
+      function loadConfig() {
+        const storedConfig = localStorage.getItem(CONFIG_KEY);
+        if (storedConfig) {
+          try {
+             config = JSON.parse(storedConfig);
+             config.calculationMethod = config.calculationMethod || 'huber_mid';
+             config.barkDeductionType = config.barkDeductionType || 'none';
+             config.barkDeductionValue = parseFloatInput(config.barkDeductionValue) || 0;
+          } catch(e) {
+             console.error("Fehler beim Laden der Konfiguration:", e);
+          }
+        }
+        document.getElementById('calcMethodSetting').value = config.calculationMethod;
+        barkTypeSelect.value = config.barkDeductionType;
+        barkValueInput.value = String(config.barkDeductionValue).replace('.', ',');
+        toggleBarkValueInput();
+        methodSelect.value = config.calculationMethod;
+        toggleInputFields();
+      }
+
+      function saveConfig() {
+        config.calculationMethod = document.getElementById('calcMethodSetting').value;
+        config.barkDeductionType = barkTypeSelect.value;
+        config.barkDeductionValue = parseFloatInput(barkValueInput.value) || 0;
+        localStorage.setItem(CONFIG_KEY, JSON.stringify(config));
+        methodSelect.value = config.calculationMethod;
+        toggleInputFields();
+        console.log("Konfiguration gespeichert:", config);
+        showMessage("Einstellungen gespeichert.", true);
+        setTimeout(clearMessage, 3000);
+      }
+
+      function toggleBarkValueInput() {
+         const show = config.barkDeductionType === '%' || config.barkDeductionType === 'cm';
+         barkValueInput.style.display = show ? 'block' : 'none';
+         barkValueLabel.style.display = show ? 'block' : 'none';
+         if (!show) {
+            barkValueInput.value = '0';
+         }
+      }
+
+      barkTypeSelect.addEventListener('change', () => {
+          const selectedType = barkTypeSelect.value;
+          const show = selectedType === '%' || selectedType === 'cm';
+          barkValueInput.style.display = show ? 'block' : 'none';
+          barkValueLabel.style.display = show ? 'block' : 'none';
+          if (!show) {
+             barkValueInput.value = '0';
+          }
+      });
+
+      window.openSettingsModal = () => {
+          loadConfig();
+          settingsModal.style.display = 'block';
+      };
+      window.closeSettingsModal = () => {
+          settingsModal.style.display = 'none';
+      };
+      saveSettingsBtn.addEventListener('click', () => {
+          saveConfig();
+          closeSettingsModal();
+      });
+      window.onclick = (event) => {
+        if (event.target == settingsModal) {
+          closeSettingsModal();
+        }
+      }
+
+      // --- Kernberechnung ---
+       function applyBarkDeduction(diameter, barkType, barkValue) {
+          if (barkType === 'none' || barkValue <= 0 || typeof diameter !== 'number' || isNaN(diameter) || diameter <= 0) {
+              return diameter;
+          }
+          const value = barkValue;
+          if (barkType === '%') {
+              return Math.max(0, diameter * (1 - value / 100));
+          }
+          if (barkType === 'cm') {
+              return Math.max(0, diameter - value);
+          }
+          return diameter;
+      }
+
+      function calculateVolume(length, d_mid, d1, d2, method, barkType, barkValue) {
+          if (isNaN(length) || length <= 0) return { volume: 0, displayDiameter: '-' };
+          let effective_d_mid = null, effective_d1 = null, effective_d2 = null;
+          let volume = 0;
+          let r, r1, r2, area1, area2;
+          let displayDiameter = '-';
+
+          switch (method) {
+              case 'huber_mid':
+                  if (isNaN(d_mid) || d_mid <= 0) return { volume: 0, displayDiameter: '-' };
+                  effective_d_mid = applyBarkDeduction(d_mid, barkType, barkValue);
+                  r = (effective_d_mid / 2) / 100; // m
+                  volume = Math.PI * r * r * length;
+                  displayDiameter = toOneDecimal(effective_d_mid);
+                  break;
+              case 'huber_avg_ends':
+                  if (isNaN(d1) || d1 <= 0 || isNaN(d2) || d2 <= 0) return { volume: 0, displayDiameter: '-' };
+                  effective_d1 = applyBarkDeduction(d1, barkType, barkValue);
+                  effective_d2 = applyBarkDeduction(d2, barkType, barkValue);
+                  const avgDiameter = (effective_d1 + effective_d2) / 2;
+                  r = (avgDiameter / 2) / 100; // m
+                  volume = Math.PI * r * r * length;
+                  displayDiameter = `${toOneDecimal(effective_d1)} / ${toOneDecimal(effective_d2)}`;
+                  break;
+              case 'smalian':
+                  if (isNaN(d1) || d1 <= 0 || isNaN(d2) || d2 <= 0) return { volume: 0, displayDiameter: '-' };
+                  effective_d1 = applyBarkDeduction(d1, barkType, barkValue);
+                  effective_d2 = applyBarkDeduction(d2, barkType, barkValue);
+                  r1 = (effective_d1 / 2) / 100; // m
+                  r2 = (effective_d2 / 2) / 100; // m
+                  area1 = Math.PI * r1 * r1;
+                  area2 = Math.PI * r2 * r2;
+                  volume = ((area1 + area2) / 2) * length;
+                   displayDiameter = `${toOneDecimal(effective_d1)} / ${toOneDecimal(effective_d2)}`;
+                  break;
+              default:
+                  console.error("Unbekannte Berechnungsmethode:", method);
+                  return { volume: 0, displayDiameter: '-' };
+          }
+          return { volume: volume, displayDiameter: displayDiameter };
+      }
+
+      // --- Datenmanagement ---
+      function loadData() {
+        const storedData = localStorage.getItem(CALC_DATA_KEY);
+        if (storedData) {
+            try {
+                calculations = JSON.parse(storedData);
+                 calculations = calculations.filter(item => item && typeof item.projectName === 'string' && typeof item.length === 'number');
+            } catch(e) {
+                console.error("Fehler beim Laden der Berechnungen:", e);
+                calculations = [];
+                localStorage.removeItem(CALC_DATA_KEY);
+                showMessage("Gespeicherte Daten konnten nicht geladen werden und wurden zurückgesetzt.");
+            }
+        }
+        updateTable();
+      }
+
+      function saveData() {
+         try {
+             localStorage.setItem(CALC_DATA_KEY, JSON.stringify(calculations));
+         } catch (e) {
+             console.error("Fehler beim Speichern der Daten:", e);
+             showMessage("Daten konnten nicht gespeichert werden! Möglicherweise ist der Speicherplatz voll.");
+         }
+      }
+
+      // --- Tabellen-Aktualisierung ---
+      function updateTable() {
+        resultsTbody.innerHTML = '';
+        const grouped = {};
+        calculations.forEach((calc, index) => {
+          const pName = calc.projectName || 'Unbekanntes Projekt';
+          if (!grouped[pName]) { grouped[pName] = { items: [], sumVolume: 0, count: 0 }; }
+          grouped[pName].items.push({ calc, index });
+          grouped[pName].sumVolume += calc.volume || 0;
+          grouped[pName].count++;
+        });
+
+        const sortedProjectNames = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+
+        sortedProjectNames.forEach(pName => {
+            const group = grouped[pName];
+            group.items.forEach(({ calc, index }) => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-index', index);
+                const { displayDiameter: currentDisplayDiameter } = calculateVolume(
+                    calc.length, calc.diameter_mid, calc.diameter_d1, calc.diameter_d2,
+                    calc.calculationMethodUsed, config.barkDeductionType, config.barkDeductionValue
+                );
+                row.innerHTML = `
+                    <td>${calc.projectName || '-'}</td>
+                    <td>${calc.holzart || '-'}</td>
+                    <td>${calc.qualitaet || '-'}</td>
+                    <td>${toThreeDecimals(calc.length)}</td>
+                    <td>${currentDisplayDiameter}</td>
+                    <td>${toThreeDecimals(calc.volume)}</td>
+                    <td class="action-buttons">
+                        <button class="edit-btn" data-index="${index}" title="Bearbeiten">✏️</button>
+                        <button class="delete-btn" data-index="${index}" title="Löschen">🗑️</button>
+                    </td>
+                `;
+                resultsTbody.appendChild(row);
+            });
+
+            const sumRow = document.createElement('tr');
+            sumRow.className = "sum-row";
+            sumRow.innerHTML = `
+                <td colspan="3">Summe ${pName}</td>
+                <td>${group.count} Stk.</td>
+                <td></td>
+                <td>${toThreeDecimals(group.sumVolume)}</td>
+                <td></td>
+            `;
+            resultsTbody.appendChild(sumRow);
+        });
+
+        resultsTable.style.display = calculations.length > 0 ? 'table' : 'none';
+        exportExcelBtn.disabled = calculations.length === 0;
+        exportPdfBtn.disabled = calculations.length === 0;
+        attachActionListeners();
+      }
+
+      // --- Inline Editing & Löschen ---
+       function attachActionListeners() {
+            resultsTbody.querySelectorAll('.edit-btn').forEach(btn => {
+                const newBtn = btn.cloneNode(true);
+                btn.parentNode.replaceChild(newBtn, btn);
+                newBtn.addEventListener('click', (e) => { editRow(parseInt(e.target.closest('button').getAttribute('data-index'))); });
+            });
+            resultsTbody.querySelectorAll('.delete-btn').forEach(btn => {
+                 const newBtn = btn.cloneNode(true);
+                 btn.parentNode.replaceChild(newBtn, btn);
+                 newBtn.addEventListener('click', (e) => { deleteRow(parseInt(e.target.closest('button').getAttribute('data-index'))); });
+            });
+        }
+
+      function editRow(index) {
+          resultsTbody.querySelectorAll('tr[data-index].editing').forEach(r => {
+              if (r.getAttribute('data-index') !== String(index)) { cancelEdit(parseInt(r.getAttribute('data-index'))); }
+          });
+          const row = resultsTbody.querySelector(`tr[data-index="${index}"]`);
+          if (!row || row.classList.contains('editing')) return;
+          const calc = calculations[index];
+          row.classList.add('editing');
+           let diameterInputs = '';
+           if (calc.calculationMethodUsed === 'huber_mid') {
+               diameterInputs = `<input type="number" class="edit-diameter" value="${String(calc.diameter_mid || '').replace('.', ',')}" step="0.1" min="0.1">`;
+           } else {
+               diameterInputs = `D1: <input type="number" class="edit-d1" value="${String(calc.diameter_d1 || '').replace('.', ',')}" step="0.1" min="0.1" style="width: 45%; display: inline-block; margin-right: 2%;"> / D2: <input type="number" class="edit-d2" value="${String(calc.diameter_d2 || '').replace('.', ',')}" step="0.1" min="0.1" style="width: 45%; display: inline-block;">`;
+           }
+          row.innerHTML = `
+              <td><input type="text" class="edit-project" value="${calc.projectName || ''}"></td>
+              <td><input type="text" class="edit-holzart" value="${calc.holzart || ''}" list="holzartList"></td>
+              <td><input type="text" class="edit-qualitaet" value="${calc.qualitaet || ''}" list="qualitaetList"></td>
+              <td><input type="number" class="edit-length" value="${String(calc.length || '').replace('.', ',')}" step="0.01" min="0.01"></td>
+              <td>${diameterInputs}</td>
+              <td>Wird neu berechnet</td>
+              <td class="action-buttons">
+                  <button class="save-btn" data-index="${index}">✔️ Speichern</button>
+                  <button class="cancel-btn" data-index="${index}">❌ Abbrechen</button>
+              </td>
+          `;
+          row.querySelector('.save-btn').addEventListener('click', () => saveEdit(index, row));
+          row.querySelector('.cancel-btn').addEventListener('click', () => cancelEdit(index));
+      }
+
+       function saveEdit(index, row) {
+          const originalCalc = calculations[index];
+          const methodUsed = originalCalc.calculationMethodUsed;
+          const projectName = row.querySelector('.edit-project').value.trim();
+          const holzart = row.querySelector('.edit-holzart').value.trim();
+          const qualitaet = row.querySelector('.edit-qualitaet').value.trim();
+          const length = parseFloatInput(row.querySelector('.edit-length').value);
+          let d_mid = null, d1 = null, d2 = null;
+          let isValid = true;
+          if (methodUsed === 'huber_mid') {
+              d_mid = parseFloatInput(row.querySelector('.edit-diameter').value);
+              if (isNaN(d_mid) || d_mid <= 0) isValid = false;
+          } else {
+              d1 = parseFloatInput(row.querySelector('.edit-d1').value);
+              d2 = parseFloatInput(row.querySelector('.edit-d2').value);
+              if (isNaN(d1) || d1 <= 0 || isNaN(d2) || d2 <= 0) isValid = false;
+          }
+          if (projectName === '' || isNaN(length) || length <= 0 || !isValid) {
+              showMessage("Fehler: Bitte alle Felder korrekt ausfüllen (positive Zahlen für Maße)."); return;
+          }
+          const { volume } = calculateVolume(length, d_mid, d1, d2, methodUsed, config.barkDeductionType, config.barkDeductionValue);
+          if (volume <= 0) { showMessage('Fehler: Volumen ist 0 oder negativ (prüfen Sie Eingaben und Rindenabzug).'); return; }
+          calculations[index] = { ...originalCalc, projectName, holzart, qualitaet, length, diameter_mid: d_mid, diameter_d1: d1, diameter_d2: d2, volume, calculationMethodUsed: methodUsed };
+          saveData(); clearMessage(); updateTable();
+      }
+
+      function cancelEdit(index = -1) {
+          clearMessage();
+          if (index >= 0) {
+              const row = resultsTbody.querySelector(`tr[data-index="${index}"]`);
+              if (row && row.classList.contains('editing')) { updateTableRow(index); }
+          } else { updateTable(); }
+      }
+
+       function updateTableRow(index) {
+           const row = resultsTbody.querySelector(`tr[data-index="${index}"]`);
+           if (!row) return; const calc = calculations[index]; if (!calc) return;
+           const { displayDiameter: currentDisplayDiameter } = calculateVolume( calc.length, calc.diameter_mid, calc.diameter_d1, calc.diameter_d2, calc.calculationMethodUsed, config.barkDeductionType, config.barkDeductionValue );
+           row.classList.remove('editing');
+           row.innerHTML = `
+               <td>${calc.projectName || '-'}</td><td>${calc.holzart || '-'}</td><td>${calc.qualitaet || '-'}</td>
+               <td>${toThreeDecimals(calc.length)}</td><td>${currentDisplayDiameter}</td><td>${toThreeDecimals(calc.volume)}</td>
+               <td class="action-buttons"><button class="edit-btn" data-index="${index}" title="Bearbeiten">✏️</button><button class="delete-btn" data-index="${index}" title="Löschen">🗑️</button></td>`;
+           attachActionListenersForRow(row);
+       }
+
+       function attachActionListenersForRow(row) {
+           row.querySelector('.edit-btn')?.addEventListener('click', (e) => { editRow(parseInt(e.target.closest('button').getAttribute('data-index'))); });
+           row.querySelector('.delete-btn')?.addEventListener('click', (e) => { deleteRow(parseInt(e.target.closest('button').getAttribute('data-index'))); });
+       }
+
+       function deleteRow(index) {
+          const calc = calculations[index]; if (!calc) return;
+          if (confirm(`Soll der Eintrag wirklich gelöscht werden?\nProjekt: ${calc.projectName}\nLänge: ${toThreeDecimals(calc.length)}, Vol: ${toThreeDecimals(calc.volume)}`)) {
+              calculations.splice(index, 1); saveData(); clearMessage(); updateTable();
+              showMessage("Eintrag gelöscht.", true); setTimeout(clearMessage, 3000);
+          }
+      }
+
+      // --- Eingabefelder zurücksetzen (LÄNGE BLEIBT ERHALTEN) ---
+      function resetForm() {
+        // Länge nicht zurücksetzen:
+        // document.getElementById('length').value = '';
+        // document.getElementById('lengthAlt').value = '';
+
+        // Nur Durchmesser-Felder zurücksetzen
+        document.getElementById('diameter').value = '';
+        document.getElementById('d1').value = '';
+        document.getElementById('d2').value = '';
+
+        // Fokus auf das erste relevante *Durchmesser*-Feld setzen
+         const currentMethod = methodSelect.value;
+         if (currentMethod === 'huber_mid') {
+            document.getElementById('diameter').focus(); // Fokus auf Durchmesser
+         } else {
+            document.getElementById('d1').focus(); // Fokus auf D1
+         }
+      }
+
+      // --- UI Logik ---
+      function toggleInputFields() {
+          const selectedMethod = methodSelect.value;
+          standardInputs.style.display = selectedMethod === 'huber_mid' ? 'block' : 'none';
+          alternativeInputs.style.display = (selectedMethod === 'huber_avg_ends' || selectedMethod === 'smalian') ? 'block' : 'none';
+      }
+      methodSelect.addEventListener('change', toggleInputFields);
+
+      // --- Position hinzufügen ---
+      calculateBtn.addEventListener('click', () => {
+        clearMessage();
+        const projectName = document.getElementById('projectName').value.trim();
+        const holzart = document.getElementById('holzart').value.trim();
+        const qualitaet = document.getElementById('qualitaet').value.trim();
+        const selectedMethod = methodSelect.value;
+
+        if (projectName === '') { showMessage('Fehler: Bitte geben Sie einen Projektnamen ein.'); document.getElementById('projectName').focus(); return; }
+
+        let length, d_mid = null, d1 = null, d2 = null;
+        let isValid = true;
+
+         try {
+             if (selectedMethod === 'huber_mid') {
+                 length = parseFloatInput(document.getElementById('length').value);
+                 d_mid = parseFloatInput(document.getElementById('diameter').value);
+                 if (isNaN(length) || length <= 0 || isNaN(d_mid) || d_mid <= 0) isValid = false;
+             } else {
+                 length = parseFloatInput(document.getElementById('lengthAlt').value);
+                 d1 = parseFloatInput(document.getElementById('d1').value);
+                 d2 = parseFloatInput(document.getElementById('d2').value);
+                 if (isNaN(length) || length <= 0 || isNaN(d1) || d1 <= 0 || isNaN(d2) || d2 <= 0) isValid = false;
+             }
+         } catch(e) { isValid = false; console.error("Fehler beim Parsen:", e); showMessage('Fehler: Ungültige Zahleneingabe.'); }
+
+        if (!isValid) { showMessage('Fehler: Bitte geben Sie positive Zahlen für Länge und Durchmesser ein.'); return; }
+
+        const { volume } = calculateVolume(length, d_mid, d1, d2, selectedMethod, config.barkDeductionType, config.barkDeductionValue);
+        if (volume <= 0) { showMessage('Fehler: Volumen ist 0 oder negativ.'); return; }
+
+        const calcData = { projectName, holzart, qualitaet, length, diameter_mid: d_mid, diameter_d1: d1, diameter_d2: d2, calculationMethodUsed: selectedMethod, barkInfo: `${config.barkDeductionValue}${config.barkDeductionType === '%' ? '%' : (config.barkDeductionType === 'cm' ? 'cm' : '')}`, volume, timestamp: new Date().toISOString() };
+        calculations.push(calcData); saveData(); updateTable(); resetForm();
+        showMessage("Position hinzugefügt.", true); setTimeout(clearMessage, 2000);
+      });
+
+      // --- Export-Funktionen (unverändert) ---
+      exportExcelBtn.addEventListener('click', () => {
+        if (calculations.length === 0){ showMessage("Keine Daten zum Exportieren vorhanden."); return; }
+        try {
+            const grouped = {}; calculations.forEach(calc => { const pName = calc.projectName || 'Unbekannt'; if (!grouped[pName]) { grouped[pName] = { items: [], sumVolume: 0, count: 0 }; } grouped[pName].items.push(calc); grouped[pName].sumVolume += calc.volume || 0; grouped[pName].count++; });
+            const data = [[ 'Projektname', 'Holzart', 'Qualität', 'Länge (m)', 'D_Mitte Roh (cm)', 'D1 Roh (cm)', 'D2 Roh (cm)', 'Methode', 'Rindenabzug (bei Erfassung)', 'Volumen (Fm³)', 'Zeitstempel' ]];
+            const sortedProjectNames = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+            sortedProjectNames.forEach(pName => {
+                const group = grouped[pName];
+                group.items.forEach(calc => { data.push([ calc.projectName || '-', calc.holzart || '-', calc.qualitaet || '-', calc.length ? calc.length.toFixed(3) : '-', calc.diameter_mid ? calc.diameter_mid.toFixed(1) : '-', calc.diameter_d1 ? calc.diameter_d1.toFixed(1) : '-', calc.diameter_d2 ? calc.diameter_d2.toFixed(1) : '-', calc.calculationMethodUsed || '-', calc.barkInfo || 'Kein', calc.volume ? calc.volume.toFixed(3) : '-', calc.timestamp ? new Date(calc.timestamp).toLocaleString('de-DE') : '-' ]); });
+                 data.push([ `Summe ${pName}`, '', '', `${group.count} Stk.`, '', '', '', '', '', group.sumVolume.toFixed(3), '' ]); data.push([]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(data); ws['!cols'] = [ { wch: 25 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 15 }, { wch: 12 }, { wch: 12 }, { wch: 15 }, { wch: 20 }, { wch: 12 }, { wch: 20 } ];
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'FestmeterDaten'); const today = new Date().toISOString().slice(0, 10); XLSX.writeFile(wb, `Festmeter_${today}.xlsx`);
+            showMessage("Excel-Datei erfolgreich erstellt.", true); setTimeout(clearMessage, 3000);
+        } catch (error) { console.error("Fehler beim Excel-Export:", error); showMessage(`Fehler beim Excel-Export: ${error.message}`); }
+      });
+
+       exportPdfBtn.addEventListener('click', () => {
+        if (calculations.length === 0) { showMessage("Keine Daten zum Exportieren vorhanden."); return; }
+        try {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            if (typeof doc.autoTable !== 'function') { console.error("jsPDF AutoTable Plugin fehlt!"); showMessage("Fehler PDF: AutoTable-Plugin fehlt."); return; }
+            const tableColumns = [ { header: 'Projekt', dataKey: 'projectName' }, { header: 'Holzart', dataKey: 'holzart' }, { header: 'Qualität', dataKey: 'qualitaet' }, { header: 'Länge', dataKey: 'length' }, { header: 'D (cm)', dataKey: 'displayDiameter' }, { header: 'Vol (Fm³)', dataKey: 'volume' }, ];
+            let tableRows = []; let startY = 10;
+            doc.setFontSize(16); doc.text('Festmeter Aufstellung', 14, startY); startY += 8; doc.setFontSize(10); doc.text(`Exportiert am: ${new Date().toLocaleString('de-DE')}`, 14, startY); startY += 6;
+            const currentBarkSetting = `${config.barkDeductionValue}${config.barkDeductionType === '%' ? '%' : (config.barkDeductionType === 'cm' ? 'cm' : '')}`; doc.text(`Rindenabzug (aktuell): ${config.barkDeductionType === 'none' ? 'Kein' : currentBarkSetting}`, 14, startY); startY += 10;
+            const grouped = {}; calculations.forEach(calc => { const pName = calc.projectName || 'Unbekannt'; if (!grouped[pName]) { grouped[pName] = { items: [], sumVolume: 0, count: 0 }; } grouped[pName].items.push(calc); grouped[pName].sumVolume += calc.volume || 0; grouped[pName].count++; });
+            const sortedProjectNames = Object.keys(grouped).sort((a, b) => a.localeCompare(b, 'de', { sensitivity: 'base' }));
+            sortedProjectNames.forEach((pName, index) => {
+                const group = grouped[pName]; tableRows = group.items.map(calc => { const { displayDiameter } = calculateVolume( calc.length, calc.diameter_mid, calc.diameter_d1, calc.diameter_d2, calc.calculationMethodUsed, config.barkDeductionType, config.barkDeductionValue ); return { projectName: calc.projectName || '-', holzart: calc.holzart || '-', qualitaet: calc.qualitaet || '-', length: toThreeDecimals(calc.length), displayDiameter: displayDiameter, volume: toThreeDecimals(calc.volume), }; });
+                if (startY > doc.internal.pageSize.getHeight() - 40) { doc.addPage(); startY = 20; }
+                doc.setFontSize(12); doc.setFont(undefined, 'bold'); doc.text(`Projekt: ${pName}`, 14, startY); doc.setFont(undefined, 'normal'); startY += 7;
+                doc.autoTable({ startY: startY, columns: tableColumns, body: tableRows, theme: 'grid', headStyles: { fillColor: [76, 175, 80], textColor: [255, 255, 255], fontSize: 9, halign: 'center' }, styles: { fontSize: 8, cellPadding: 1.5, valign: 'middle' }, columnStyles: { projectName: { cellWidth: 'wrap'}, holzart: { cellWidth: 18 }, qualitaet: { cellWidth: 18 }, length: { halign: 'right', cellWidth: 15 }, displayDiameter: { halign: 'center', cellWidth: 20 }, volume: { halign: 'right', cellWidth: 18 }, }, margin: { top: 10, bottom: 10, left: 14, right: 14 }, didDrawPage: function (data) {} });
+                startY = doc.lastAutoTable.finalY;
+                if (startY > doc.internal.pageSize.getHeight() - 20) { doc.addPage(); startY = 20; }
+                 doc.setFontSize(9); doc.setFont(undefined, 'bold'); const sumText = `Summe ${pName}: ${group.count} Stück / Gesamtvolumen: ${toThreeDecimals(group.sumVolume)} Fm³`; doc.text(sumText, 14, startY + 8); doc.setFont(undefined, 'normal'); startY += 18;
+            });
+            const today = new Date().toISOString().slice(0, 10); console.log("Versuche PDF zu speichern..."); doc.save(`Festmeter_${today}.pdf`);
+            showMessage("PDF-Datei erfolgreich erstellt.", true); setTimeout(clearMessage, 3000);
+        } catch (error) { console.error("Fehler beim Erstellen des PDFs:", error); showMessage(`Ein Fehler ist beim Erstellen des PDFs aufgetreten: ${error.message}`); }
+      });
+
+      // --- Alle Daten löschen ---
+      clearDataBtn.addEventListener('click', () => {
+        clearMessage();
+        if (confirm('WARNUNG: Alle gespeicherten Berechnungen werden unwiderruflich gelöscht. Fortfahren?')) {
+          calculations = []; localStorage.removeItem(CALC_DATA_KEY); updateTable();
+          showMessage('Alle Daten wurden gelöscht.', true); setTimeout(clearMessage, 3000);
+        }
+      });
+
+      // --- Initialisierung ---
+      loadConfig();
+      loadData();
+    });
+  </script>
+</body>
+</html>
+  </template>
+
+  <template id="tmpl-balken">
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Balken-Stamm Pro 2.6 – Volumen & Eignung</title>
+  <style>
+    :root {
+      --clr-bg: #f4f4f4;
+      --clr-surface: #ffffff;
+      --clr-on-surface: #333;
+      --clr-primary: #28a745;
+      --clr-primary-hover: #218838;
+      --clr-danger: #dc3545;
+      --clr-danger-hover: #c82333;
+      --clr-warning: #ffc107;
+      --clr-border: #ced4da;
+    }
+    body.dark-mode {
+      --clr-bg: #343a40;
+      --clr-surface: #495057;
+      --clr-on-surface: #f8f9fa;
+      --clr-primary: #2ecc71;
+      --clr-primary-hover: #27ae60;
+      --clr-danger: #e74c3c;
+      --clr-danger-hover: #c0392b;
+      --clr-warning: #ffca2c;
+      --clr-border: #6c757d;
+    }
+    * { box-sizing: border-box; }
+    html,body { height: 100%; margin: 0; }
+    body {
+      font-family: system-ui, Roboto, sans-serif;
+      line-height: 1.45;
+      background: var(--clr-bg);
+      color: var(--clr-on-surface);
+      display: flex;
+      flex-direction: column;
+      padding: 1rem;
+      -webkit-font-smoothing: antialiased;
+    }
+    main {
+      width: 100%; max-width: 1024px; margin: auto;
+      background: var(--clr-surface);
+      box-shadow: 0 3px 8px rgba(0,0,0,.08);
+      border-radius: .75rem;
+      padding: 1.5rem;
+    }
+    h1,h2 { text-align: center; line-height:1.2; margin:0 0 1rem; }
+
+    .grid{display:grid;gap:1rem;}
+    @media(min-width:640px){.grid-cols-2{grid-template-columns:repeat(2,1fr);}}
+
+    label{font-weight:600;display:block;margin-bottom:.25rem;}
+    input[type="number"],select{
+      width:100%;padding:.65rem .75rem;font-size:1rem;
+      border:1px solid var(--clr-border);border-radius:.5rem;background:var(--clr-surface);color:inherit;
+    }
+    input:invalid{border-color:var(--clr-danger);}
+
+    button{cursor:pointer;border:none;border-radius:.5rem;padding:.75rem 1rem;font-size:1rem;font-weight:600;transition:background-color .2s;}
+    .btn-primary{background:var(--clr-primary);color:#fff;}
+    .btn-primary:hover{background:var(--clr-primary-hover);}
+    .btn-neutral{background:transparent;color:var(--clr-on-surface);}
+    .btn-danger{background:var(--clr-danger);color:#fff;}
+    .btn-danger:hover{background:var(--clr-danger-hover);}
+
+    .alert{padding:.75rem 1rem;border-radius:.5rem;}
+    .alert-warning{background:rgba(255,193,7,.25);border:1px solid var(--clr-warning);color:#856404;}
+    body.dark-mode .alert-warning{color:#212529;}
+
+    [hidden]{display:none !important;}
+
+    #diagram{display:block;max-width:90vw;margin:1rem auto;}
+
+    .viz-info{margin-top:.5rem;line-height:1.35;}
+    .viz-info div{margin:.15rem 0;}
+    .viz-info strong{display:inline-block;min-width:5.5rem;}
+
+    table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.95rem;}
+    th,td{padding:.5rem .75rem;border:1px solid var(--clr-border);text-align:right;}
+    th{background:var(--clr-bg);font-weight:600;text-align:left;}
+    td:first-child,th:first-child{text-align:left;}
+    @media(max-width:480px){table{display:block;overflow-x:auto;white-space:nowrap;}}
+
+    details{border:1px solid var(--clr-border);border-radius:.75rem;overflow:hidden;}
+    summary{list-style:none;padding:.75rem 1rem;font-weight:600;background:var(--clr-bg);cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;}
+    summary::after{content:"▼";font-size:.85rem;transition:transform .2s ease;}
+    details[open] summary::after{transform:rotate(180deg);}
+
+    .hint{color:#6c757d;font-size:.9rem}
+
+    footer{text-align:center;margin-top:auto;padding:1rem 0 .5rem;font-size:.875rem;opacity:.8;}
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Balken-Stamm Pro 2.6</h1>
+    <p style="text-align:center">Berechne <strong>Holzvolumen (Festmeter)</strong> und prüfe die Eignung deiner Stämme.</p>
+
+    <section class="grid grid-cols-2" aria-label="Pfostenabmessungen">
+      <div>
+        <label for="postType">Pfosten auswählen</label>
+        <select id="postType">
+          <option value="custom">Benutzerdefiniert</option>
+          <option value="10x10">10 × 10 cm</option>
+          <option value="12x12">12 × 12 cm</option>
+          <option value="15x15">15 × 15 cm</option>
+          <option value="16x16">16 × 16 cm</option>
+          <option value="16x20">16 × 20 cm</option>
+          <option value="20x20">20 × 20 cm</option>
+          <option value="25x25">25 × 25 cm</option>
+          <option value="30x30">30 × 30 cm</option>
+        </select>
+      </div>
+      <div id="customFields" class="grid grid-cols-2" hidden>
+        <div>
+          <label for="customWidth">Breite (cm)</label>
+          <input type="number" id="customWidth" min="0.1" step="0.1" placeholder="" />
+        </div>
+        <div>
+          <label for="customHeight">Höhe (cm)</label>
+          <input type="number" id="customHeight" min="0.1" step="0.1" placeholder="" />
+        </div>
+      </div>
+      <div>
+        <label>Min. Stammdurchmesser (Ø, cm)</label>
+        <output id="minDia" class="alert-warning" aria-live="polite" style="display:block;text-align:center;font-weight:600">–</output>
+      </div>
+
+      <div>
+        <label>Visualisierung</label>
+        <svg id="diagram" viewBox="0 0 300 300" role="img" aria-label="Visualisierung Stamm vs. Pfosten">
+          <circle id="diaCircle" cx="150" cy="150" r="0" stroke="#888" stroke-width="2" fill="none" stroke-dasharray="8 6"></circle>
+          <circle id="logCircle2" cx="150" cy="150" r="0" stroke="var(--clr-primary)" stroke-width="2" fill="none"></circle>
+          <rect  id="postRect" x="0" y="0" width="0" height="0" fill="rgba(40,167,69,.55)" stroke="var(--clr-primary)" stroke-width="2" />
+          <text  id="diaLabel" x="150" y="150" text-anchor="middle" dominant-baseline="central" fill="currentColor" font-weight="600" />
+        </svg>
+        <div id="vizInfo" class="viz-info" aria-live="polite">
+          <div><strong>Ø Stamm:</strong> <span id="infoLog">–</span></div>
+          <div><strong>Ø min:</strong> <span id="infoMin">–</span></div>
+          <div><strong>Pfosten:</strong> <span id="infoPost">–</span></div>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:.75rem;align-items:center;">
+        <button id="toggleMode" class="btn-neutral" type="button">Dark Mode</button>
+      </div>
+    </section>
+
+    <details id="cfgPanel" style="margin-top:1rem;">
+      <summary>Konfiguration (optional)</summary>
+      <div style="padding:1rem;">
+        <div class="grid grid-cols-2">
+          <div>
+            <label for="allowance">Zuschlag (cm)</label>
+            <input type="number" id="allowance" min="0" step="0.1" value="1.0" />
+          </div>
+          <div>
+            <label for="liveCalc">Live-Berechnung</label>
+            <select id="liveCalc">
+              <option value="0">Aus</option>
+              <option value="1">An</option>
+            </select>
+          </div>
+          <div>
+            <label for="dibMode">Messung</label>
+            <select id="dibMode">
+              <option value="dib">DIB (innen, ohne Rinde)</option>
+              <option value="oob">OOB (außen, mit Rinde)</option>
+            </select>
+          </div>
+          <div>
+            <label for="bark">Rindenstärke je Seite (mm)</label>
+            <input type="number" id="bark" min="0" step="0.1" value="0" />
+          </div>
+          <div>
+            <label for="volFormula">Volumenformel</label>
+            <select id="volFormula">
+              <option value="huber">Huber (D_mid)</option>
+              <option value="smalian">Smalian (mit Konizität)</option>
+              <option value="newton">Newton (mit Konizität)</option>
+            </select>
+          </div>
+          <div>
+            <label for="taper">Konizität (cm/m)</label>
+            <input type="number" id="taper" min="0" step="0.1" value="1.5" />
+          </div>
+        </div>
+        <p class="hint" style="margin-top:.5rem">
+          Hinweis: Die Ø-Eingabe in der Tabelle ist <b>D_mid</b>. Bei OOB wird automatisch 2×Rinde abgezogen (DIB).
+          Für Smalian/Newton werden <b>D_groß/D_klein</b> aus Konizität und Länge abgeleitet.
+        </p>
+      </div>
+    </details>
+
+    <details id="logsPanel" style="margin-top:1.5rem;">
+      <summary>Stämme verwalten</summary>
+      <div style="padding:1rem;">
+        <button id="addLog" class="btn-neutral" type="button" style="margin-bottom:1rem;">+ Stamm</button>
+        <table id="logsTable" aria-label="Stammliste">
+          <thead>
+            <tr><th>Stamm #</th><th>Ø (cm)</th><th>Länge (m)</th><th>Volumen (m³)</th><th>Eignung</th><th></th></tr>
+          </thead>
+          <tbody id="logsBody"></tbody>
+          <tfoot>
+            <tr><th colspan="3">Σ Volumen</th><th id="totalVol" style="font-weight:700">0.000</th><th colspan="2"></th></tr>
+          </tfoot>
+        </table>
+      </div>
+    </details>
+
+    <div class="grid grid-cols-2" style="margin-top:1rem;">
+      <button id="calc" class="btn-primary" type="button">Berechnen &amp; prüfen</button>
+      <button id="exportCsv" class="btn-neutral" type="button">CSV exportieren</button>
+    </div>
+
+  </main>
+  <footer>© Kofler e. U. | Balken-Stamm Pro 2.6 | <time id="year"></time></footer>
+
+  <script>
+  "use strict";
+  const postPresets={"10x10":[10,10],"12x12":[12,12],"15x15":[15,15],"16x16":[16,16],"16x20":[16,20],"20x20":[20,20],"25x25":[25,25],"30x30":[30,30]};
+  const qs=s=>document.querySelector(s), qsa=s=>Array.from(document.querySelectorAll(s));
+  const cm2m=cm=>cm/100, fmt=n=>Number(n).toLocaleString("de-AT",{minimumFractionDigits:3,maximumFractionDigits:3});
+
+  const postType=qs("#postType"), customWidth=qs("#customWidth"), customHeight=qs("#customHeight"), customFields=qs("#customFields"),
+        minDiaOut=qs("#minDia"), addLogBtn=qs("#addLog"), calcBtn=qs("#calc"), exportBtn=qs("#exportCsv"), toggleBtn=qs("#toggleMode"),
+        logsBody=qs("#logsBody"), totalVolCell=qs("#totalVol");
+
+  const circle=qs("#diaCircle"), logCircle2=qs("#logCircle2"), rect=qs("#postRect"), diaLabel=qs("#diaLabel");
+  const infoLog=qs("#infoLog"), infoMin=qs("#infoMin"), infoPost=qs("#infoPost");
+
+  const allowanceIn=qs("#allowance"), liveSel=qs("#liveCalc"), dibSel=qs("#dibMode"),
+        barkIn=qs("#bark"), formulaSel=qs("#volFormula"), taperIn=qs("#taper");
+
+  let logsData=[]; let _recalcT=null;
+
+  const saveState=()=>{
+    const st={
+      postType:postType.value, customWidth:customWidth.value, customHeight:customHeight.value,
+      dark:document.body.classList.contains("dark-mode"),
+      allowance: parseFloat(allowanceIn?.value||"1")||1,
+      live: (liveSel?.value==="1"),
+      dibMode: dibSel?.value||"dib",
+      bark: parseFloat(barkIn?.value||"0")||0,
+      volFormula: formulaSel?.value||"huber",
+      taper: parseFloat(taperIn?.value||"1.5")||1.5,
+      logs: logsData.map(r=>({d:r.d,l:r.l}))
+    };
+    localStorage.setItem("bsp2",JSON.stringify(st));
+  };
+  const loadState=()=>{
+    const st=JSON.parse(localStorage.getItem("bsp2")||"null");
+    if(!st) return;
+    postType.value=st.postType||"custom";
+    customWidth.value=st.customWidth||"";
+    customHeight.value=st.customHeight||"";
+    if(st.dark) toggleDarkMode(true);
+    if(allowanceIn) allowanceIn.value = (st.allowance??1);
+    if(liveSel) liveSel.value = st.live? "1":"0";
+    if(dibSel) dibSel.value = st.dibMode||"dib";
+    if(barkIn) barkIn.value = (st.bark??0);
+    if(formulaSel) formulaSel.value = st.volFormula||"huber";
+    if(taperIn) taperIn.value = (st.taper??1.5);
+    toggleCustomFields();
+    (st.logs||[]).forEach(({d,l})=>addRow(d,l));
+  };
+
+  function getPostDims(){
+    if(postType.value==="custom"){
+      const w=parseFloat(customWidth.value),h=parseFloat(customHeight.value);
+      return (w>0&&h>0)?[w,h]:null;
+    }
+    return postPresets[postType.value];
+  }
+
+  function calcMinDia([w,h]){
+    const allowance = parseFloat(allowanceIn?.value||"1")||1;
+    return Math.sqrt(w*w + h*h) + Math.max(0, allowance);
+  }
+
+  function oobToDib(d_cm, bark_mm){ return Math.max(0, d_cm - 2*(bark_mm/10)); }
+  function toDIB(d_cm){
+    const mode = dibSel?.value || "dib";
+    if(mode==="oob"){
+      const bark = parseFloat(barkIn?.value||"0")||0;
+      return oobToDib(d_cm, bark);
+    }
+    return d_cm;
+  }
+
+  function volHuber(d_mid_cm,l_m){ return (Math.PI*Math.pow(cm2m(d_mid_cm),2)/4)*l_m; }
+  function volSmalian(d_big_cm,d_small_cm,l_m){
+    const S1 = Math.PI*Math.pow(cm2m(d_big_cm),2)/4;
+    const S2 = Math.PI*Math.pow(cm2m(d_small_cm),2)/4;
+    return l_m * (S1+S2)/2;
+  }
+  function volNewton(d_big_cm,d_mid_cm,d_small_cm,l_m){
+    const D=cm2m(d_big_cm), M=cm2m(d_mid_cm), d=cm2m(d_small_cm);
+    return l_m * (Math.PI/24) * (D*D + 4*M*M + d*d);
+  }
+
+  function clearDiagram(){
+    circle.setAttribute("r",0); if(logCircle2) logCircle2.setAttribute("r",0);
+    rect.setAttribute("width",0); rect.setAttribute("height",0);
+    diaLabel.textContent=""; infoLog.textContent="–"; infoMin.textContent="–"; infoPost.textContent="–";
+  }
+
+  function getCurrentLogDia(){
+    for(const l of logsData){
+      const raw = +l.d || 0;
+      const dib = toDIB(raw);
+      if(dib > 0) return dib;
+    }
+    return 0;
+  }
+
+  function updateMinDia(){
+    const dims=getPostDims();
+    if(!dims){minDiaOut.textContent="–";clearDiagram();return null;}
+    const d=calcMinDia(dims);
+    minDiaOut.textContent=d.toFixed(1);
+    const dLog = getCurrentLogDia();
+    drawDiagram(dims, d, dLog);
+    return d;
+  }
+
+  // Only schedule a calc when dimensions are complete; otherwise just refresh the top UI silently.
+  function scheduleRecalc(){
+    clearTimeout(_recalcT);
+    const dims=getPostDims();
+    if(!dims){ updateMinDia(); return; }
+    _recalcT=setTimeout(()=>runCalculation(true),120);
+  }
+
+  function drawDiagram([w,h], diaReq, dLog){
+    const svg=300,pad=12,maxR=svg/2-pad;
+    const ref = Math.max(diaReq||0, dLog||0, Math.max(w||0,h||0), 1);
+    const scale = (maxR*2)/ref;
+    const rectW=w*scale, rectH=h*scale;
+    const rReq = (Math.max(0,diaReq)||0)*scale/2;
+    circle.setAttribute("r", rReq);
+    const rLog = (Math.max(0,dLog)||0)*scale/2;
+    if(logCircle2) logCircle2.setAttribute("r", rLog);
+    rect.setAttribute("width",rectW); rect.setAttribute("height",rectH);
+    rect.setAttribute("x",(svg-rectW)/2); rect.setAttribute("y",(svg-rectH)/2);
+    diaLabel.textContent = "";
+    infoLog.textContent = dLog>0 ? `${dLog.toFixed(1)} cm` : "–";
+    infoMin.textContent = diaReq>0 ? `${diaReq.toFixed(1)} cm` : "–";
+    infoPost.textContent = (w>0&&h>0)? `${w}×${h} cm` : "–";
+  }
+
+  function addRow(d="",l=""){
+    const idx=logsData.length+1;
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${idx}</td>
+      <td><input type="number" min="0.1" step="0.1" value="${d}"/></td>
+      <td><input type="number" min="0.1" step="0.1" value="${l}"/></td>
+      <td class="vol">0.000</td><td class="flag">–</td>
+      <td><button class="btn-danger" type="button" title="Zeile löschen">✕</button>`;
+    logsBody.appendChild(tr);
+    const [diaIn,lenIn]=tr.querySelectorAll("input");
+    logsData.push({d:+d||0,l:+l||0,row:tr});
+    diaIn.addEventListener("input",e=>{logsData[idx-1].d=+e.target.value;saveState(); if(isLive()) scheduleRecalc(); updateMinDia();});
+    lenIn.addEventListener("input",e=>{logsData[idx-1].l=+e.target.value;saveState(); if(isLive()) scheduleRecalc();});
+    tr.querySelector("button").addEventListener("click",()=>{removeRow(idx-1);saveState(); if(isLive()) scheduleRecalc(); updateMinDia();});
+  }
+  function removeRow(i){
+    logsData[i].row.remove();
+    logsData.splice(i,1);
+    qsa("#logsBody tr").forEach((tr,j)=>tr.firstChild.textContent=j+1);
+  }
+
+  function isLive(){ return (liveSel?.value==="1"); }
+
+  function runCalculation(silent=false){
+    const dims=getPostDims();
+    if(!dims){
+      if(!silent) alert("Bitte gültige Pfostenmaße eingeben.");
+      return;
+    }
+    const diaReq=updateMinDia();
+
+    const taper = Math.max(0, parseFloat(taperIn?.value||"0")||0);
+    const formula = (formulaSel?.value||"huber");
+
+    let total=0;
+    logsData.forEach(l=>{
+      const vCell=l.row.querySelector(".vol"),fCell=l.row.querySelector(".flag");
+      const L=l.l>0? +l.l : 0;
+      const d_mid_raw = l.d>0? +l.d : 0;
+      const d_mid = toDIB(d_mid_raw);
+
+      if(d_mid>0 && L>0){
+        const d_small = Math.max(0, d_mid - taper*(L/2));
+        const d_big   = Math.max(0, d_mid + taper*(L/2));
+
+        let V=0;
+        if(formula==="huber") V=volHuber(d_mid,L);
+        else if(formula==="smalian") V=volSmalian(d_big,d_small,L);
+        else V=volNewton(d_big,d_mid,d_small,L);
+
+        total += V;
+        vCell.textContent=fmt(V);
+
+        if(d_small>=diaReq){ fCell.textContent="✔"; fCell.style.color="var(--clr-primary)"; }
+        else{ fCell.textContent="✖"; fCell.style.color="var(--clr-danger)"; }
+      } else if (d_mid>0 && !L){
+        vCell.textContent="–";
+        if(d_mid>=diaReq){ fCell.textContent="✔"; fCell.style.color="var(--clr-primary)"; }
+        else{ fCell.textContent="✖"; fCell.style.color="var(--clr-danger)"; }
+      } else {
+        vCell.textContent="–"; fCell.textContent="–"; fCell.style.color="inherit";
+      }
+    });
+    totalVolCell.textContent=fmt(total);
+    saveState();
+  }
+
+  function exportCsv(){
+    const diaReq=updateMinDia();
+    const taper = Math.max(0, parseFloat(taperIn?.value||"0")||0);
+    const formula = (formulaSel?.value||"huber");
+    const hdr=["#","Durchmesser_cm(D_mid)","Laenge_m","Volumen_m3","Geeignet"].join(";");
+    const rows=logsData.map((l,i)=>{
+      const L=+l.l||0, d_mid=toDIB(+l.d||0);
+      let V=0, ok=0;
+      if(d_mid>0 && L>0){
+        const d_small=Math.max(0,d_mid - taper*(L/2));
+        const d_big  =Math.max(0,d_mid + taper*(L/2));
+        if(formula==="huber") V=volHuber(d_mid,L);
+        else if(formula==="smalian") V=volSmalian(d_big,d_small,L);
+        else V=volNewton(d_big,d_mid,d_small,L);
+        ok = (d_small >= diaReq) ? 1 : 0;
+      } else if (d_mid>0 && !L){
+        ok = (d_mid >= diaReq) ? 1 : 0;
+      }
+      return [i+1, l.d||"", l.l||"", V.toFixed(3), ok].join(";");
+    });
+    const blob=new Blob([[hdr,...rows].join("\n")],{type:"text/csv;charset=utf-8"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download=`balken-stamm_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+  }
+
+  function toggleDarkMode(force){
+    const on=force!==undefined?force:!document.body.classList.contains("dark-mode");
+    document.body.classList.toggle("dark-mode",on);
+    toggleBtn.textContent=on?"Light Mode":"Dark Mode";
+  }
+
+  function toggleCustomFields(){
+    const isCustom = postType.value==="custom";
+    customFields.hidden = !isCustom;
+    customWidth.required = isCustom;
+    customHeight.required = isCustom;
+    if(isCustom){
+      customWidth.value = "";
+      customHeight.value = "";
+    }
+  }
+
+  postType.addEventListener("change",()=>{toggleCustomFields();updateMinDia();saveState(); if(isLive()) scheduleRecalc();});
+  qsa("#customWidth,#customHeight").forEach(el=>el.addEventListener("input",()=>{updateMinDia();saveState(); if(isLive()) scheduleRecalc();}));
+
+  [allowanceIn, liveSel, dibSel, barkIn, formulaSel, taperIn].forEach(el=>{
+    el && el.addEventListener("input",()=>{updateMinDia();saveState(); if(isLive()) scheduleRecalc();});
+  });
+
+  addLogBtn.addEventListener("click",()=>{addRow();saveState(); if(isLive()) scheduleRecalc(); updateMinDia();});
+  calcBtn.addEventListener("click",()=>runCalculation(false));
+  exportBtn.addEventListener("click",exportCsv);
+  toggleBtn.addEventListener("click",()=>{toggleDarkMode();saveState();});
+
+  qs("#year").textContent=new Date().getFullYear();
+  toggleCustomFields(); updateMinDia(); addRow(); loadState(); updateMinDia();
+  </script>
+</body>
+</html>
+
+  </template>
+
+  <script>
+  (function() {
+    'use strict';
+    const frames = {
+      festmeter: document.getElementById('pane-festmeter'),
+      balken: document.getElementById('pane-balken')
+    };
+    const tmpls = {
+      festmeter: document.getElementById('tmpl-festmeter'),
+      balken: document.getElementById('tmpl-balken')
+    };
+    const loaded = { festmeter: false, balken: false };
+
+    function mount(name) {
+      if (loaded[name]) return;
+      const frame = frames[name];
+      const doc = frame.contentWindow.document;
+      doc.open();
+      doc.write(tmpls[name].innerHTML);
+      doc.close();
+      loaded[name] = true;
+    }
+
+    function show(name) {
+      Object.keys(frames).forEach(k => frames[k].classList.remove('active'));
+      frames[name].classList.add('active');
+      mount(name);
+    }
+
+    const tabFest = document.getElementById('tab-festmeter');
+    const tabBalk = document.getElementById('tab-balken');
+
+    tabFest.addEventListener('click', () => {
+      tabFest.setAttribute('aria-selected','true');
+      tabBalk.setAttribute('aria-selected','false');
+      show('festmeter');
+    });
+    tabBalk.addEventListener('click', () => {
+      tabFest.setAttribute('aria-selected','false');
+      tabBalk.setAttribute('aria-selected','true');
+      show('balken');
+    });
+
+    // Direkt Festmeter laden
+    mount('festmeter');
+  })();
+  </script>
+</body>
+</html>

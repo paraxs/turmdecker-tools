@@ -1,0 +1,2924 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abwicklung- und Verschnittoptimierung</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome für Icons -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js" referrerpolicy="no-referrer"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #e0e0e0;
+            --highlight-color: #f8f9fa;
+            --button-color: #3498db;
+            --button-hover-color: #2980b9;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+            --warning-color: #f39c12;
+            --text-danger: #e74c3c;
+            --background-color: #ffffff;
+            --font-color: #333333;
+            --border-radius: 6px;
+            --box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            --transition-speed: 0.3s;
+            --spacing-xs: 5px;
+            --spacing-sm: 10px;
+            --spacing-md: 15px;
+            --spacing-lg: 20px;
+            --spacing-xl: 30px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            padding: var(--spacing-sm);
+            margin: 0;
+            background-color: var(--highlight-color);
+            color: var(--font-color);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: var(--background-color);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        header, main, footer {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        header h1 {
+            font-size: 2.2em;
+            margin-bottom: var(--spacing-xs);
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--button-color);
+            padding-bottom: var(--spacing-xs);
+            display: inline-block;
+        }
+
+        header h2 {
+            font-size: 1.4em;
+            color: var(--button-color);
+            margin-top: var(--spacing-sm);
+        }
+
+        section {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        #projectTitle {
+            color: var(--button-color);
+            font-weight: 500;
+        }
+
+        h3, h4 {
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        h3 {
+            font-size: 1.4em;
+            position: relative;
+            padding-bottom: var(--spacing-xs);
+        }
+
+        h3::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--button-color);
+        }
+
+        h4 {
+            font-size: 1.2em;
+        }
+
+        form {
+            background-color: var(--background-color);
+            padding: var(--spacing-md);
+            border: 1px solid var(--secondary-color);
+            border-radius: var(--border-radius);
+            box-sizing: border-box;
+            margin-top: var(--spacing-sm);
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .form-section {
+            flex: 1 1 45%;
+            min-width: 250px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .form-group label {
+            margin-bottom: var(--spacing-xs);
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            padding: 10px;
+            border: 1px solid var(--secondary-color);
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            transition: border-color var(--transition-speed), box-shadow var(--transition-speed);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--button-color);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .form-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+
+        button {
+            padding: 10px 16px;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            color: #fff;
+            background-color: var(--button-color);
+            transition: background-color var(--transition-speed), transform var(--transition-speed), box-shadow var(--transition-speed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover:not(:disabled) {
+            background-color: var(--button-hover-color);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        button:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
+        }
+
+        button:disabled {
+            background-color: var(--secondary-color);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            opacity: 0.7;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background-color: #c0392b;
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background-color: #27ae60;
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background-color: #d35400;
+        }
+
+        .info-container {
+            background-color: var(--highlight-color);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: var(--spacing-md);
+        }
+
+        .info-container .info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-md);
+            font-size: 14px;
+        }
+
+        .info-container .info p {
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .info-container .info p span {
+            color: var(--text-danger);
+            display: inline-block;
+            font-weight: 700;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: var(--spacing-md);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: var(--background-color);
+            font-size: 14px;
+        }
+
+        table, th, td {
+            border: 1px solid var(--secondary-color);
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            background-color: var(--highlight-color);
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        /* Neue Spalte für Material-Bezeichnung */
+        th.material-bezeichnung,
+        td.material-bezeichnung {
+            display: none; /* Anfangs versteckt */
+        }
+
+        /* Zebra-Streifen für bessere Lesbarkeit */
+        tbody tr:nth-child(odd) {
+            background-color: var(--highlight-color);
+        }
+
+        /* Hover-Effekt für Tabellenzeilen */
+        tbody tr:hover {
+            background-color: rgba(52, 152, 219, 0.1);
+        }
+
+        /* Sichtbar machen, wenn Material-Bezeichnung definiert ist */
+        tbody tr td.material-bezeichnung,
+        thead th.material-bezeichnung {
+            display: table-cell;
+        }
+
+        .cut-color {
+            width: 24px;
+            height: 24px;
+            display: inline-block;
+            vertical-align: middle;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .blechrolle-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-lg);
+            justify-content: flex-start; /* Ausrichtung links */
+        }
+
+        .blechrolle {
+            position: relative;
+            border: 1px solid var(--primary-color);
+            background-color: var(--highlight-color);
+            overflow: visible;
+            border-radius: var(--border-radius);
+            margin-top: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            box-sizing: border-box;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .cut, .waste {
+            position: absolute;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            word-wrap: break-word;
+            font-size: 12px;
+            color: #000;
+            border-radius: 2px;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .cut {
+            border: 1px solid #0a0405;
+            cursor: pointer;
+            z-index: 2;
+        }
+
+        .cut:hover {
+            transform: scale(1.01);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+            z-index: 3;
+        }
+
+        .waste {
+            background-color: rgba(0, 0, 0, 0.1);
+            border: 1px dashed var(--primary-color);
+            background-image: repeating-linear-gradient(
+                135deg,
+                transparent,
+                transparent 3px,
+                rgba(255, 0, 0, 0.15) 3px,
+                rgba(255, 0, 0, 0.15) 6px
+            );
+            cursor: pointer;
+        }
+
+        .waste:hover {
+            opacity: 0.95;
+        }
+
+        .dimensions-text {
+            position: absolute;
+            top: -22px;
+            left: 0;
+            font-size: 11px;
+            color: var(--primary-color);
+            background-color: var(--background-color);
+            padding: 3px 6px;
+            z-index: 10;
+            border-radius: var(--border-radius);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+
+        .loader {
+            border: 4px solid var(--secondary-color);
+            border-top: 4px solid var(--button-color);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Verbesserte Media Queries */
+        @media (max-width: 992px) {
+            .container {
+                padding: var(--spacing-md);
+            }
+        }
+        
+        /* Tablets mit genügend Breite sollten 2 Abwicklungen nebeneinander anzeigen */
+        @media (min-width: 768px) and (max-width: 992px) {
+            .blechrolle {
+                width: 48% !important; /* 48% statt 100%, damit 2 nebeneinander passen */
+                margin-right: 1%;
+            }
+            
+            .blechrolle-container {
+                gap: var(--spacing-sm);
+            }
+        }
+        
+        /* Nur auf wirklich kleinen Geräten volle Breite für Blechrollen */
+        @media (max-width: 767px) {
+            .blechrolle {
+                width: 100% !important;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.8em;
+            }
+            
+            header h2 {
+                font-size: 1.2em;
+            }
+            
+            .form-row {
+                flex-direction: column;
+            }
+            
+            .form-section {
+                flex: 1 1 100%;
+            }
+            
+            .info-container .info {
+                grid-template-columns: 1fr;
+            }
+            
+            button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            td, th {
+                padding: 8px;
+            }
+            
+            .verbrauchsdaten-section .verbrauchsdaten {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: var(--spacing-sm);
+            }
+            
+            header h1 {
+                font-size: 1.5em;
+            }
+            
+            header h2 {
+                font-size: 1.1em;
+            }
+            
+            td:nth-child(5), th:nth-child(5) {
+                display: none;
+            }
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                margin: 0;
+                background-color: #fff;
+                color: #000;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            
+            .container {
+                max-width: 210mm; /* A4 Breite */
+                margin: 0;
+                padding: 3mm;
+                box-shadow: none;
+            }
+            
+            header {
+                margin-bottom: 3mm;
+            }
+            
+            footer {
+                margin-top: 2mm;
+                margin-bottom: 0;
+                font-size: 7px !important;
+                border-top: 0.5px solid #ccc !important;
+                padding-top: 1mm !important;
+            }
+            
+            h3::after {
+                display: none;
+            }
+            
+            /* Alles verstecken, was nicht gedruckt werden soll */
+            .form-row, .form-section, .form-actions, .projektverwaltungForm, 
+            .dropdown-toggle, .dropdown-content, .alert, .btn-danger, 
+            .btn-success, .btn-warning, .dropdown,
+            .kosten-section {
+                display: none !important;
+            }
+            
+            /* Nur die Tabelle, Verbrauchsdaten und Visualisierung anzeigen */
+            .zuschnittTabelle-section, .visualisierung-section, #projectTitle, .verbrauchsdaten-section {
+                display: block !important;
+                page-break-inside: avoid;
+                margin-top: 2mm !important;
+                margin-bottom: 2mm !important;
+            }
+            
+            /* Verbrauchsdaten nebeneinander anzeigen */
+            .verbrauchsdaten-section {
+                margin-top: 2mm !important;
+                padding: 0 !important;
+            }
+            
+            .verbrauchsdaten-section h3 {
+                display: none !important; /* Überschrift einsparen */
+            }
+            
+            /* WICHTIG: Nur den Button verstecken, nicht die gesamte Section */
+            .verbrauchsdaten-section .optimierung-section button {
+                display: none !important; /* Nur den Button verstecken */
+            }
+            
+            /* Optimierungssektion selbst anzeigen */
+            .verbrauchsdaten-section .optimierung-section {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            /* Verbrauchsdaten horizontal anordnen */
+            .verbrauchsdaten-section .optimierung-info {
+                display: block !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            
+            .verbrauchsdaten-section .verbrauchsdaten {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: wrap !important;
+                justify-content: space-between !important;
+                gap: 1mm !important;
+                margin: 0 !important;
+                padding: 2mm !important;
+                background-color: #f8f9fa !important;
+                border: 1px solid #ccc !important;
+                border-radius: 2mm !important;
+            }
+            
+            .verbrauchsdaten-section .verbrauchsdaten p {
+                margin: 0 !important;
+                padding: 1mm 2mm !important;
+                font-size: 8px !important;
+                background: none !important;
+                box-shadow: none !important;
+                flex: 1 1 48% !important; /* Zweispaltige Anordnung für bessere Platznutzung */
+                min-width: 90px !important;
+                white-space: nowrap !important;
+            }
+            
+            .verbrauchsdaten-section .verbrauchsdaten p span {
+                font-weight: bold !important;
+            }
+            
+            /* Tooltip-Text im Druck ausblenden */
+            .verbrauchsdaten-section .verbrauchsdaten p .tooltiptext {
+                display: none !important;
+            }
+            
+            /* Tabelle optimieren */
+            table {
+                margin-top: 0 !important;
+                margin-bottom: 3mm !important;
+                font-size: 8px !important;
+                box-shadow: none !important;
+                border-collapse: collapse !important;
+                width: 100% !important;
+            }
+            
+            th, td {
+                padding: 2px 3px !important;
+                border: 0.5px solid #000 !important;
+            }
+            
+            /* Visualisierung optimieren für 3 Abwicklungen nebeneinander pro Seite */
+            .visualisierung-section {
+                margin-top: 2mm !important;
+            }
+            
+            .visualisierung-section h3 {
+                font-size: 10px !important;
+                margin-bottom: 2mm !important;
+                margin-top: 0 !important;
+                page-break-after: avoid !important;
+            }
+            
+            .blechrolle-container {
+                display: flex !important;
+                flex-wrap: wrap !important;
+                gap: 2mm !important;
+                justify-content: flex-start !important; /* Links ausrichten */
+                width: 100% !important;
+            }
+            
+            .blechrolle {
+                box-shadow: none !important;
+                border: 0.5px solid #000 !important;
+                background-color: #f8f9fa !important;
+                overflow: visible !important;
+                margin-top: 15px !important;
+                margin-bottom: 3mm !important; /* Abstand nach unten */
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                padding: 0 !important;
+                box-sizing: border-box !important;
+                position: relative !important;
+                /* Größeneinstellung ohne Transform für klarere Linien */
+                width: 32% !important; 
+                max-width: 65mm !important;
+                page-break-inside: avoid !important; /* Verhindert Umbruch innerhalb einer Abwicklung */
+            }
+            
+            /* Dimensions-Text */
+            .dimensions-text {
+                box-shadow: none !important;
+                border: 0.5px solid #000 !important;
+                font-size: 6px !important; 
+                top: -12px !important;
+                background-color: white !important;
+                z-index: 10 !important;
+                white-space: nowrap !important;
+                width: auto !important;
+                padding: 1px 2px !important;
+                left: 0 !important;
+                border-radius: 2px !important;
+            }
+            
+            /* WICHTIG: Farberhaltung für die Zuschnitte */
+            .cut {
+                border: 0.5px solid #000 !important;
+                font-size: 6px !important;
+                box-shadow: none !important;
+                color: black !important;
+            }
+            
+            /* Spezielle Stiländerungen nur für den Textinhalt der Zuschnitte */
+            .cut span {
+                color: black !important;
+                background-color: rgba(255, 255, 255, 0.7) !important;
+                padding: 1px !important;
+                border-radius: 2px !important;
+                font-weight: bold !important;
+            }
+            
+            /* Verschnittstil bewahrt die Schraffierung */
+            .waste {
+                background-color: rgba(0, 0, 0, 0.1) !important;
+                border: 0.5px dashed #000 !important;
+                background-image: repeating-linear-gradient(
+                    135deg,
+                    transparent,
+                    transparent 3px,
+                    rgba(0, 0, 0, 0.2) 3px,
+                    rgba(0, 0, 0, 0.2) 6px
+                ) !important;
+                font-size: 6px !important;
+                z-index: 1 !important;
+            }
+            
+            /* Aktions-Spalte verstecken */
+            #cutsTable tbody tr td:last-child,
+            #cutsTable thead tr th:last-child {
+                display: none !important;
+            }
+            
+            /* Projektname optimieren */
+            #projectTitle {
+                font-size: 12px !important;
+                margin-bottom: 2mm !important;
+                margin-top: 1mm !important;
+            }
+        }
+
+        .dropdown-content {
+            display: none;
+            overflow: hidden;
+            transition: max-height var(--transition-speed);
+            max-height: 0;
+            margin-top: var(--spacing-sm);
+        }
+
+        .dropdown.active .dropdown-content {
+            display: block;
+            max-height: 2000px;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .dropdown-toggle {
+            background-color: var(--button-color);
+            color: #fff;
+            padding: 12px 15px;
+            font-size: 16px;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            margin-bottom: var(--spacing-sm);
+            width: 100%;
+            text-align: left;
+            position: relative;
+            transition: background-color var(--transition-speed);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .dropdown-toggle:hover {
+            background-color: var(--button-hover-color);
+        }
+
+        .dropdown-toggle:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
+        }
+
+        .dropdown-toggle:after {
+            content: '\f078';
+            font-family: 'Font Awesome 5 Free';
+            font-weight: 900;
+            transition: transform var(--transition-speed);
+        }
+
+        .dropdown.active .dropdown-toggle:after {
+            transform: rotate(180deg);
+        }
+
+        .alert {
+            padding: var(--spacing-md);
+            margin-bottom: var(--spacing-md);
+            border: 1px solid transparent;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            box-shadow: var(--box-shadow);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        .alert-warning {
+            color: #856404;
+            background-color: #fff3cd;
+            border-color: #ffeeba;
+        }
+
+        .alert i {
+            margin-right: var(--spacing-sm);
+            font-size: 18px;
+        }
+
+        .kosten-section, .optimierung-section {
+            background-color: var(--highlight-color);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            margin-top: var(--spacing-lg);
+        }
+
+        .optimierung-section h3 {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .optimierung-info {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+            font-size: 14px;
+        }
+
+        .optimierung-info p {
+            flex: 1 1 45%;
+            margin: 5px 0;
+            line-height: 1.4;
+        }
+
+        .optimierung-section button {
+            width: 100%;
+            margin-bottom: var(--spacing-md);
+            padding: 12px;
+            font-size: 16px;
+            border-radius: var(--border-radius);
+        }
+
+        /* Verbesserte Stile für die Berechnungsfelder - nebeneinander */
+        .verbrauchsdaten-section .verbrauchsdaten {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+        }
+
+        .verbrauchsdaten-section .verbrauchsdaten p {
+            font-size: 14px;
+            margin: 0;
+            padding: var(--spacing-sm);
+            background-color: var(--background-color);
+            border-radius: var(--border-radius);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        .verbrauchsdaten-section .verbrauchsdaten p span {
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        /* Tooltip Stil */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--primary-color);
+            color: #fff;
+            text-align: center;
+            border-radius: var(--border-radius);
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            font-weight: normal;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: var(--primary-color) transparent transparent transparent;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        /* Fokus-Stile für Barrierefreiheit */
+        a:focus, button:focus, input:focus, textarea:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
+        }
+
+        /* Stilvoller Footer */
+        footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--secondary-color);
+            font-size: 0.8em;
+            color: var(--primary-color);
+        }
+
+        /* Tab-Index und Fokus-Stile */
+        [tabindex]:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.4);
+        }
+
+        /* Verbesserte Tabellen-Aktionsbuttons */
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-button {
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: var(--border-radius);
+        }
+    </style>
+  <link rel="stylesheet" href="./td-shell.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="theme-color" content="#8F1D1D" />
+</head>
+<body>
+<div class="td-shell" role="banner">
+  <div class="td-shell__inner">
+    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
+      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
+      <div class="td-shell__text">
+        <strong>TURMDECKER</strong>
+        <span>Tools & Rechner</span>
+      </div>
+    </a>
+    <div class="td-shell__nav" aria-label="Navigation">
+      <a class="td-btn" href="./index.html">↩ Übersicht</a>
+      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
+      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
+    </div>
+  </div>
+</div>
+
+
+<div class="container">
+    <header>
+        <h1>Abwicklung- und Verschnittoptimierung</h1>
+        <h2 id="projectTitle">Projektname</h2>
+    </header>
+
+    <div id="alertContainer"></div>
+
+    <main>
+        <!-- Projektverwaltung mit Import und Export -->
+        <section aria-labelledby="projektverwaltung-title" class="dropdown">
+            <button class="dropdown-toggle" onclick="toggleDropdown(this)" aria-expanded="false" aria-controls="projektverwaltung-content">
+                <span><i class="fas fa-folder"></i> Projektverwaltung</span>
+            </button>
+            <div class="dropdown-content" id="projektverwaltung-content">
+                <h3 id="projektverwaltung-title">Projektverwaltung</h3>
+                <form id="projektverwaltungForm" aria-describedby="projektverwaltung-desc">
+                    <p id="projektverwaltung-desc">Verwalten Sie Ihre Projekte durch Export und Import.</p>
+                    <div class="form-group">
+                        <label for="projektName">Projektname:</label>
+                        <input type="text" id="projektName" placeholder="z.B. Projekt A" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn-success" onclick="exportProject()">
+                            <i class="fas fa-file-export"></i> Projekt exportieren
+                        </button>
+                        <button type="button" class="btn-primary" onclick="document.getElementById('fileInput').click()">
+                            <i class="fas fa-file-import"></i> Projekt importieren
+                        </button>
+                        <input type="file" id="fileInput" style="display: none;" accept=".json" onchange="importProject(event)">
+                        <button type="button" class="btn-danger" onclick="resetProject()">
+                            <i class="fas fa-trash-alt"></i> Alle Daten löschen
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Eingabe der Zuschnittdaten und Materialdaten nebeneinander -->
+        <section aria-labelledby="rollendaten-zuschnittdaten-title" class="dropdown">
+            <button class="dropdown-toggle" onclick="toggleDropdown(this)" aria-expanded="false" aria-controls="rollendaten-zuschnittdaten-content">
+                <span><i class="fas fa-tools"></i> Zuschnittdaten & Materialdaten</span>
+            </button>
+            <div class="dropdown-content" id="rollendaten-zuschnittdaten-content">
+                <h3 id="rollendaten-zuschnittdaten-title">Zuschnittdaten & Materialdaten</h3>
+                <div class="form-row">
+                    <!-- Zuschnittdaten -->
+                    <div class="form-section" aria-labelledby="zuschnittdaten-title">
+                        <h4 id="zuschnittdaten-title">Zuschnittdaten</h4>
+                        <form id="zuschnittdatenForm" aria-describedby="zuschnittdaten-desc">
+                            <p id="zuschnittdaten-desc">Fügen Sie die gewünschten Zuschnitte hinzu.</p>
+                            <div class="form-group">
+                                <label for="breite">Breite (cm):</label>
+                                <input type="number" id="breite" step="0.1" min="0.1" placeholder="z.B. 30" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="laenge">Länge (m):</label>
+                                <input type="number" id="laenge" step="0.01" min="0.01" placeholder="z.B. 16" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="bezeichnung">Bezeichnung/Kommentar:</label>
+                                <textarea id="bezeichnung" placeholder="Optional"></textarea>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" onclick="addCut()">
+                                    <i class="fas fa-plus-circle"></i> Zuschnitt hinzufügen
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Materialdaten -->
+                    <div class="form-section" aria-labelledby="materialdaten-title">
+                        <h4 id="materialdaten-title">Materialdaten</h4>
+                        <form id="materialdatenForm" aria-describedby="materialdaten-desc">
+                            <p id="materialdaten-desc">Geben Sie die Materialinformationen ein.</p>
+                            <div class="form-group">
+                                <label for="materialVorlage" class="tooltip">
+                                    Material-Vorlage:
+                                    <span class="tooltiptext">Wählen Sie ein typisches Spenglereimaterial</span>
+                                </label>
+                                <select id="materialVorlage" onchange="applyMaterialTemplate()">
+                                    <option value="">Bitte wählen...</option>
+                                    <option value="kupfer">Kupfer</option>
+                                    <option value="titanzink">Titanzink</option>
+                                    <option value="blei">Blei</option>
+                                    <option value="aluminium">Aluminium</option>
+                                    <option value="stahlblech">Stahlblech verzinkt</option>
+                                    <option value="edelstahl">Edelstahl</option>
+                                    <option value="prefa">PREFA Aluminium</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="materialBezeichnung">Material-Bezeichnung:</label>
+                                <input type="text" id="materialBezeichnung" placeholder="z.B. Edelstahl 304" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="materialKostenProM2">Materialkosten pro m² (€):</label>
+                                <input type="number" id="materialKostenProM2" step="0.01" min="0" placeholder="z.B. 10" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="rolleBreite" class="tooltip">
+                                    Breite (cm) der Blechrolle:
+                                    <span class="tooltiptext">Die verfügbare Breite des Rohmaterials</span>
+                                </label>
+                                <input type="number" id="rolleBreite" step="0.1" min="0.1" value="100" placeholder="z.B. 125" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="rolleLaenge" class="tooltip">
+                                    Länge (m) der Blechrolle:
+                                    <span class="tooltiptext">Die verfügbare Länge des Rohmaterials</span>
+                                </label>
+                                <input type="number" id="rolleLaenge" step="0.01" min="0.01" value="30" placeholder="z.B. 30" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="maxLaenge" class="tooltip">
+                                    Max. Abkantlänge (m):
+                                    <span class="tooltiptext">Die maximale Länge, die in einem Stück abgekantet werden kann</span>
+                                </label>
+                                <input type="number" id="maxLaenge" step="0.01" min="0.01" value="4" placeholder="z.B. 4" required>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" onclick="berechneKosten()">
+                                    <i class="fas fa-calculator"></i> Kosten berechnen
+                                </button>
+                            </div>
+                        </form>
+                        <div class="info-container">
+                            <div class="info">
+                                <p id="totalMaterialKostenDropdownP" style="display: none;">Gesamtkosten für Material: <span id="totalMaterialKostenDropdown">0</span> €</p>
+                                <p id="totalWasteKostenDropdownP" style="display: none;">Gesamtkosten für Verschnitt: <span id="totalWasteKostenDropdown">0</span> €</p>
+                                <p id="verschnittProzentDropdownP" style="display: none;">Verschnitt: <span id="verschnittProzentDropdown">0</span> %</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tabelle der Zuschnitte -->
+        <section aria-labelledby="zuschnittTabelle-title" class="zuschnittTabelle-section">
+            <h3 id="zuschnittTabelle-title">Tabelle der Zuschnitte</h3>
+            <div class="table-container">
+                <table id="cutsTable" aria-describedby="cutsTable-desc">
+                    <caption id="cutsTable-desc" class="sr-only">Liste der hinzugefügten Zuschnitte</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Farbe</th>
+                            <th scope="col">Bezeichnung/Kommentar</th>
+                            <th scope="col" class="material-bezeichnung">Material-Bezeichnung</th>
+                            <th scope="col">Breite (cm)</th>
+                            <th scope="col">Gesamtlänge (m)</th>
+                            <th scope="col">Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Zuschnitte werden hier dynamisch eingefügt -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Anzeige der Verbrauchsdaten und Optimierung -->
+        <section aria-labelledby="verbrauchsdaten-title" class="verbrauchsdaten-section">
+            <h3 id="verbrauchsdaten-title">Verbrauchsdaten & Optimierung</h3>
+            <div class="optimierung-section">
+                <button id="optimizeCutsBtn" onclick="optimizeCuts()">
+                    <i class="fas fa-magic"></i> Zuschnitte optimieren
+                </button>
+                <div class="optimierung-info" id="info">
+                    <div class="verbrauchsdaten">
+                        <p class="tooltip">
+                            Produktive Blechfläche: <span id="totalUsedArea">0</span> m²
+                            <span class="tooltiptext">Die Summe aller für Zuschnitte genutzten Flächen</span>
+                        </p>
+                        <p class="tooltip">
+                            Verschnittfläche: <span id="totalWasteArea">0</span> m²
+                            <span class="tooltiptext">Die Summe aller ungenutzten Flächen (Verschnitt)</span>
+                        </p>
+                        <p class="tooltip">
+                            Verschnitt: <span id="verschnittProzent">0</span> %
+                            <span class="tooltiptext">Prozentualer Anteil des Verschnitts an der Gesamtfläche</span>
+                        </p>
+                        <p class="tooltip">
+                            Materialkosten gesamt: <span id="totalMaterialKosten">0</span> €
+                            <span class="tooltiptext">Gesamtkosten für das verwendete Material</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Container für die Visualisierung der Abwicklung -->
+        <section aria-labelledby="visualisierung-title" class="visualisierung-section">
+            <h3 id="visualisierung-title">Visualisierung der Abwicklung</h3>
+            <div class="blechrolle-container" id="blechrolle-container">
+                <!-- Rohblechlängen werden hier angezeigt -->
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Kofler e.U.</p>
+        <p>Aktuelle Version: <strong>V8.2</strong></p>
+    </footer>
+</div>
+
+<!-- Anzeige der gesamten verbrauchten Blechfläche (inkl. Verschnitt) - versteckt -->
+<section style="display:none;">
+    <p>Gesamte verbrauchte Blechfläche in m²: <span id="totalConsumedArea">0</span> m²</p>
+</section>
+
+<!-- Screen reader only class -->
+<style>
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border-width: 0;
+    }
+</style>
+
+<script>
+    // JavaScript-Code für die Abwicklung- und Verschnittoptimierung
+    const App = (() => {
+        // Konstanten
+        const EPSILON = 1e-6; // Für Fließkommavergleiche
+        const LENGTH_SCALE = 20; // 1m = 20px (für Visualisierung)
+        const WIDTH_SCALE = 240;  // 1m = 240px (für Visualisierung)
+        const MAX_COLOR_ATTEMPTS = 50; // Maximale Anzahl von Versuchen, eine eindeutige Farbe zu generieren
+        
+        // Zustand der Anwendung
+        let state = {
+            cuts: [],
+            colors: [],
+            rohle: [], // Rohblechlängen
+            materialBezeichnung: "",
+            materialKostenProM2: 0,
+            materialVorlage: "",
+            totalConsumedArea: 0, // Gesamtverbrauchte Fläche inklusive Verschnitt
+            isOptimizing: false
+        };
+
+        // =========== Hilfsfunktionen ===========
+
+        // Funktion zum Generieren einer zufälligen Farbe mit besserer Lesbarkeit
+        const getRandomColor = () => {
+            let color;
+            let attempts = 0;
+            
+            do {
+                // Erzeugt hellere, gesättigtere Farben für bessere Sichtbarkeit
+                const h = Math.floor(Math.random() * 360);
+                const s = Math.floor(Math.random() * 30) + 70; // 70-100% Sättigung
+                const l = Math.floor(Math.random() * 15) + 75; // 75-90% Helligkeit
+                
+                color = `hsl(${h}, ${s}%, ${l}%)`;
+                attempts++;
+                
+                // Verhindert Endlosschleife, falls zu viele Farben bereits verwendet wurden
+                if (attempts > MAX_COLOR_ATTEMPTS) {
+                    // Leichte Variante einer existierenden Farbe erstellen
+                    const baseH = Math.floor(Math.random() * 360);
+                    color = `hsl(${baseH}, ${s}%, ${l}%)`;
+                    break;
+                }
+            } while (state.colors.includes(color));
+            
+            state.colors.push(color);
+            return color;
+        };
+
+        // Funktion zum Formatieren von Zahlen mit Komma als Dezimaltrennzeichen
+        const formatNumber = (num, decimals = 2) => {
+            if (isNaN(num) || num === null || num === undefined) return "0,00";
+            return num.toFixed(decimals).replace('.', ',');
+        };
+
+        // Funktion zur Überprüfung, ob eine Farbe gültig ist
+        const isValidColor = (color) => {
+            if (!color || typeof color !== 'string') return false;
+            
+            // Effizientere Validierung ohne DOM-Manipulation
+            const style = new Option().style;
+            style.color = color;
+            return style.color !== '';
+        };
+
+        // Funktion zum Parsen von Eingaben, die Komma als Dezimaltrennzeichen verwenden
+        const parseInput = (value, defaultValue = 0) => {
+            if (value === null || value === undefined || value === '') return defaultValue;
+            
+            // String zu String konvertieren, falls es ein Number-Objekt ist
+            const strValue = value.toString().trim().replace(',', '.');
+            const parsed = parseFloat(strValue);
+            
+            return isNaN(parsed) ? defaultValue : Math.max(0, parsed); // Verhindert negative Werte
+        };
+
+        // =========== UI-Funktionen ===========
+
+        // Funktion zum Anzeigen von Benachrichtigungen
+        const showAlert = (message, type = 'success', duration = 5000) => {
+            if (!message) return; // Verhindert leere Benachrichtigungen
+            
+            const alertDiv = document.createElement('div');
+            alertDiv.classList.add('alert');
+            
+            let icon = '';
+            if (type === 'success') {
+                alertDiv.classList.add('alert-success');
+                icon = '<i class="fas fa-check-circle"></i>';
+            } else if (type === 'danger') {
+                alertDiv.classList.add('alert-danger');
+                icon = '<i class="fas fa-exclamation-triangle"></i>';
+            } else if (type === 'warning') {
+                alertDiv.classList.add('alert-warning');
+                icon = '<i class="fas fa-exclamation-circle"></i>';
+            }
+            
+            alertDiv.innerHTML = `${icon} ${message}`;
+            alertDiv.setAttribute('role', 'alert'); // Für Barrierefreiheit
+            
+            const container = document.getElementById('alertContainer');
+            if (container) {
+                container.appendChild(alertDiv);
+                
+                // Automatisches Ausblenden nach Zeit
+                setTimeout(() => {
+                    alertDiv.style.opacity = '0';
+                    alertDiv.style.transform = 'translateY(-20px)';
+                    alertDiv.style.transition = 'opacity 0.3s, transform 0.3s';
+                    
+                    setTimeout(() => {
+                        if (alertDiv.parentNode) {
+                            alertDiv.parentNode.removeChild(alertDiv);
+                        }
+                    }, 300);
+                }, duration);
+            }
+        };
+
+        // Funktion zum Aktualisieren der Zuschnitt-Tabelle
+        const updateCutsTable = () => {
+            const tableBody = document.querySelector('#cutsTable tbody');
+            if (!tableBody) return; // Verhindert Fehler, wenn Tabelle nicht existiert
+            
+            // Tabelle leeren, um Speicherlecks zu vermeiden
+            while (tableBody.firstChild) {
+                tableBody.removeChild(tableBody.firstChild);
+            }
+            
+            if (state.cuts.length === 0) {
+                const emptyRow = document.createElement('tr');
+                const emptyCell = document.createElement('td');
+                emptyCell.colSpan = 6;
+                emptyCell.textContent = 'Keine Zuschnitte vorhanden';
+                emptyCell.style.textAlign = 'center';
+                emptyCell.style.padding = '20px';
+                emptyRow.appendChild(emptyCell);
+                tableBody.appendChild(emptyRow);
+                return;
+            }
+
+            state.cuts.forEach((cut, index) => {
+                const row = document.createElement('tr');
+                row.setAttribute('data-index', index);
+
+                // Farbe
+                const colorCell = document.createElement('td');
+                const colorDiv = document.createElement('div');
+                colorDiv.classList.add('cut-color');
+                colorDiv.style.backgroundColor = cut.color;
+                colorDiv.title = 'Farbe des Zuschnitts in der Visualisierung';
+                colorCell.appendChild(colorDiv);
+                row.appendChild(colorCell);
+
+                // Bezeichnung
+                const bezeichnungCell = document.createElement('td');
+                bezeichnungCell.textContent = cut.bezeichnung || '-';
+                row.appendChild(bezeichnungCell);
+
+                // Material-Bezeichnung
+                const materialBezeichnungCell = document.createElement('td');
+                materialBezeichnungCell.classList.add('material-bezeichnung');
+                materialBezeichnungCell.textContent = cut.materialBezeichnung || '-';
+                row.appendChild(materialBezeichnungCell);
+
+                // Breite
+                const breiteCell = document.createElement('td');
+                breiteCell.textContent = formatNumber(cut.breite * 100, 1); // cm mit einer Dezimalstelle
+                row.appendChild(breiteCell);
+
+                // Länge
+                const laengeCell = document.createElement('td');
+                laengeCell.textContent = formatNumber(cut.laenge, 2); // m mit zwei Dezimalstellen
+                row.appendChild(laengeCell);
+
+                // Aktionen
+                const actionsCell = document.createElement('td');
+                actionsCell.classList.add('action-buttons');
+
+                // Bearbeiten-Button
+                const editButton = document.createElement('button');
+                editButton.classList.add('action-button', 'btn-warning');
+                editButton.innerHTML = '<i class="fas fa-edit"></i>';
+                editButton.title = `Bearbeiten von Zuschnitt ${cut.bezeichnung || index + 1}`;
+                editButton.setAttribute('aria-label', `Bearbeiten von Zuschnitt ${cut.bezeichnung || index + 1}`);
+                editButton.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    editCut(index);
+                };
+                actionsCell.appendChild(editButton);
+
+                // Löschen-Button
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('action-button', 'btn-danger');
+                deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                deleteButton.title = `Löschen von Zuschnitt ${cut.bezeichnung || index + 1}`;
+                deleteButton.setAttribute('aria-label', `Löschen von Zuschnitt ${cut.bezeichnung || index + 1}`);
+                deleteButton.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    deleteCut(index);
+                };
+                actionsCell.appendChild(deleteButton);
+
+                row.appendChild(actionsCell);
+                tableBody.appendChild(row);
+            });
+
+            // Überprüfen, ob Material-Bezeichnung angezeigt werden soll
+            toggleMaterialBezeichnungColumn();
+        };
+
+        // Funktion zum Überprüfen und Umschalten der Material-Bezeichnung Spalte
+        const toggleMaterialBezeichnungColumn = () => {
+            const hasMaterialBezeichnung = state.cuts.some(cut => cut.materialBezeichnung && cut.materialBezeichnung.trim() !== '');
+            const materialColumns = document.querySelectorAll('.material-bezeichnung');
+            
+            materialColumns.forEach(col => {
+                col.style.display = hasMaterialBezeichnung ? 'table-cell' : 'none';
+            });
+        };
+
+        // Funktion zur Visualisierung der Rohblechlängen
+        const visualizeRohle = (rohle, rollWidth, rollLength) => {
+            const container = document.getElementById('blechrolle-container');
+            if (!container) return; // Sicherheitscheck
+            
+            // Container leeren, um Speicherlecks zu vermeiden
+            while (container.firstChild) {
+                container.removeChild(container.firstChild);
+            }
+
+            if (!Array.isArray(rohle) || rohle.length === 0) {
+                const emptyMessage = document.createElement('p');
+                emptyMessage.textContent = 'Keine Visualisierung verfügbar. Führen Sie die Optimierung durch, um die Abwicklung zu sehen.';
+                emptyMessage.style.textAlign = 'center';
+                emptyMessage.style.padding = '20px';
+                emptyMessage.style.color = 'var(--primary-color)';
+                emptyMessage.style.fontStyle = 'italic';
+                container.appendChild(emptyMessage);
+                return;
+            }
+
+            // Sicherheitscheck für rollWidth und rollLength
+            if (isNaN(rollWidth) || rollWidth <= 0 || isNaN(rollLength) || rollLength <= 0) {
+                showAlert('Ungültige Werte für Rollenbreite oder Rollenlänge', 'danger');
+                return;
+            }
+
+            rohle.forEach((rohblech, index) => {
+                if (!rohblech || typeof rohblech !== 'object') return; // Überspringe ungültige Rohbleche
+                
+                const rohblechDiv = document.createElement('div');
+                rohblechDiv.classList.add('blechrolle');
+                rohblechDiv.style.width = `${rollWidth * WIDTH_SCALE}px`;
+                
+                // Sicherheitscheck für usedLength
+                const usedLength = parseFloat(rohblech.usedLength) || 0;
+                rohblechDiv.style.height = `${Math.min(rollLength, usedLength * 1.1) * LENGTH_SCALE}px`;
+
+                const dimensionsText = document.createElement('div');
+                dimensionsText.classList.add('dimensions-text');
+                dimensionsText.innerHTML = `Breite: ${formatNumber(rollWidth * 100, 1)} cm, Länge: ${formatNumber(usedLength, 2)} m`;
+                rohblechDiv.appendChild(dimensionsText);
+
+                // Zuschnitte zeichnen
+                if (Array.isArray(rohblech.placements)) {
+                    rohblech.placements.forEach(cut => {
+                        if (!cut || typeof cut !== 'object') return; // Überspringe ungültige Zuschnitte
+                        
+                        const cutDiv = document.createElement('div');
+                        cutDiv.classList.add('cut');
+                        
+                        // Sicherstellen, dass numerische Werte gültig sind
+                        const breite = parseFloat(cut.breite) || 0;
+                        const laenge = parseFloat(cut.laenge) || 0;
+                        const x = parseFloat(cut.x) || 0;
+                        const y = parseFloat(cut.y) || 0;
+                        
+                        cutDiv.style.width = `${breite * WIDTH_SCALE}px`;
+                        cutDiv.style.height = `${laenge * LENGTH_SCALE}px`;
+                        cutDiv.style.left = `${x * WIDTH_SCALE}px`;
+                        cutDiv.style.top = `${y * LENGTH_SCALE}px`;
+                        
+                        // Farbe mit Fallback
+                        cutDiv.style.backgroundColor = isValidColor(cut.color) ? cut.color : '#cccccc';
+                        
+                        // Informationen für Tooltip und Klick-Event
+                        const info = `
+                            Bezeichnung: ${cut.bezeichnung || 'Nicht angegeben'}
+                            Material: ${cut.materialBezeichnung || 'Nicht angegeben'}
+                            Breite: ${formatNumber(breite * 100, 1)} cm
+                            Länge: ${formatNumber(laenge, 2)} m
+                            ${cut.rotated ? '(gedreht)' : ''}
+                        `;
+                        
+                        cutDiv.title = info.replace(/\n/g, ' - ');
+                        
+                        // Maße im Zuschnitt anzeigen - kompakter und näher am Original
+                        cutDiv.innerHTML = `
+                            <span style="font-size:10px;font-weight:normal;">${formatNumber(breite * 100, 1)} cm</span>
+                            <span style="font-size:10px;font-weight:normal;">${formatNumber(laenge, 2)} m</span>
+                            ${cut.rotated ? '<small style="font-size:9px;opacity:0.8;">(gedreht)</small>' : ''}
+                        `;
+                        
+                        // Click-Event für Details mit benutzerdefiniertem Dialog statt alert
+                        cutDiv.addEventListener('click', () => {
+                            showCustomDialog('Zuschnittdetails', info);
+                        });
+                        
+                        rohblechDiv.appendChild(cutDiv);
+                    });
+                }
+
+                // Verschnittbereiche zeichnen
+                if (Array.isArray(rohblech.spaces)) {
+                    rohblech.spaces.forEach(space => {
+                        if (!space || typeof space !== 'object') return; // Überspringe ungültige Spaces
+                        
+                        // Sicherstellen, dass numerische Werte gültig sind
+                        const width = parseFloat(space.width) || 0;
+                        const height = parseFloat(space.height) || 0;
+                        const x = parseFloat(space.x) || 0;
+                        const y = parseFloat(space.y) || 0;
+                        
+                        // Prüfen, ob der Bereich innerhalb der genutzten Länge liegt und eine messbare Größe hat
+                        if (width >= 0.01 && height >= 0.01 && y < usedLength) {
+                            const wasteDiv = document.createElement('div');
+                            wasteDiv.classList.add('waste');
+                            
+                            const actualHeight = Math.min(height, usedLength - y);
+                            
+                            wasteDiv.style.width = `${width * WIDTH_SCALE}px`;
+                            wasteDiv.style.height = `${actualHeight * LENGTH_SCALE}px`;
+                            wasteDiv.style.left = `${x * WIDTH_SCALE}px`;
+                            wasteDiv.style.top = `${y * LENGTH_SCALE}px`;
+                            
+                            const verschnittInfo = `
+                                Verschnittbereich
+                                Breite: ${formatNumber(width * 100, 1)} cm
+                                Länge: ${formatNumber(actualHeight, 2)} m
+                                Fläche: ${formatNumber(width * actualHeight, 2)} m²
+                            `;
+                            
+                            wasteDiv.title = verschnittInfo.replace(/\n/g, ' - ');
+                            
+                            // Click-Event für Verschnitt-Info mit benutzerdefiniertem Dialog statt alert
+                            wasteDiv.addEventListener('click', () => {
+                                showCustomDialog('Verschnittdetails', verschnittInfo);
+                            });
+                            
+                            rohblechDiv.appendChild(wasteDiv);
+                        }
+                    });
+                }
+
+                container.appendChild(rohblechDiv);
+            });
+        };
+
+        // Funktion zum Anzeigen eines benutzerdefinierten Dialogs (statt alert)
+        const showCustomDialog = (title, content) => {
+            // Dialog-Container erstellen
+            const dialogOverlay = document.createElement('div');
+            dialogOverlay.style.position = 'fixed';
+            dialogOverlay.style.top = '0';
+            dialogOverlay.style.left = '0';
+            dialogOverlay.style.width = '100%';
+            dialogOverlay.style.height = '100%';
+            dialogOverlay.style.backgroundColor = 'rgba(0, 0, 0, 0.5)';
+            dialogOverlay.style.display = 'flex';
+            dialogOverlay.style.justifyContent = 'center';
+            dialogOverlay.style.alignItems = 'center';
+            dialogOverlay.style.zIndex = '9999';
+            
+            // Dialog-Box erstellen
+            const dialogBox = document.createElement('div');
+            dialogBox.style.backgroundColor = 'white';
+            dialogBox.style.padding = '20px';
+            dialogBox.style.borderRadius = 'var(--border-radius)';
+            dialogBox.style.boxShadow = 'var(--box-shadow)';
+            dialogBox.style.maxWidth = '80%';
+            dialogBox.style.maxHeight = '80%';
+            dialogBox.style.overflow = 'auto';
+            
+            // Dialog-Titel
+            const dialogTitle = document.createElement('h4');
+            dialogTitle.style.marginBottom = '15px';
+            dialogTitle.style.color = 'var(--primary-color)';
+            dialogTitle.style.borderBottom = '1px solid var(--secondary-color)';
+            dialogTitle.style.paddingBottom = '5px';
+            dialogTitle.textContent = title;
+            
+            // Dialog-Inhalt
+            const dialogContent = document.createElement('div');
+            dialogContent.style.marginBottom = '20px';
+            dialogContent.style.whiteSpace = 'pre-line';
+            dialogContent.style.fontSize = '14px';
+            dialogContent.textContent = content;
+            
+            // Dialog-Button
+            const dialogButton = document.createElement('button');
+            dialogButton.style.padding = '8px 16px';
+            dialogButton.style.fontSize = '14px';
+            dialogButton.style.backgroundColor = 'var(--button-color)';
+            dialogButton.style.color = 'white';
+            dialogButton.style.border = 'none';
+            dialogButton.style.borderRadius = 'var(--border-radius)';
+            dialogButton.style.cursor = 'pointer';
+            dialogButton.textContent = 'Schließen';
+            dialogButton.addEventListener('click', () => {
+                document.body.removeChild(dialogOverlay);
+            });
+            
+            // Alles zusammenfügen
+            dialogBox.appendChild(dialogTitle);
+            dialogBox.appendChild(dialogContent);
+            dialogBox.appendChild(dialogButton);
+            dialogOverlay.appendChild(dialogBox);
+            
+            // Dialog anzeigen
+            document.body.appendChild(dialogOverlay);
+            
+            // Dialog auch beim Klick außerhalb schließen
+            dialogOverlay.addEventListener('click', (e) => {
+                if (e.target === dialogOverlay) {
+                    document.body.removeChild(dialogOverlay);
+                }
+            });
+        };
+
+        // =========== Datenverwaltungsfunktionen ===========
+
+        // Funktion zum Hinzufügen eines Zuschnitts
+        const addCut = () => {
+            // Eingaben holen und validieren
+            const breiteInput = parseInput(document.getElementById('breite').value) / 100; // cm zu m
+            const laengeInput = parseInput(document.getElementById('laenge').value);
+            const bezeichnungInput = document.getElementById('bezeichnung').value.trim();
+            const materialBezeichnungInput = document.getElementById('materialBezeichnung').value.trim();
+
+            // Erweiterte Validierung
+            if (breiteInput <= 0) {
+                showAlert('Bitte gib einen gültigen Wert für die Breite (in cm) ein.', 'danger');
+                return;
+            }
+
+            if (laengeInput <= 0) {
+                showAlert('Bitte gib einen gültigen Wert für die Länge (in m) ein.', 'danger');
+                return;
+            }
+
+            if (materialBezeichnungInput === '') {
+                showAlert('Bitte gib eine Material-Bezeichnung ein.', 'danger');
+                return;
+            }
+
+            // Neuen Zuschnitt erstellen
+            const color = getRandomColor();
+            const newCut = { 
+                breite: breiteInput, 
+                laenge: laengeInput, 
+                color, 
+                bezeichnung: bezeichnungInput,
+                materialBezeichnung: materialBezeichnungInput
+            };
+
+            // Zum Array hinzufügen und UI aktualisieren
+            state.cuts.push(newCut);
+            updateCutsTable();
+            resetVerbrauchsdaten();
+            resetZuschnittForm();
+            saveToLocalStorage();
+            berechneKosten();
+            
+            showAlert(`Zuschnitt "${bezeichnungInput || 'Ohne Bezeichnung'}" erfolgreich hinzugefügt!`, 'success');
+        };
+
+        // Funktion zum Löschen eines Zuschnitts
+        const deleteCut = (index) => {
+            if (index < 0 || index >= state.cuts.length) {
+                showAlert('Ungültiger Zuschnitt-Index', 'danger');
+                return;
+            }
+
+            if (confirm(`Möchten Sie diesen Zuschnitt wirklich löschen?`)) {
+                const cutToDelete = state.cuts[index];
+                const bezeichnung = cutToDelete.bezeichnung || `#${index + 1}`;
+                
+                // Farbe aus dem Array entfernen
+                const colorIndex = state.colors.indexOf(cutToDelete.color);
+                if (colorIndex !== -1) {
+                    state.colors.splice(colorIndex, 1);
+                }
+                
+                // Zuschnitt aus dem Array entfernen
+                state.cuts.splice(index, 1);
+                
+                // UI aktualisieren
+                updateCutsTable();
+                resetVerbrauchsdaten();
+                saveToLocalStorage();
+                berechneKosten();
+                
+                showAlert(`Zuschnitt "${bezeichnung}" erfolgreich gelöscht!`, 'success');
+            }
+        };
+
+        // Funktion zum Bearbeiten eines Zuschnitts
+        const editCut = (index) => {
+            if (index < 0 || index >= state.cuts.length) {
+                showAlert('Ungültiger Zuschnitt-Index', 'danger');
+                return;
+            }
+
+            const currentCut = state.cuts[index];
+            
+            // Dialog zum Bearbeiten anzeigen
+            const newBreite = prompt('Neue Breite in cm:', (currentCut.breite * 100).toFixed(1));
+            if (newBreite === null) return; // Abbruch bei Cancel
+            
+            const newLaenge = prompt('Neue Gesamtlänge in m:', currentCut.laenge.toFixed(2));
+            if (newLaenge === null) return; // Abbruch bei Cancel
+            
+            const newBezeichnung = prompt('Neue Bezeichnung/Kommentar:', currentCut.bezeichnung || '');
+            if (newBezeichnung === null) return; // Abbruch bei Cancel
+            
+            const newMaterialBezeichnung = prompt('Neue Material-Bezeichnung:', currentCut.materialBezeichnung || '');
+            if (newMaterialBezeichnung === null) return; // Abbruch bei Cancel
+
+            // Werte parsen und validieren
+            const breite = parseInput(newBreite) / 100; // cm zu m
+            const laenge = parseInput(newLaenge);
+            const bezeichnung = newBezeichnung.trim();
+            const materialBezeichnungEdited = newMaterialBezeichnung.trim();
+
+            if (breite <= 0) {
+                showAlert('Bitte gib einen gültigen Wert für die Breite (in cm) ein.', 'danger');
+                return;
+            }
+
+            if (laenge <= 0) {
+                showAlert('Bitte gib einen gültigen Wert für die Länge (in m) ein.', 'danger');
+                return;
+            }
+
+            if (materialBezeichnungEdited === '') {
+                showAlert('Bitte gib eine Material-Bezeichnung ein.', 'danger');
+                return;
+            }
+
+            // Zuschnitt aktualisieren
+            currentCut.breite = breite;
+            currentCut.laenge = laenge;
+            currentCut.bezeichnung = bezeichnung;
+            currentCut.materialBezeichnung = materialBezeichnungEdited;
+            
+            // UI aktualisieren
+            updateCutsTable();
+            resetVerbrauchsdaten();
+            saveToLocalStorage();
+            berechneKosten();
+            
+            showAlert(`Zuschnitt "${bezeichnung || 'Ohne Bezeichnung'}" erfolgreich bearbeitet!`, 'success');
+        };
+
+        // Funktion zum Zurücksetzen der Verbrauchsdatenanzeige
+        const resetVerbrauchsdaten = () => {
+            const elements = [
+                'totalUsedArea', 'totalWasteArea', 'verschnittProzent', 'totalMaterialKosten',
+                'totalConsumedArea', 'totalMaterialKostenDropdown', 'totalWasteKostenDropdown',
+                'verschnittProzentDropdown'
+            ];
+            
+            // Werte zurücksetzen
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.innerText = '0';
+            });
+            
+            // Dropdown-Felder anzeigen
+            const dropdownElements = [
+                'totalMaterialKostenDropdownP', 'totalWasteKostenDropdownP', 'verschnittProzentDropdownP'
+            ];
+            
+            dropdownElements.forEach(id => {
+                const element = document.getElementById(id);
+                if (element) element.style.display = 'block';
+            });
+        };
+
+        // Funktion zum Zurücksetzen des Zuschnittformulars
+        const resetZuschnittForm = () => {
+            const form = document.getElementById('zuschnittdatenForm');
+            if (form) form.reset();
+        };
+
+        // Funktion zum Zurücksetzen des gesamten Projekts
+        const resetProject = () => {
+            if (confirm('Möchten Sie wirklich alle Daten löschen und ein neues Projekt beginnen?')) {
+                // Zustand zurücksetzen
+                state.cuts = [];
+                state.colors = [];
+                state.rohle = [];
+                state.materialBezeichnung = "";
+                state.materialKostenProM2 = 0;
+                state.materialVorlage = "";
+                state.totalConsumedArea = 0;
+                
+                // Formulare zurücksetzen
+                const formElements = {
+                    'projektName': '', 
+                    'materialBezeichnung': '', 
+                    'materialKostenProM2': '',
+                    'materialVorlage': '',
+                    'rolleBreite': '100',
+                    'rolleLaenge': '30',
+                    'maxLaenge': '4'
+                };
+                
+                Object.entries(formElements).forEach(([id, value]) => {
+                    const element = document.getElementById(id);
+                    if (element) element.value = value;
+                });
+                
+                // UI aktualisieren
+                updateCutsTable();
+                resetVerbrauchsdaten();
+                visualizeRohle([], 0, 0);
+                
+                const projectTitle = document.getElementById('projectTitle');
+                if (projectTitle) projectTitle.innerText = 'Projektname';
+                
+                // LocalStorage leeren
+                localStorage.removeItem('currentProject');
+                
+                showAlert('Projekt wurde erfolgreich zurückgesetzt!', 'success');
+            }
+        };
+
+        // =========== Optimierungs- und Berechnungsfunktionen ===========
+
+        // Funktion zur Optimierung der Zuschnitte
+        const optimizeCuts = () => {
+            if (state.cuts.length === 0) {
+                showAlert("Keine Zuschnitte vorhanden!", 'danger');
+                return;
+            }
+
+            // Parameter aus der UI holen
+            const rollWidth = parseInput(document.getElementById('rolleBreite').value) / 100; // cm zu m
+            const maxLaenge = parseInput(document.getElementById('maxLaenge').value);
+            const rollLength = parseInput(document.getElementById('rolleLaenge').value);
+
+            // Parameter validieren
+            if (rollWidth <= 0) {
+                showAlert('Bitte gib einen gültigen Wert für die Blechbreite ein!', 'danger');
+                return;
+            }
+
+            if (maxLaenge <= 0) {
+                showAlert('Bitte gib einen gültigen Wert für die maximale Abkantlänge ein!', 'danger');
+                return;
+            }
+
+            if (rollLength <= 0) {
+                showAlert('Bitte gib einen gültigen Wert für die Rollenlänge ein!', 'danger');
+                return;
+            }
+
+            // UI-Status aktualisieren für Optimierungsprozess
+            const optimizeButton = document.getElementById('optimizeCutsBtn');
+            if (!optimizeButton) {
+                showAlert('Optimierungs-Button nicht gefunden', 'danger');
+                return;
+            }
+            
+            const originalButtonText = optimizeButton.innerHTML;
+            optimizeButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Optimierung läuft...';
+            optimizeButton.disabled = true;
+            state.isOptimizing = true;
+
+            // Optimierung in einem setTimeout ausführen, um die UI zu aktualisieren
+            setTimeout(() => {
+                try {
+                    // Optimierung durchführen
+                    const result = performOptimization(state.cuts, rollWidth, maxLaenge, rollLength);
+                    state.rohle = result.rohle;
+                    
+                    // Visualisierung aktualisieren
+                    visualizeRohle(result.rohle, rollWidth, rollLength);
+
+                    // Berechnung und Anzeige der Flächen und Kosten
+                    const areas = calculateAreas(result.rohle, rollWidth);
+                    
+                    const elements = {
+                        'totalUsedArea': formatNumber(areas.totalUsedArea),
+                        'totalWasteArea': formatNumber(areas.totalWasteArea),
+                        'totalConsumedArea': formatNumber(areas.totalConsumedArea)
+                    };
+                    
+                    Object.entries(elements).forEach(([id, value]) => {
+                        const element = document.getElementById(id);
+                        if (element) element.innerText = value;
+                    });
+
+                    berechneKosten(areas.totalConsumedArea);
+                    berechneVerschnittKosten(areas.totalWasteArea);
+                    berechneVerschnittProzent(areas.totalUsedArea, areas.totalWasteArea);
+
+                    saveToLocalStorage();
+                    showAlert('Optimierung erfolgreich abgeschlossen!', 'success');
+                } catch (error) {
+                    console.error("Optimierungsfehler:", error);
+                    showAlert(`Fehler bei der Optimierung: ${error.message}`, 'danger');
+                } finally {
+                    // UI-Status zurücksetzen
+                    if (optimizeButton) {
+                        optimizeButton.innerHTML = originalButtonText;
+                        optimizeButton.disabled = false;
+                    }
+                    state.isOptimizing = false;
+                }
+            }, 100);
+        };
+
+        // Funktion zur Durchführung der Optimierung
+        const performOptimization = (cuts, rollWidth, maxLaenge, rollLength) => {
+            // Eingabeparameter validieren
+            if (!Array.isArray(cuts) || cuts.length === 0) {
+                throw new Error('Keine Zuschnitte vorhanden');
+            }
+            
+            if (rollWidth <= 0 || maxLaenge <= 0 || rollLength <= 0) {
+                throw new Error('Ungültige Parameter für Optimierung');
+            }
+
+            // Liste aller Zuschnittteile erstellen, aufgeteilt nach maximaler Abkantlänge
+            let allPieces = [];
+            cuts.forEach(cut => {
+                if (!cut || typeof cut !== 'object') return; // Überspringe ungültige Zuschnitte
+                
+                let remainingLength = parseFloat(cut.laenge);
+                if (isNaN(remainingLength) || remainingLength <= 0) return; // Überspringe ungültige Längen
+                
+                const breite = parseFloat(cut.breite);
+                if (isNaN(breite) || breite <= 0) return; // Überspringe ungültige Breiten
+                
+                // Wenn die Breite größer als die Rollenbreite ist und die Drehung möglich ist
+                if (breite > rollWidth && cut.laenge <= rollWidth) {
+                    // Gedrehten Zuschnitt hinzufügen
+                    allPieces.push({
+                        breite: cut.laenge,
+                        laenge: breite,
+                        color: cut.color,
+                        bezeichnung: cut.bezeichnung,
+                        materialBezeichnung: cut.materialBezeichnung,
+                        rotated: true
+                    });
+                    return; // Nächster Zuschnitt
+                }
+                
+                // Wenn die Breite größer als die Rollenbreite ist und die Drehung nicht möglich ist
+                if (breite > rollWidth) {
+                    throw new Error(`Der Zuschnitt "${cut.bezeichnung || 'ohne Bezeichnung'}" ist mit ${(breite * 100).toFixed(1)} cm zu breit für die Rolle mit ${(rollWidth * 100).toFixed(1)} cm Breite und kann nicht gedreht werden.`);
+                }
+                
+                while (remainingLength > EPSILON) {
+                    const pieceLength = Math.min(remainingLength, maxLaenge);
+                    allPieces.push({
+                        breite: breite,
+                        laenge: pieceLength,
+                        color: cut.color,
+                        bezeichnung: cut.bezeichnung,
+                        materialBezeichnung: cut.materialBezeichnung,
+                        rotated: false
+                    });
+                    remainingLength = Math.max(0, remainingLength - pieceLength);
+                }
+            });
+
+            // Überprüfen, ob nach der Verarbeitung noch Teile vorhanden sind
+            if (allPieces.length === 0) {
+                throw new Error('Keine gültigen Zuschnitte vorhanden');
+            }
+
+            // Sortieren nach Fläche (größte zuerst) für bessere Packdichte
+            allPieces.sort((a, b) => {
+                const areaA = a.breite * a.laenge;
+                const areaB = b.breite * b.laenge;
+                return areaB - areaA;
+            });
+
+            const rohleOptimized = [];
+            let currentRohle = createNewRohblech(rollWidth, rollLength, rohleOptimized);
+
+            // Erweiterte Platzierungslogik für bessere Optimierung
+            let noPlacementPossible = false;
+            
+            // Platzierungsalgorithmus mit Berücksichtigung der Materialverschwendung
+            while (allPieces.length > 0 && !noPlacementPossible) {
+                const piece = allPieces.shift();
+                noPlacementPossible = true;
+                
+                // Beide Orientierungen prüfen (normale und gedrehte)
+                let orientations = [];
+                
+                // Normale Orientierung hinzufügen
+                orientations.push({ breite: piece.breite, laenge: piece.laenge, rotated: false });
+                
+                // Gedrehte Orientierung hinzufügen, wenn möglich
+                if (piece.laenge <= rollWidth && piece.breite <= rollLength && piece.breite !== piece.laenge) {
+                    orientations.push({ breite: piece.laenge, laenge: piece.breite, rotated: true });
+                }
+
+                let bestFit = null;
+                let bestFitScore = Infinity;
+
+                // Für jedes Rohblech und jeden freien Bereich die beste Passform finden
+                rohleOptimized.forEach((rohblech, rohIndex) => {
+                    if (!Array.isArray(rohblech.spaces)) return; // Sicherheitscheck
+                    
+                    rohblech.spaces.forEach((space, spaceIndex) => {
+                        orientations.forEach(orientation => {
+                            // Prüfen, ob das Teil in den freien Bereich passt
+                            if (orientation.breite <= space.width + EPSILON && 
+                                orientation.laenge <= space.height + EPSILON) {
+                                
+                                // Verschwendete Fläche berechnen
+                                const wasteArea = (space.width - orientation.breite) * orientation.laenge + 
+                                                 space.width * (space.height - orientation.laenge);
+                                
+                                // Komplexeres Scoring für bessere Passform
+                                // Kleinere Werte sind besser
+                                const score = wasteArea * 1.1 + (space.y * 0.1); // Bevorzuge tiefere Positionen leicht
+                                
+                                // Speichern, wenn es die bisher beste Passform ist
+                                if (bestFit === null || score < bestFitScore) {
+                                    bestFit = {
+                                        rohIndex,
+                                        spaceIndex,
+                                        orientation,
+                                        wasteArea
+                                    };
+                                    bestFitScore = score;
+                                }
+                                
+                                noPlacementPossible = false;
+                            }
+                        });
+                    });
+                });
+
+                // Wenn eine passende Position gefunden wurde
+                if (bestFit) {
+                    const { rohIndex, spaceIndex, orientation } = bestFit;
+                    const rohblech = rohleOptimized[rohIndex];
+                    const space = rohblech.spaces[spaceIndex];
+
+                    // Platzierung des Teils
+                    const placement = {
+                        x: space.x,
+                        y: space.y,
+                        breite: orientation.breite,
+                        laenge: orientation.laenge,
+                        color: piece.color,
+                        bezeichnung: piece.bezeichnung,
+                        materialBezeichnung: piece.materialBezeichnung,
+                        rotated: orientation.rotated
+                    };
+                    rohblech.placements.push(placement);
+
+                    // Entfernen des genutzten Bereichs und Aktualisieren der freien Bereiche
+                    rohblech.spaces.splice(spaceIndex, 1);
+                    
+                    // Wenn noch Platz rechts vom Teil ist, neuen freien Bereich erstellen
+                    if ((space.width - orientation.breite) > 0.01) {
+                        rohblech.spaces.push({
+                            x: space.x + orientation.breite,
+                            y: space.y,
+                            width: space.width - orientation.breite,
+                            height: orientation.laenge
+                        });
+                    }
+                    
+                    // Wenn noch Platz unterhalb des Teils ist, neuen freien Bereich erstellen
+                    if ((space.height - orientation.laenge) > 0.01) {
+                        rohblech.spaces.push({
+                            x: space.x,
+                            y: space.y + orientation.laenge,
+                            width: space.width,
+                            height: space.height - orientation.laenge
+                        });
+                    }
+
+                    // Sortieren der Spaces nach Y-Position für bessere Packdichte
+                    rohblech.spaces.sort((a, b) => a.y - b.y);
+
+                    // Genutzte Länge des Rohblechs aktualisieren
+                    const bottom = placement.y + placement.laenge;
+                    if (bottom > rohblech.usedLength) {
+                        rohblech.usedLength = bottom;
+                    }
+                } else if (noPlacementPossible) {
+                    // Kein Platz gefunden, neues Rohblech erstellen
+                    currentRohle = createNewRohblech(rollWidth, rollLength, rohleOptimized);
+                    
+                    // Teil wieder in die Liste einfügen
+                    allPieces.unshift(piece);
+                    
+                    // Reset der Flags, um mit dem neuen Rohblech zu versuchen
+                    noPlacementPossible = false;
+                }
+            }
+
+            // Berechnung des Verschnitts
+            const areas = calculateAreas(rohleOptimized, rollWidth);
+
+            return { 
+                rohle: rohleOptimized, 
+                totalWasteArea: areas.totalWasteArea, 
+                totalUsedArea: areas.totalUsedArea,
+                totalConsumedArea: areas.totalConsumedArea 
+            };
+        };
+
+        // Funktion zum Erstellen eines neuen Rohblechs
+        const createNewRohblech = (rollWidth, rollLength, rohle) => {
+            if (rollWidth <= 0 || rollLength <= 0) {
+                throw new Error('Ungültige Parameter für Rohblech');
+            }
+            
+            const rohblech = {
+                width: rollWidth,
+                length: rollLength,
+                placements: [],
+                spaces: [{ x: 0, y: 0, width: rollWidth, height: rollLength }],
+                usedLength: 0
+            };
+            
+            if (Array.isArray(rohle)) {
+                rohle.push(rohblech);
+            }
+            
+            return rohblech;
+        };
+
+        // Funktion zur Berechnung der Flächen (Produktiv + Verschnitt)
+        const calculateAreas = (rohle, rollWidth) => {
+            let totalUsedArea = 0;
+            let totalWasteArea = 0;
+            let totalConsumedArea = 0;
+
+            if (!Array.isArray(rohle)) {
+                return { totalUsedArea, totalWasteArea, totalConsumedArea };
+            }
+
+            // Berechnung der Flächen für jedes Rohblech
+            rohle.forEach(rohblech => {
+                if (!rohblech || typeof rohblech !== 'object') return; // Überspringe ungültige Rohbleche
+                
+                // Summe der Flächen aller Teile
+                const usedArea = Array.isArray(rohblech.placements) ? 
+                    rohblech.placements.reduce((sum, cut) => {
+                        if (!cut || typeof cut !== 'object') return sum; // Überspringe ungültige Cuts
+                        const breite = parseFloat(cut.breite) || 0;
+                        const laenge = parseFloat(cut.laenge) || 0;
+                        return sum + (breite * laenge);
+                    }, 0) : 0;
+                
+                totalUsedArea += usedArea;
+                
+                // Verbrauchte Fläche (bis zur genutzten Länge)
+                const usedLength = parseFloat(rohblech.usedLength) || 0;
+                const width = parseFloat(rohblech.width) || rollWidth;
+                const consumedArea = usedLength * width;
+                totalConsumedArea += consumedArea;
+                
+                // Verschnitt ist die Differenz
+                const wasteArea = Math.max(0, consumedArea - usedArea); // Verhindert negative Werte durch Rundungsfehler
+                totalWasteArea += wasteArea;
+            });
+
+            return { 
+                totalUsedArea: Math.max(0, totalUsedArea), 
+                totalWasteArea: Math.max(0, totalWasteArea), 
+                totalConsumedArea: Math.max(0, totalConsumedArea) 
+            };
+        };
+
+        // Funktion zur Berechnung der Gesamtkosten für Material
+        const berechneKosten = (consumedArea = 0) => {
+            // Material-Informationen aus der UI holen
+            const materialBezeichnungElem = document.getElementById('materialBezeichnung');
+            const materialKostenProM2Elem = document.getElementById('materialKostenProM2');
+            
+            if (materialBezeichnungElem && materialKostenProM2Elem) {
+                state.materialBezeichnung = materialBezeichnungElem.value.trim();
+                state.materialKostenProM2 = parseInput(materialKostenProM2Elem.value);
+            }
+
+            // Sicherheitscheck für die verbrauchte Fläche
+            if (isNaN(consumedArea) || consumedArea < 0) {
+                consumedArea = 0;
+            }
+
+            // Berechnung der Gesamtkosten basierend auf der verbrauchten Fläche
+            const totalMaterialKosten = consumedArea * state.materialKostenProM2;
+
+            // Aktualisieren der Anzeige
+            const totalMaterialKostenElem = document.getElementById('totalMaterialKosten');
+            const totalMaterialKostenDropdownElem = document.getElementById('totalMaterialKostenDropdown');
+            const totalMaterialKostenDropdownPElem = document.getElementById('totalMaterialKostenDropdownP');
+            
+            if (totalMaterialKostenElem) {
+                totalMaterialKostenElem.innerText = formatNumber(totalMaterialKosten);
+            }
+            
+            if (totalMaterialKostenDropdownElem) {
+                totalMaterialKostenDropdownElem.innerText = formatNumber(totalMaterialKosten);
+            }
+            
+            if (totalMaterialKostenDropdownPElem) {
+                totalMaterialKostenDropdownPElem.style.display = 'block';
+            }
+
+            saveToLocalStorage();
+            return totalMaterialKosten;
+        };
+
+        // Funktion zur Berechnung der Kosten für Verschnitt
+        const berechneVerschnittKosten = (wasteArea = 0) => {
+            // Sicherheitscheck für die Verschnittfläche
+            if (isNaN(wasteArea) || wasteArea < 0) {
+                wasteArea = 0;
+            }
+            
+            const wasteKosten = wasteArea * state.materialKostenProM2;
+            
+            const totalWasteKostenDropdownElem = document.getElementById('totalWasteKostenDropdown');
+            const totalWasteKostenDropdownPElem = document.getElementById('totalWasteKostenDropdownP');
+            
+            if (totalWasteKostenDropdownElem) {
+                totalWasteKostenDropdownElem.innerText = formatNumber(wasteKosten);
+            }
+            
+            if (totalWasteKostenDropdownPElem) {
+                totalWasteKostenDropdownPElem.style.display = 'block';
+            }
+            
+            saveToLocalStorage();
+            return wasteKosten;
+        };
+
+        // Funktion zur Berechnung des Verschnittprozentsatzes
+        const berechneVerschnittProzent = (totalUsedArea = 0, wasteArea = 0) => {
+            // Sicherheitschecks für die Flächen
+            if (isNaN(totalUsedArea) || totalUsedArea < 0) totalUsedArea = 0;
+            if (isNaN(wasteArea) || wasteArea < 0) wasteArea = 0;
+            
+            const totalArea = totalUsedArea + wasteArea;
+            let verschnittProzent = 0;
+            
+            if (totalArea > EPSILON) {
+                verschnittProzent = (wasteArea / totalArea) * 100;
+            }
+            
+            const verschnittProzentElem = document.getElementById('verschnittProzent');
+            const verschnittProzentDropdownElem = document.getElementById('verschnittProzentDropdown');
+            const verschnittProzentDropdownPElem = document.getElementById('verschnittProzentDropdownP');
+            
+            if (verschnittProzentElem) {
+                verschnittProzentElem.innerText = formatNumber(verschnittProzent);
+            }
+            
+            if (verschnittProzentDropdownElem) {
+                verschnittProzentDropdownElem.innerText = formatNumber(verschnittProzent);
+            }
+            
+            if (verschnittProzentDropdownPElem) {
+                verschnittProzentDropdownPElem.style.display = 'block';
+            }
+            
+            saveToLocalStorage();
+            return verschnittProzent;
+        };
+
+        // =========== Projektdaten Speichern/Laden ===========
+
+        // Funktion zur Validierung der importierten Projektdaten
+        const validateProjectData = (data) => {
+            // Grundlegende Prüfungen
+            if (!data || typeof data !== 'object') {
+                throw new Error('Ungültiges Dateiformat.');
+            }
+            
+            if (typeof data.projektName !== 'string' || data.projektName.trim() === '') {
+                throw new Error('Ungültiger Projektname.');
+            }
+            
+            // Prüfung der Werte mit Fehlertoleranz
+            if (typeof data.rolleBreite !== 'number' || isNaN(data.rolleBreite) || data.rolleBreite <= 0) {
+                throw new Error('Ungültige Rollenbreite.');
+            }
+            
+            if (typeof data.maxLaenge !== 'number' || isNaN(data.maxLaenge) || data.maxLaenge <= 0) {
+                throw new Error('Ungültige maximale Abkantlänge.');
+            }
+            
+            if (typeof data.rolleLaenge !== 'number' || isNaN(data.rolleLaenge) || data.rolleLaenge <= 0) {
+                throw new Error('Ungültige Rollenlänge.');
+            }
+            
+            // Prüfung der Zuschnitte
+            if (!Array.isArray(data.cuts)) {
+                throw new Error('Zuschnitte müssen als Array vorliegen.');
+            }
+            
+            // Fehlende Zuschnitte erlauben, aber warnen
+            if (data.cuts.length === 0) {
+                console.warn('Warnung: Keine Zuschnitte im importierten Projekt vorhanden.');
+            } else {
+                // Validiere jeden Zuschnitt
+                data.cuts.forEach((cut, index) => {
+                    if (!cut || typeof cut !== 'object') {
+                        throw new Error(`Ungültiger Zuschnitt an Position ${index + 1}.`);
+                    }
+                    
+                    if (typeof cut.breite !== 'number' || isNaN(cut.breite) || cut.breite <= 0) {
+                        throw new Error(`Ungültige Breite für Zuschnitt ${index + 1}.`);
+                    }
+                    
+                    if (typeof cut.laenge !== 'number' || isNaN(cut.laenge) || cut.laenge <= 0) {
+                        throw new Error(`Ungültige Länge für Zuschnitt ${index + 1}.`);
+                    }
+                    
+                    if (typeof cut.color !== 'string' || !isValidColor(cut.color.trim())) {
+                        // Ersetze ungültige Farben mit einer Standardfarbe
+                        console.warn(`Warnung: Ungültige Farbe für Zuschnitt ${index + 1}. Standardfarbe wird verwendet.`);
+                        cut.color = 'hsl(200, 80%, 80%)';
+                    }
+                    
+                    // Leere Strings für Bezeichnungen zulassen, aber als optionale Felder
+                    if (cut.bezeichnung !== undefined && typeof cut.bezeichnung !== 'string') {
+                        throw new Error(`Ungültige Bezeichnung für Zuschnitt ${index + 1}.`);
+                    }
+                    
+                    if (cut.materialBezeichnung !== undefined && typeof cut.materialBezeichnung !== 'string') {
+                        throw new Error(`Ungültige Material-Bezeichnung für Zuschnitt ${index + 1}.`);
+                    }
+                });
+            }
+            
+            // Prüfung der Rohblechlängen mit Fehlertoleranz
+            if (data.rohle !== undefined && !Array.isArray(data.rohle)) {
+                data.rohle = []; // Reset auf leeres Array bei ungültigen Daten
+                console.warn('Warnung: Ungültige Rohblechdaten im importierten Projekt. Werden zurückgesetzt.');
+            }
+            
+            // Prüfung der Materialdaten mit Fehlertoleranz
+            if (data.materialBezeichnung !== undefined && typeof data.materialBezeichnung !== 'string') {
+                data.materialBezeichnung = '';
+                console.warn('Warnung: Ungültige Material-Bezeichnung im importierten Projekt. Wird zurückgesetzt.');
+            }
+            
+            if (data.materialKostenProM2 !== undefined && 
+                (typeof data.materialKostenProM2 !== 'number' || isNaN(data.materialKostenProM2) || data.materialKostenProM2 < 0)) {
+                data.materialKostenProM2 = 0;
+                console.warn('Warnung: Ungültige Materialkosten im importierten Projekt. Werden auf 0 gesetzt.');
+            }
+            
+            return true;
+        };
+
+        // Funktion zum Exportieren des Projekts als JSON-Datei
+        const exportProject = () => {
+            const projektNameElem = document.getElementById('projektName');
+            if (!projektNameElem) {
+                showAlert('Fehler beim Zugriff auf Projektnamen', 'danger');
+                return;
+            }
+            
+            const projektName = projektNameElem.value.trim();
+            
+            if (projektName === '') {
+                showAlert('Bitte gib einen Projektnamen ein!', 'danger');
+                return;
+            }
+            
+            if (state.cuts.length === 0) {
+                showAlert('Bitte füge mindestens einen Zuschnitt hinzu!', 'warning');
+                return;
+            }
+
+            // Projekttitel aktualisieren
+            const projectTitleElem = document.getElementById('projectTitle');
+            if (projectTitleElem) {
+                projectTitleElem.innerText = `Projekt: ${projektName}`;
+            }
+
+            // Materialdaten aktualisieren
+            const materialBezeichnungElem = document.getElementById('materialBezeichnung');
+            const materialKostenProM2Elem = document.getElementById('materialKostenProM2');
+            
+            if (materialBezeichnungElem && materialKostenProM2Elem) {
+                state.materialBezeichnung = materialBezeichnungElem.value.trim();
+                state.materialKostenProM2 = parseInput(materialKostenProM2Elem.value);
+            }
+
+            // Projektdaten zusammenstellen
+            const rolleBreiteElem = document.getElementById('rolleBreite');
+            const maxLaengeElem = document.getElementById('maxLaenge');
+            const rolleLaengeElem = document.getElementById('rolleLaenge');
+            
+            const projectData = {
+                projektName,
+                rolleBreite: rolleBreiteElem ? parseInput(rolleBreiteElem.value) : 100,
+                maxLaenge: maxLaengeElem ? parseInput(maxLaengeElem.value) : 4,
+                rolleLaenge: rolleLaengeElem ? parseInput(rolleLaengeElem.value) : 30,
+                cuts: state.cuts,
+                colors: state.colors,
+                materialBezeichnung: state.materialBezeichnung,
+                materialKostenProM2: state.materialKostenProM2,
+                materialVorlage: state.materialVorlage,
+                rohle: state.rohle
+            };
+            
+            try {
+                // JSON erstellen und Download initiieren
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(projectData, null, 2));
+                const downloadAnchorNode = document.createElement('a');
+                downloadAnchorNode.setAttribute("href", dataStr);
+                downloadAnchorNode.setAttribute("download", `${projektName.replace(/[^a-z0-9]/gi, '_')}.json`);
+                document.body.appendChild(downloadAnchorNode);
+                downloadAnchorNode.click();
+                downloadAnchorNode.remove();
+                
+                showAlert('Projekt erfolgreich exportiert!', 'success');
+            } catch (error) {
+                console.error("Export-Fehler:", error);
+                showAlert(`Fehler beim Exportieren: ${error.message}`, 'danger');
+            }
+        };
+
+        // Funktion zum Importieren eines Projekts aus einer JSON-Datei
+        const importProject = (event) => {
+            const file = event.target.files[0];
+            
+            if (!file) {
+                showAlert('Keine Datei ausgewählt!', 'danger');
+                return;
+            }
+            
+            if (!file.name.toLowerCase().endsWith('.json')) {
+                showAlert('Die Datei muss im JSON-Format vorliegen!', 'danger');
+                return;
+            }
+            
+            const reader = new FileReader();
+            
+            reader.onload = (e) => {
+                try {
+                    let projectData = JSON.parse(e.target.result);
+                    
+                    // Daten validieren
+                    validateProjectData(projectData);
+                    
+                    // Daten in die Anwendung laden
+                    const projektNameElem = document.getElementById('projektName');
+                    const projectTitleElem = document.getElementById('projectTitle');
+                    const rolleBreiteElem = document.getElementById('rolleBreite');
+                    const maxLaengeElem = document.getElementById('maxLaenge');
+                    const rolleLaengeElem = document.getElementById('rolleLaenge');
+                    const materialBezeichnungElem = document.getElementById('materialBezeichnung');
+                    const materialKostenProM2Elem = document.getElementById('materialKostenProM2');
+                    const materialVorlageElem = document.getElementById('materialVorlage');
+                    
+                    // Formularfelder aktualisieren
+                    if (projektNameElem) projektNameElem.value = projectData.projektName;
+                    if (projectTitleElem) projectTitleElem.innerText = `Projekt: ${projectData.projektName}`;
+                    if (rolleBreiteElem) rolleBreiteElem.value = projectData.rolleBreite;
+                    if (maxLaengeElem) maxLaengeElem.value = projectData.maxLaenge;
+                    if (rolleLaengeElem) rolleLaengeElem.value = projectData.rolleLaenge;
+                    if (materialBezeichnungElem) materialBezeichnungElem.value = projectData.materialBezeichnung || '';
+                    if (materialKostenProM2Elem) materialKostenProM2Elem.value = projectData.materialKostenProM2 || 0;
+
+                    // Anwendungszustand aktualisieren
+                    state.cuts = projectData.cuts || [];
+                    state.colors = projectData.colors || [];
+                    state.materialBezeichnung = projectData.materialBezeichnung || "";
+                    state.materialKostenProM2 = projectData.materialKostenProM2 || 0;
+                    state.materialVorlage = projectData.materialVorlage || "";
+                    state.rohle = projectData.rohle || [];
+
+                    // Material-Vorlage aktualisieren
+                    if (materialVorlageElem) materialVorlageElem.value = state.materialVorlage;
+
+                    // UI aktualisieren
+                    updateCutsTable();
+                    resetVerbrauchsdaten();
+                    
+                    const rolleBreite = parseInput(projectData.rolleBreite) / 100; // cm zu m
+                    const rolleLaenge = parseInput(projectData.rolleLaenge);
+                    visualizeRohle(state.rohle, rolleBreite, rolleLaenge);
+
+                    // Berechnungen aktualisieren
+                    const areas = calculateAreas(state.rohle, rolleBreite);
+                    berechneKosten(areas.totalConsumedArea || 0);
+                    berechneVerschnittKosten(areas.totalWasteArea || 0);
+                    berechneVerschnittProzent(areas.totalUsedArea || 0, areas.totalWasteArea || 0);
+                    
+                    saveToLocalStorage();
+                    showAlert(`Projekt "${projectData.projektName}" erfolgreich importiert!`, 'success');
+                } catch (error) {
+                    console.error("Import-Fehler:", error);
+                    showAlert(`Fehler beim Importieren des Projekts: ${error.message}`, 'danger');
+                }
+            };
+            
+            reader.onerror = () => {
+                showAlert('Fehler beim Lesen der Datei!', 'danger');
+            };
+            
+            reader.readAsText(file);
+            
+            // Dateiauswahl zurücksetzen
+            event.target.value = null;
+        };
+
+        // Funktion zum Speichern des aktuellen Projekts in Local Storage
+        const saveToLocalStorage = () => {
+            try {
+                const projektNameElem = document.getElementById('projektName');
+                const rolleBreiteElem = document.getElementById('rolleBreite');
+                const maxLaengeElem = document.getElementById('maxLaenge');
+                const rolleLaengeElem = document.getElementById('rolleLaenge');
+                const materialVorlageElem = document.getElementById('materialVorlage');
+                
+                const projectData = {
+                    projektName: projektNameElem ? projektNameElem.value.trim() : '',
+                    rolleBreite: rolleBreiteElem ? parseInput(rolleBreiteElem.value) : 100,
+                    maxLaenge: maxLaengeElem ? parseInput(maxLaengeElem.value) : 4,
+                    rolleLaenge: rolleLaengeElem ? parseInput(rolleLaengeElem.value) : 30,
+                    cuts: state.cuts,
+                    colors: state.colors,
+                    materialBezeichnung: state.materialBezeichnung,
+                    materialKostenProM2: state.materialKostenProM2,
+                    materialVorlage: materialVorlageElem ? materialVorlageElem.value : '',
+                    rohle: state.rohle
+                };
+                
+                localStorage.setItem('currentProject', JSON.stringify(projectData));
+            } catch (error) {
+                console.error("LocalStorage-Fehler:", error);
+                // Versuche, defekten LocalStorage zu löschen
+                try {
+                    localStorage.removeItem('currentProject');
+                } catch (e) {
+                    console.error("Fehler beim Zurücksetzen des LocalStorage:", e);
+                }
+            }
+        };
+
+        // Funktion zum Laden eines gespeicherten Projekts aus Local Storage
+        const loadFromLocalStorage = () => {
+            try {
+                const projectDataStr = localStorage.getItem('currentProject');
+                
+                if (!projectDataStr) {
+                    return false;
+                }
+                
+                const projectData = JSON.parse(projectDataStr);
+                
+                // Daten validieren
+                try {
+                    validateProjectData(projectData);
+                } catch (error) {
+                    console.error("Validierungsfehler:", error);
+                    localStorage.removeItem('currentProject');
+                    return false;
+                }
+                
+                // Daten in die Anwendung laden
+                const projektNameElem = document.getElementById('projektName');
+                const projectTitleElem = document.getElementById('projectTitle');
+                const rolleBreiteElem = document.getElementById('rolleBreite');
+                const maxLaengeElem = document.getElementById('maxLaenge');
+                const rolleLaengeElem = document.getElementById('rolleLaenge');
+                const materialBezeichnungElem = document.getElementById('materialBezeichnung');
+                const materialKostenProM2Elem = document.getElementById('materialKostenProM2');
+                const materialVorlageElem = document.getElementById('materialVorlage');
+                
+                // Formularfelder aktualisieren
+                if (projektNameElem) projektNameElem.value = projectData.projektName;
+                if (projectTitleElem) projectTitleElem.innerText = `Projekt: ${projectData.projektName}`;
+                if (rolleBreiteElem) rolleBreiteElem.value = projectData.rolleBreite;
+                if (maxLaengeElem) maxLaengeElem.value = projectData.maxLaenge;
+                if (rolleLaengeElem) rolleLaengeElem.value = projectData.rolleLaenge;
+                if (materialBezeichnungElem) materialBezeichnungElem.value = projectData.materialBezeichnung || '';
+                if (materialKostenProM2Elem) materialKostenProM2Elem.value = projectData.materialKostenProM2 || 0;
+
+                // Anwendungszustand aktualisieren
+                state.cuts = projectData.cuts || [];
+                state.colors = projectData.colors || [];
+                state.materialBezeichnung = projectData.materialBezeichnung || "";
+                state.materialKostenProM2 = projectData.materialKostenProM2 || 0;
+                state.materialVorlage = projectData.materialVorlage || "";
+                state.rohle = projectData.rohle || [];
+
+                // Material-Vorlage aktualisieren
+                if (materialVorlageElem) materialVorlageElem.value = state.materialVorlage;
+
+                // UI aktualisieren
+                updateCutsTable();
+                
+                const rolleBreite = parseInput(projectData.rolleBreite) / 100; // cm zu m
+                const rolleLaenge = parseInput(projectData.rolleLaenge);
+                visualizeRohle(state.rohle, rolleBreite, rolleLaenge);
+
+                // Berechnungen aktualisieren
+                const areas = calculateAreas(state.rohle, rolleBreite);
+                berechneKosten(areas.totalConsumedArea || 0);
+                berechneVerschnittKosten(areas.totalWasteArea || 0);
+                berechneVerschnittProzent(areas.totalUsedArea || 0, areas.totalWasteArea || 0);
+                
+                showAlert(`Projekt "${projectData.projektName}" aus lokaler Speicherung geladen.`, 'success');
+                return true;
+            } catch (error) {
+                console.error("LocalStorage-Ladefehler:", error);
+                localStorage.removeItem('currentProject'); // Beschädigte Daten entfernen
+                return false;
+            }
+        };
+
+        // Funktion zum Anwenden einer Material-Vorlage
+        const applyMaterialTemplate = () => {
+            const materialVorlageElem = document.getElementById('materialVorlage');
+            const materialBezeichnungElem = document.getElementById('materialBezeichnung');
+            const materialKostenProM2Elem = document.getElementById('materialKostenProM2');
+            
+            if (!materialVorlageElem || !materialBezeichnungElem || !materialKostenProM2Elem) {
+                showAlert('Fehler beim Zugriff auf Material-Formularfelder', 'danger');
+                return;
+            }
+            
+            const vorlage = materialVorlageElem.value;
+            
+            if (!vorlage) return; // Keine Vorlage ausgewählt
+            
+            // Materialdaten nach Vorlage setzen
+            switch(vorlage) {
+                case 'kupfer':
+                    materialBezeichnungElem.value = "Kupfer";
+                    materialKostenProM2Elem.value = "85.00";
+                    break;
+                case 'titanzink':
+                    materialBezeichnungElem.value = "Titanzink";
+                    materialKostenProM2Elem.value = "42.50";
+                    break;
+                case 'blei':
+                    materialBezeichnungElem.value = "Blei";
+                    materialKostenProM2Elem.value = "75.00";
+                    break;
+                case 'aluminium':
+                    materialBezeichnungElem.value = "Aluminium";
+                    materialKostenProM2Elem.value = "35.00";
+                    break;
+                case 'stahlblech':
+                    materialBezeichnungElem.value = "Stahlblech verzinkt";
+                    materialKostenProM2Elem.value = "22.50";
+                    break;
+                case 'edelstahl':
+                    materialBezeichnungElem.value = "Edelstahl V4A";
+                    materialKostenProM2Elem.value = "65.00";
+                    break;
+                case 'prefa':
+                    materialBezeichnungElem.value = "PREFA Aluminium";
+                    materialKostenProM2Elem.value = "48.50";
+                    break;
+                default:
+                    return;
+            }
+            
+            // Zustand aktualisieren
+            state.materialVorlage = vorlage;
+            state.materialBezeichnung = materialBezeichnungElem.value;
+            state.materialKostenProM2 = parseInput(materialKostenProM2Elem.value);
+            
+            // Kosten neu berechnen
+            berechneKosten();
+            
+            showAlert(`Material-Vorlage "${materialBezeichnungElem.value}" angewendet.`, 'success');
+        };
+
+        // Initialisierungsfunktion
+        const init = () => {
+            // Event-Listener für Eingabevalidierung hinzufügen
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('input', () => {
+                    // Komma durch Punkt ersetzen für korrekte Berechnung
+                    if (input.value.includes(',')) {
+                        input.value = input.value.replace(',', '.');
+                    }
+                });
+            });
+            
+            // Event-Listener für die Enter-Taste im Zuschnittformular
+            const zuschnittdatenForm = document.getElementById('zuschnittdatenForm');
+            if (zuschnittdatenForm) {
+                zuschnittdatenForm.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        addCut();
+                    }
+                });
+            }
+            
+            // Dropdown-Berechnungsfelder initial verstecken
+            document.querySelectorAll('#totalMaterialKostenDropdownP, #totalWasteKostenDropdownP, #verschnittProzentDropdownP')
+                .forEach(elem => {
+                    if (elem) elem.style.display = 'none';
+                });
+            
+            // Tooltips für bessere Benutzerführung
+            document.querySelectorAll('.form-group label').forEach(label => {
+                if (!label.classList.contains('tooltip')) {
+                    label.classList.add('tooltip');
+                    const fieldName = label.textContent.split(':')[0].trim();
+                    
+                    let tooltipText = '';
+                    switch(fieldName) {
+                        case 'Breite (cm)':
+                            tooltipText = 'Die Breite des Zuschnitts in Zentimetern';
+                            break;
+                        case 'Länge (m)':
+                            tooltipText = 'Die Länge des Zuschnitts in Metern';
+                            break;
+                        case 'Bezeichnung/Kommentar':
+                            tooltipText = 'Eine optionale Beschreibung für den Zuschnitt';
+                            break;
+                        case 'Material-Bezeichnung':
+                            tooltipText = 'Die Bezeichnung des zu verwendenden Materials';
+                            break;
+                        case 'Materialkosten pro m² (€)':
+                            tooltipText = 'Die Kosten des Materials pro Quadratmeter in Euro';
+                            break;
+                        case 'Projektname':
+                            tooltipText = 'Name des aktuellen Projekts für Export/Import';
+                            break;
+                        default:
+                            tooltipText = '';
+                    }
+                    
+                    if (tooltipText) {
+                        const span = document.createElement('span');
+                        span.className = 'tooltiptext';
+                        span.textContent = tooltipText;
+                        label.appendChild(span);
+                    }
+                }
+            });
+            
+            // Versuch, Daten aus LocalStorage zu laden
+            return loadFromLocalStorage();
+        };
+
+        // Öffentliche API
+        return {
+            addCut,
+            optimizeCuts,
+            exportProject,
+            importProject,
+            resetProject,
+            saveToLocalStorage,
+            loadFromLocalStorage,
+            berechneKosten,
+            applyMaterialTemplate,
+            init
+        };
+    })();
+
+    // Funktion zum Umschalten des Dropdown-Menüs
+    function toggleDropdown(button) {
+        if (!button) return; // Sicherheitscheck
+        
+        const section = button.parentElement;
+        if (!section) return; // Sicherheitscheck
+        
+        const wasActive = section.classList.contains('active');
+        
+        // Alle aktiven Dropdowns schließen
+        document.querySelectorAll('.dropdown.active').forEach(dropdown => {
+            if (dropdown !== section) {
+                dropdown.classList.remove('active');
+                const toggleButton = dropdown.querySelector('.dropdown-toggle');
+                if (toggleButton) {
+                    toggleButton.setAttribute('aria-expanded', 'false');
+                }
+            }
+        });
+        
+        // Aktuelles Dropdown umschalten
+        section.classList.toggle('active');
+        
+        // ARIA-Attribute für Barrierefreiheit aktualisieren
+        const isActive = section.classList.contains('active');
+        button.setAttribute('aria-expanded', isActive ? 'true' : 'false');
+        
+        // Wenn das Dropdown geöffnet wird, zum Dropdown scrollen
+        if (isActive && !wasActive) {
+            setTimeout(() => {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+    }
+
+    // Globale Funktionen, die von HTML-Elementen aufgerufen werden
+    function addCut() {
+        App.addCut();
+    }
+
+    function optimizeCuts() {
+        App.optimizeCuts();
+    }
+
+    function exportProject() {
+        App.exportProject();
+    }
+
+    function importProject(event) {
+        App.importProject(event);
+    }
+
+    function resetProject() {
+        App.resetProject();
+    }
+
+    function berechneKosten(consumedArea) {
+        App.berechneKosten(consumedArea);
+    }
+
+    function applyMaterialTemplate() {
+        App.applyMaterialTemplate();
+    }
+
+    // Event-Listener für das Laden der Seite
+    document.addEventListener('DOMContentLoaded', () => {
+        // Anwendung initialisieren
+        const projectLoaded = App.init();
+        
+        // Falls kein Projekt geladen wurde, Standardwerte setzen
+        if (!projectLoaded) {
+            // Standard-Projektname
+            const projectTitleElem = document.getElementById('projectTitle');
+            if (projectTitleElem) {
+                projectTitleElem.innerText = 'Neues Projekt';
+            }
+            
+            // Hinweis anzeigen, wie man beginnt
+            const container = document.getElementById('blechrolle-container');
+            if (container) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:30px; color:var(--primary-color);">
+                        <i class="fas fa-info-circle" style="font-size:48px; margin-bottom:15px;"></i>
+                        <h4>Erste Schritte</h4>
+                        <p>1. Fügen Sie Materialdaten hinzu (Breite der Blechrolle, Länge, etc.)</p>
+                        <p>2. Erstellen Sie Zuschnitte mit Maßen und Bezeichnungen</p>
+                        <p>3. Klicken Sie auf "Zuschnitte optimieren", um die optimale Anordnung zu berechnen</p>
+                    </div>
+                `;
+            }
+        }
+        
+        // Tastaturnavigation für Barrierefreiheit
+        document.addEventListener('keydown', function(e) {
+            // ESC-Taste schließt alle Dropdowns
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.dropdown.active').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                    const toggleButton = dropdown.querySelector('.dropdown-toggle');
+                    if (toggleButton) {
+                        toggleButton.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        });
+        
+        // Click-Handler außerhalb von Dropdowns, um sie zu schließen
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropdown') && !e.target.classList.contains('dropdown-toggle')) {
+                document.querySelectorAll('.dropdown.active').forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                    const toggleButton = dropdown.querySelector('.dropdown-toggle');
+                    if (toggleButton) {
+                        toggleButton.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+        });
+        
+        // Formulare bei Submit verhindern (wir verwenden stattdessen JavaScript)
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+            });
+        });
+    });
+</script>
+</body>
+</html>

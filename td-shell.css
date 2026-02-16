@@ -1,0 +1,104 @@
+:root{
+  --td-red:#8F1D1D;
+  --td-red-dark:#6F1616;
+  --td-ink:#0b0b0b;
+  --td-muted:#6b7280;
+  --td-border:rgba(255,255,255,.12);
+  --td-bg:rgba(10,10,10,.88);
+  --td-bg2:rgba(10,10,10,.70);
+}
+
+/* Scoped only: no tag resets */
+.td-shell{
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 9999;
+  background: linear-gradient(180deg, var(--td-bg), var(--td-bg2));
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--td-border);
+}
+.td-shell__inner{
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 10px 14px;
+  display:flex;
+  align-items:center;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.td-shell__brand{
+  display:inline-flex;
+  align-items:center;
+  gap: 10px;
+  text-decoration:none;
+  color: #fff;
+  min-width: 200px;
+}
+.td-shell__logo{
+  width: 32px;
+  height: 32px;
+  display:block;
+}
+.td-shell__text{
+  display:flex;
+  flex-direction:column;
+  line-height:1.1;
+}
+.td-shell__text strong{
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 13px;
+  letter-spacing:.08em;
+  text-transform: uppercase;
+}
+.td-shell__text span{
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 12px;
+  color: rgba(255,255,255,.72);
+}
+
+.td-shell__nav{
+  display:flex;
+  align-items:center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.td-btn{
+  font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: 13px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  transition: transform .08s ease, background .2s ease, border-color .2s ease;
+  user-select:none;
+}
+.td-btn:hover{
+  background: rgba(255,255,255,.09);
+  border-color: rgba(255,255,255,.28);
+}
+.td-btn:active{ transform: translateY(1px); }
+
+.td-btn--primary{
+  background: rgba(143,29,29,.26);
+  border-color: rgba(143,29,29,.72);
+}
+.td-btn--primary:hover{
+  background: rgba(143,29,29,.34);
+  border-color: rgba(143,29,29,.92);
+}
+
+@media (max-width:520px){
+  .td-shell__brand{ min-width: 0; }
+  .td-shell__text span{ display:none; }
+}

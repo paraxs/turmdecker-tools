@@ -1,0 +1,1708 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>RestauroMap Professional v9.4 (Apple Design)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* Apple-inspired Design System */
+        :root {
+            /* Colors - Apple HIG inspired */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f2f2f7;
+            --bg-tertiary: #ffffff;
+            --bg-elevated: #ffffff;
+            --text-primary: #000000;
+            --text-secondary: #3c3c43;
+            --text-tertiary: #8e8e93;
+            --blue-primary: #007aff;
+            --blue-secondary: #5ac8fa;
+            --blue-tertiary: #cae4ff;
+            --gray-1: #8e8e93;
+            --gray-2: #aeaeb2;
+            --gray-3: #c7c7cc;
+            --gray-4: #d1d1d6;
+            --gray-5: #e5e5ea;
+            --gray-6: #f2f2f7;
+            --red-primary: #ff3b30;
+            --green-primary: #34c759;
+            --orange-primary: #ff9500;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+            --border-radius-sm: 6px;
+            --border-radius-md: 10px;
+            --border-radius-lg: 16px;
+            --border-radius-xl: 22px;
+            --font-family-system: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-weight-regular: 400;
+            --font-weight-medium: 500;
+            --font-weight-semibold: 600;
+            --font-weight-bold: 700;
+            --transition-fast: 0.15s cubic-bezier(0.4, 0.0, 0.2, 1);
+            --transition-normal: 0.3s cubic-bezier(0.4, 0.0, 0.2, 1);
+            --importance-high: #ff3b30;
+            --importance-medium: #ff9500;
+            --importance-low: #34c759;
+            --safe-area-top: env(safe-area-inset-top);
+            --safe-area-bottom: env(safe-area-inset-bottom);
+            --safe-area-left: env(safe-area-inset-left);
+            --safe-area-right: env(safe-area-inset-right);
+        }
+        [data-theme="dark"] {
+            --bg-primary: #000000;
+            --bg-secondary: #1c1c1e;
+            --bg-tertiary: #2c2c2e;
+            --bg-elevated: #1c1c1e;
+            --text-primary: #ffffff;
+            --text-secondary: #ebebf5;
+            --text-tertiary: #8e8e93;
+            --gray-1: #8e8e93;
+            --gray-2: #636366;
+            --gray-3: #48484a;
+            --gray-4: #3a3a3c;
+            --gray-5: #2c2c2e;
+            --gray-6: #1c1c1e;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.25);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.3);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.4);
+        }
+        /* Reset & Base */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { padding-top: env(safe-area-inset-top, 0); padding-bottom: env(safe-area-inset-bottom, 0);
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-text-size-adjust: 100%;
+        }
+        body { padding-top: env(safe-area-inset-top, 0); padding-bottom: env(safe-area-inset-bottom, 0);
+            font-family: var(--font-family-system);
+            margin: 0;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background-color var(--transition-normal), color var(--transition-normal);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
+            -webkit-touch-callout: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+        /* Layout */
+        .page {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            position: absolute;
+            top: 0; left: 0;
+            background-color: var(--bg-primary);
+        }
+        .page.active { display: flex; }
+        .header {
+            background-color: var(--bg-elevated);
+            border-bottom: 0.5px solid var(--gray-4);
+            padding: max(var(--safe-area-top), 8px) 16px 8px 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            flex-wrap: wrap; /* Allow wrapping */
+            gap: 8px; /* Add gap for wrapped items */
+        }
+        .header-title {
+            font-size: 17px;
+            font-weight: var(--font-weight-semibold);
+            color: var(--text-primary);
+            text-align: center;
+            flex-grow: 1; /* Allow title to take up space */
+            min-width: 100px; /* Prevent title from becoming too small */
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .header-left, .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+        .header-right { justify-content: flex-end; flex-wrap: wrap; max-width: 100%; flex-shrink: 1; }
+        .content {
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding: 16px;
+            background-color: var(--bg-secondary);
+        }
+        /* Cards */
+        .card {
+            background-color: var(--bg-elevated);
+            border-radius: var(--border-radius-lg);
+            padding: 16px;
+            margin-bottom: 12px;
+            box-shadow: var(--shadow-sm);
+            transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+            border: 0.5px solid var(--gray-5);
+        }
+        .card.interactive {
+            cursor: pointer;
+            -webkit-tap-highlight-color: rgba(0, 122, 255, 0.1);
+        }
+        .card.interactive:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        .card.interactive:active {
+            transform: translateY(0);
+            box-shadow: var(--shadow-sm);
+        }
+        /* Buttons */
+        .button {
+            background-color: var(--blue-primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius-md);
+            padding: 12px 20px;
+            font-size: 15px;
+            font-weight: var(--font-weight-medium);
+            font-family: var(--font-family-system);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            min-height: 44px;
+            min-width: 44px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        .button:hover { background-color: #0056b3; }
+        .button:active { transform: scale(0.97); }
+        .button-secondary { background-color: var(--gray-5); color: var(--text-primary); }
+        .button-secondary:hover { background-color: var(--gray-4); }
+        .button-destructive { background-color: var(--red-primary); color: white; }
+        .button-destructive:hover { background-color: #d70015; }
+        .button.active { background-color: var(--orange-primary); color: white; }
+        .button-icon {
+            background: transparent;
+            border: none;
+            padding: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            color: var(--blue-primary);
+            border-radius: var(--border-radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 44px;
+            min-width: 44px;
+            transition: all var(--transition-fast);
+        }
+        .button-icon:hover { background-color: var(--blue-tertiary); }
+        .button-icon:active { background-color: var(--gray-5); transform: scale(0.95); }
+        /* FAB */
+        .fab {
+            position: fixed;
+            bottom: calc(30px + var(--safe-area-bottom));
+            right: calc(30px + var(--safe-area-right));
+            width: 56px; height: 56px; z-index: 900;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; font-weight: var(--font-weight-medium);
+            box-shadow: var(--shadow-lg); border-radius: 28px;
+        }
+        .fab:hover { transform: translateY(-2px); box-shadow: var(--shadow-xl); }
+        /* Canvas */
+        .cockpit-content {
+            padding: 0; position: relative; display: flex;
+            justify-content: center; align-items: center;
+            background-color: var(--gray-6); touch-action: none; flex-grow: 1;
+        }
+        #main-canvas {
+            display: block; background-color: var(--bg-elevated);
+            touch-action: none; width: 100%; height: 100%;
+        }
+        #main-canvas.drawing-mode { cursor: crosshair !important; }
+        #main-canvas.panning-mode { cursor: grab; }
+        #main-canvas.panning-mode:active { cursor: grabbing; }
+        /* Modals */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background-color: rgba(0, 0, 0, 0.4);
+            display: none; justify-content: center; align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            animation: modal-fade-in var(--transition-normal);
+        }
+        @keyframes modal-fade-in { from { opacity: 0; } to { opacity: 1; } }
+        .modal-content {
+            background-color: var(--bg-elevated); padding: 24px;
+            border-radius: var(--border-radius-xl); width: 90%; max-width: 400px;
+            box-shadow: var(--shadow-xl); max-height: 90vh; overflow-y: auto;
+            animation: modal-slide-in var(--transition-normal);
+        }
+        @keyframes modal-slide-in { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        /* Forms */
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: var(--font-weight-medium); font-size: 15px; color: var(--text-primary); }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 12px 16px; border: 1px solid var(--gray-4);
+            border-radius: var(--border-radius-md); box-sizing: border-box;
+            background-color: var(--bg-elevated); color: var(--text-primary);
+            font-size: 16px; font-family: var(--font-family-system);
+            transition: all var(--transition-fast);
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--blue-primary); box-shadow: 0 0 0 3px var(--blue-tertiary); }
+        input[type="file"] { padding: 8px; cursor: pointer; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px; }
+        /* Project Cards */
+        .project-card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+        .project-card-header h3 { margin: 0; font-size: 18px; font-weight: var(--font-weight-semibold); color: var(--text-primary); flex: 1; }
+        .project-card-header p { margin: 0; font-size: 15px; color: var(--text-secondary); }
+        .delete-button { background-color: var(--red-primary); color: white; border: none; border-radius: var(--border-radius-sm); padding: 8px 12px; font-size: 13px; font-weight: var(--font-weight-medium); cursor: pointer; min-height: 32px; min-width: 60px; transition: all var(--transition-fast); }
+        .delete-button:hover { background-color: #d70015; transform: translateY(-1px); }
+        /* Action Bar */
+        .action-bar {
+            position: fixed; bottom: 0;
+            left: var(--safe-area-left); right: var(--safe-area-right);
+            background-color: var(--bg-elevated);
+            padding: 12px 16px calc(12px + var(--safe-area-bottom)) 16px;
+            display: flex; justify-content: center; gap: 16px;
+            border-top: 0.5px solid var(--gray-4); z-index: 800;
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            flex-wrap: wrap; /* Allow wrapping for small screens */
+        }
+        .action-bar .button { flex: 1; max-width: 200px; padding: 14px 16px; font-size: 16px; border-radius: var(--border-radius-lg); }
+        /* Detail List */
+        #detail-list-container { padding-bottom: calc(100px + var(--safe-area-bottom)); }
+        .detail-item-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+        .detail-item-icon { font-size: 20px; margin-right: 8px; }
+        .detail-item-time { color: var(--text-tertiary); font-size: 13px; font-weight: var(--font-weight-medium); }
+        .delete-entry-button {
+            background: transparent; color: var(--red-primary); border: none; border-radius: 50%; padding: 6px; font-size: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast);
+        }
+        .delete-entry-button:hover { background-color: rgba(255, 59, 48, 0.1); }
+        .edit-entry-button {
+            background: transparent; color: var(--blue-primary); border: none; border-radius: 50%; padding: 6px; font-size: 12px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast);
+        }
+        .edit-entry-button:hover { background-color: rgba(0, 122, 255, 0.1); }
+        /* Toast Messages */
+        #toast-container { position: fixed; bottom: calc(100px + var(--safe-area-bottom)); left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column; gap: 8px; pointer-events: none; width: 90%; max-width: 400px; }
+        .toast {
+            padding: 12px 20px; border-radius: var(--border-radius-lg); color: white;
+            font-weight: var(--font-weight-medium); font-size: 15px; box-shadow: var(--shadow-lg);
+            opacity: 0; transform: translateY(20px); animation: toast-in var(--transition-normal) forwards;
+            word-wrap: break-word; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+        }
+        @keyframes toast-in { to { opacity: 1; transform: translateY(0); } }
+        .toast.success { background-color: var(--green-primary); }
+        .toast.error { background-color: var(--red-primary); }
+        .toast.info { background-color: var(--blue-primary); }
+        /* Loader */
+        .loader-overlay {
+            position: fixed; inset: 0; background-color: rgba(255, 255, 255, 0.8);
+            display: none; justify-content: center; align-items: center; z-index: 3000;
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
+        [data-theme="dark"] .loader-overlay { background-color: rgba(0, 0, 0, 0.8); }
+        .loader { width: 48px; height: 48px; border: 3px solid var(--gray-5); border-bottom-color: var(--blue-primary); border-radius: 50%; display: inline-block; box-sizing: border-box; animation: rotation 1s linear infinite; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .photo-preview { max-width: 100%; max-height: 200px; border-radius: var(--border-radius-md); margin-top: 12px; object-fit: cover; }
+        /* Empty state */
+        .empty-state { text-align: center; color: var(--text-tertiary); font-size: 15px; padding: 40px 20px; }
+        .empty-state-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header { padding: max(var(--safe-area-top), 6px) 12px 6px 12px; }
+            .header-title { font-size: 16px; }
+            .content { padding: 12px; }
+            .card { padding: 14px; margin-bottom: 10px; border-radius: var(--border-radius-md); }
+            .button { padding: 10px 16px; font-size: 15px; }
+            .modal-content { padding: 20px; width: 95%; border-radius: var(--border-radius-lg); }
+            .action-bar { padding: 10px 12px calc(10px + var(--safe-area-bottom)) 12px; }
+        }
+/* --- Fix: prevent header tool overflow on narrow phones (shows ➕ icon) --- */
+@media (max-width: 420px) {
+  .header-right {
+    flex: 1 1 100%;
+    justify-content: flex-start;
+    row-gap: 6px;
+  }
+  #toggle-mode-btn {
+    min-width: unset;
+  }
+}
+/* App footer */
+.app-footer{
+  position: fixed;
+  left: calc(8px + var(--safe-area-left));
+  right: calc(8px + var(--safe-area-right));
+  bottom: calc(6px + var(--safe-area-bottom));
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  z-index: 90; /* below action bars, above content */
+  pointer-events: none;
+}
+/* --- Enhanced icon buttons & labels (mobile friendly) --- */
+.button-icon {
+  background: var(--bg-tertiary);
+  border: 1px solid var(--gray-4);
+  border-radius: 12px;
+  box-shadow: var(--shadow-sm);
+  font-weight: var(--font-weight-semibold);
+  gap: 6px;
+}
+.button-icon .btn-label { font-size: 14px; line-height: 1; }
+.button-icon:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+.button-icon:active { transform: translateY(0); box-shadow: var(--shadow-sm); }
+/* Hide labels on small screens */
+@media (max-width: 480px) {
+  .button-icon .btn-label { display: none; }
+}
+/* Sleeker prim/sec buttons */
+.button { border: 1px solid transparent; letter-spacing: .2px; }
+.button-secondary { border-color: var(--gray-4); background: linear-gradient(to bottom, var(--bg-elevated), var(--bg-tertiary)); }
+/* Action bar buttons full-width on tiny phones */
+@media (max-width: 480px) {
+  .action-bar .button { max-width: none; flex: 1 1 auto; }
+}
+</style>
+  <link rel="stylesheet" href="./td-shell.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="theme-color" content="#8F1D1D" />
+</head>
+<body>
+<div class="td-shell" role="banner">
+  <div class="td-shell__inner">
+    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
+      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
+      <div class="td-shell__text">
+        <strong>TURMDECKER</strong>
+        <span>Tools & Rechner</span>
+      </div>
+    </a>
+    <div class="td-shell__nav" aria-label="Navigation">
+      <a class="td-btn" href="./index.html">↩ Übersicht</a>
+      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
+      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
+    </div>
+  </div>
+</div>
+
+    <div id="loader-overlay" class="loader-overlay"><div class="loader"></div></div>
+    <div id="toast-container"></div>
+    <!-- Projects Page -->
+    <div id="page-projects" class="page active">
+        <div class="header">
+            <div class="header-left">
+                <span class="header-title" style="text-align: left;">RestauroMap</span>
+            </div>
+            <div class="header-right">
+                <input type="file" id="import-file-input" style="display:none;" accept=".json">
+                <button id="btn-import-data" class="button-icon" aria-label="Import (aus Datei → App)" title="Import (aus Datei → App)">⬆️<span class="btn-label">Import</span></button>
+                <button id="btn-export-data" class="button-icon" aria-label="Backup (App → Datei)" title="Backup (App → Datei)">⬇️<span class="btn-label">Backup</span></button>
+                <button id="btn-validate-data" class="button-icon" aria-label="Integrität prüfen" title="Integrität prüfen">🛡️<span class="btn-label">Check</span></button>
+                <button id="btn-company" class="button-icon" aria-label="Firmendaten" title="Firmendaten">🏷️</button>
+                <button id="theme-toggle" class="button-icon" aria-label="Toggle Dark Mode">🌓</button>
+            </div>
+        </div>
+        <div class="content" id="project-list-container"></div>
+        <button id="btn-fab-new-project" class="fab button" aria-label="Neues Projekt erstellen">+</button>
+    </div>
+    <!-- Cockpit Page -->
+    <div id="page-cockpit" class="page">
+        <div class="header">
+            <div class="header-left">
+                <button id="btn-back-to-projects" class="button-icon" aria-label="Zurück zur Projektliste">‹</button>
+            </div>
+            <span id="cockpit-title" class="header-title">Projekt</span>
+            <div class="header-right">
+                <button id="btn-export-pdf" class="button button-secondary" style="padding: 8px 12px; font-size: 14px;">PDF</button>
+                <button id="btn-area-list" class="button button-secondary" style="padding: 8px 12px; font-size: 14px;">📋 Bereiche</button>
+                <button id="toggle-mode-btn" class="button" style="padding: 8px 12px; font-size: 14px; min-width: 100px;">[+] Bereich</button>
+                <button id="btn-fit-to-screen" class="button-icon" aria-label="Bild anpassen" title="Bild anpassen">🔍</button>
+                <button id="btn-zoom-out" class="button-icon" aria-label="Herauszoomen" title="Herauszoomen">➖</button>
+                <button id="btn-zoom-in" class="button-icon" aria-label="Hineinzoomen" title="Hineinzoomen">➕</button>
+                <button id="btn-finish-drawing" class="button button-secondary" style="display:none; padding: 8px 12px; font-size: 14px;">✓ Fertig</button>
+            </div>
+        </div>
+        <div class="content cockpit-content">
+            <canvas id="main-canvas"></canvas>
+        </div>
+    </div>
+    <!-- Details Page -->
+    <div id="page-details" class="page">
+        <div class="header">
+            <div class="header-left">
+                <button id="btn-back-to-cockpit" class="button-icon" aria-label="Zurück zum Cockpit">‹</button>
+            </div>
+            <span id="details-title" class="header-title">Detailbereich</span>
+            <div class="header-right">
+                <button id="btn-delete-area" class="button button-destructive" style="padding: 8px 12px; font-size: 14px;">Löschen</button>
+            </div>
+        </div>
+        <div class="content" id="detail-list-container"></div>
+        <div class="action-bar">
+            <input type="file" id="foto-camera-input" accept="image/*" capture="environment" style="display:none;">
+            <input type="file" id="foto-gallery-input" accept="image/*" style="display:none;">
+            <button id="btn-add-foto-camera" class="button">📷 Kamera</button>
+            <button id="btn-add-foto-gallery" class="button button-secondary">🖼️ Galerie</button>
+            <button id="btn-add-notiz" class="button button-secondary">📝 Notiz</button>
+        </div>
+    </div>
+    <div id="area-list-modal" class="modal-overlay" role="dialog" aria-modal="true" style="display:none;">
+      <div class="modal-content">
+        <h3 style="margin-top:0; font-size:20px; font-weight:600;">Bereiche</h3>
+        <div id="area-list-container" style="display:flex; flex-direction:column; gap:8px; max-height:60vh; overflow:auto;"></div>
+        <div class="modal-actions">
+          <button id="btn-close-area-list" type="button" class="button button-secondary">Schließen</button>
+        </div>
+      </div>
+    </div>
+    <!-- Modals -->
+    <div id="new-area-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h3 style="margin-top: 0; font-size: 20px; font-weight: 600;">Neuen Bereich benennen</h3>
+            <form id="new-area-form">
+                <div class="form-group"><label for="area-name">Name des Bereichs</label><input type="text" id="area-name" required placeholder="z.B. Wand Süden"></div>
+                <div class="form-group">
+                    <label for="area-wichtigkeit">Wichtigkeit</label>
+                    <select id="area-wichtigkeit"><option value="high">🔴 Hoch</option><option value="medium" selected>🟠 Mittel</option><option value="low">🟢 Niedrig</option></select>
+                </div>
+                <div class="modal-actions"><button id="btn-cancel-area" type="button" class="button button-secondary">Abbrechen</button><button type="submit" class="button">Speichern</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="new-project-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h3 style="margin-top: 0; font-size: 20px; font-weight: 600;">Neues Projekt anlegen</h3>
+            <form id="new-project-form">
+                <div class="form-group"><label for="project-name">Projektname</label><input type="text" id="project-name" required placeholder="z.B. Villa Müller"></div>
+                <div class="form-group"><label for="project-location">Ort</label><input type="text" id="project-location" required placeholder="z.B. Wien, Österreich"></div>
+                <div class="form-group">
+                    <label for="project-image-file">Übersichtsbild</label><input type="file" id="project-image-file" accept="image/png, image/jpeg, image/webp" required>
+                    <div id="project-image-preview"></div>
+                </div>
+                <div class="modal-actions"><button id="btn-cancel-project" type="button" class="button button-secondary">Abbrechen</button><button type="submit" class="button">Speichern</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="new-eintrag-modal" class="modal-overlay" role="dialog" aria-modal="true">
+        <div class="modal-content">
+            <h3 id="new-eintrag-title" style="margin-top: 0; font-size: 20px; font-weight: 600;">Neuer Eintrag</h3>
+            <form id="new-eintrag-form">
+                <div class="form-group"><label for="eintrag-inhalt">Ihre Notiz</label><textarea id="eintrag-inhalt" required rows="5" placeholder="Beschreiben Sie Ihre Beobachtung..."></textarea></div>
+                <div class="modal-actions"><button id="btn-cancel-eintrag" type="button" class="button button-secondary">Abbrechen</button><button type="submit" class="button">Speichern</button></div>
+            </form>
+        </div>
+    </div>
+    <div id="company-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h3 style="margin-top:0;font-size:20px;font-weight:600;">Firmendaten</h3>
+        <form id="company-form">
+          <div class="form-group"><label for="company-name">Firmenname</label><input type="text" id="company-name" required placeholder="z.B. Kofler e.U."></div>
+          <div class="form-group"><label for="company-email">E-Mail</label><input type="email" id="company-email" placeholder="z.B. info@beispiel.at"></div>
+          <div class="form-group"><label for="company-phone">Telefon</label><input type="tel" id="company-phone" placeholder="+43 ..."></div>
+          <div class="form-group"><label for="company-website">Website</label><input type="url" id="company-website" placeholder="https://..."></div>
+          <div class="form-group">
+            <label for="company-logo-file">Logo (PNG/JPG/SVG)</label><input type="file" id="company-logo-file" accept="image/png, image/jpeg, image/svg+xml, image/webp">
+            <img id="company-logo-preview" class="photo-preview" style="display:none;max-height:100px;margin-top:8px;">
+          </div>
+          <div class="modal-actions"><button id="btn-cancel-company" type="button" class="button button-secondary">Abbrechen</button><button type="submit" class="button">Speichern</button></div>
+        </form>
+      </div>
+    </div>
+    <div id="confirm-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h3 style="margin-top:0;font-size:20px;font-weight:600;">Löschen bestätigen</h3>
+        <p id="confirm-message" style="margin:0 0 12px 0;"></p>
+        <div class="modal-actions">
+          <button id="confirm-cancel" type="button" class="button button-secondary">Abbrechen</button>
+          <button id="confirm-ok" type="button" class="button button-destructive">Ja, löschen</button>
+        </div>
+      </div>
+</div>
+    <!-- === Simple Annotator UI === -->
+    <style>
+      #sa-modal.overlay {position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; z-index:9999;}
+      #sa-modal .panel {background:var(--bg-elevated, #fff); color:var(--text-primary,#111); width:min(1000px,95vw); height:min(90vh,95vh); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.2); display:flex; flex-direction:column; padding:12px;}
+      #sa-toolbar {display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;}
+      #sa-toolbar .seg {display:inline-flex; border:1px solid var(--gray-4,#ddd); border-radius:8px; overflow:hidden;}
+      #sa-toolbar .seg button {border:0; padding:8px 12px; background:var(--bg-tertiary,#f7f7f7); cursor:pointer}
+      #sa-toolbar .seg button.active {background:var(--blue-primary); color: white;}
+      #sa-canvas-wrap {flex:1; position:relative; border:1px solid var(--gray-4,#ddd); border-radius:10px; overflow:hidden; background:var(--bg-secondary,#fafafa); display:flex; align-items:center; justify-content:center;}
+      #sa-canvas {max-width:100%; max-height:100%; width:auto; height:auto; display:block; background:#fff; touch-action:none;}
+      #sa-actions {display:flex; gap:8px; margin-top:8px; justify-content:flex-end;}
+      .sa-btn {padding:8px 12px; border-radius:8px; border:1px solid var(--gray-4,#ddd); background:var(--bg-tertiary,#f7f7f7); cursor:pointer}
+      .sa-btn.primary {background:var(--blue-primary,#007aff); color:#fff; border-color:transparent;}
+      #sa-palette .sa-color-swatch {
+        width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;
+        box-shadow: 0 1px 2px rgba(0,0,0,.2); padding: 0;
+      }
+      #sa-palette .sa-color-swatch[data-color="#ff3b30"]{ background:#ff3b30; }
+      #sa-palette .sa-color-swatch[data-color="#ff9500"]{ background:#ff9500; }
+      #sa-palette .sa-color-swatch[data-color="#ffcc00"]{ background:#ffcc00; }
+      #sa-palette .sa-color-swatch[data-color="#34c759"]{ background:#34c759; }
+      #sa-palette .sa-color-swatch[data-color="#007aff"]{ background:#007aff; }
+      #sa-palette .sa-color-swatch[data-color="#5856d6"]{ background:#5856d6; }
+      #sa-palette .sa-color-swatch[data-color="#ff2d55"]{ background:#ff2d55; }
+      #sa-palette .sa-color-swatch[data-color="#000000"]{ background:#000000; }
+      #sa-palette .sa-color-swatch[data-color="#ffffff"]{ background:#ffffff; }
+      #sa-palette .sa-color-swatch.active { outline: 3px solid rgba(0,0,0,.25); }
+      .sa-btn.danger {background:#e53935; color:#fff; border-color:transparent;}
+    </style>
+    <div id="sa-modal" class="overlay" role="dialog" aria-modal="true">
+      <div class="panel">
+        <div id="sa-toolbar">
+          <div class="seg" id="sa-tools">
+            <button type="button" data-tool="line" class="active" aria-label="Linie zeichnen">— Linie</button>
+            <button type="button" data-tool="ellipse" aria-label="Ellipse zeichnen">○ Kreis/Ellipse</button>
+            <button type="button" data-tool="pen" aria-label="Freihand zeichnen">✍️ Freihand</button>
+            <button type="button" id="sa-select" aria-label="Form auswählen">🎯 Auswählen</button>
+          </div>
+          <label>Farbe <input type="color" id="sa-color" value="#ff3b30"/></label>
+          <div id="sa-palette" aria-label="Farbpalette" style="display:flex; gap:6px; flex-wrap:wrap;">
+            <button type="button" class="sa-color-swatch" data-color="#ff3b30" title="Rot"></button>
+            <button type="button" class="sa-color-swatch" data-color="#ff9500" title="Orange"></button>
+            <button type="button" class="sa-color-swatch" data-color="#ffcc00" title="Gelb"></button>
+            <button type="button" class="sa-color-swatch" data-color="#34c759" title="Grün"></button>
+            <button type="button" class="sa-color-swatch" data-color="#007aff" title="Blau"></button>
+            <button type="button" class="sa-color-swatch" data-color="#5856d6" title="Indigo"></button>
+            <button type="button" class="sa-color-swatch" data-color="#ff2d55" title="Pink"></button>
+            <button type="button" class="sa-color-swatch" data-color="#000000" title="Schwarz"></button>
+            <button type="button" class="sa-color-swatch" data-color="#ffffff" title="Weiß" style="border:1px solid #ccc;"></button>
+          </div>
+          <label>Stärke
+            <select id="sa-width"><option>8</option><option selected>12</option><option>16</option><option>24</option><option>32</option><option>40</option><option>48</option></select>
+          </label>
+          <label style="margin-left:8px; display:flex; align-items:center; gap:6px;"><input type="checkbox" id="sa-overwrite" checked><span>Original überschreiben</span></label>
+          <button type="button" class="sa-btn" id="sa-delete" aria-label="Ausgewählte Form löschen">🗑️ Löschen (gewählt)</button>
+          <button type="button" class="sa-btn" id="sa-undo" aria-label="Letzte Aktion rückgängig machen">↶ Rückgängig</button>
+        </div>
+        <div id="sa-canvas-wrap"><canvas id="sa-canvas"></canvas></div>
+        <div id="sa-actions">
+          <button type="button" class="sa-btn" id="sa-cancel">Abbrechen</button>
+          <button type="button" class="sa-btn primary" id="sa-save">Speichern</button>
+        </div>
+      </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const sanitizeHTML = str => {
+                const temp = document.createElement('div');
+                temp.textContent = str;
+                return temp.innerHTML;
+            };
+            const sanitizeForPDF = str => !str ? '' : String(str).replace(/[\u0000-\u001F\u007F-\u009F]/g, '');
+            // App state
+            const state = {
+                db: null, currentPageId: 'page-projects', currentProjectId: null,
+                currentAreaId: null, isDrawing: false, drawingPoints: [],
+                newEntryData: {}, activeImage: null, allProjectAreas: [],
+                hoveredAreaId: null, transform: new DOMMatrix(),
+                pointer: {
+                    isDown: false, mode: 'none', startDist: 0,
+                    startClient: {x: 0, y: 0}, lastClient: {x:0, y:0},
+                    pointers: new Map(), moveThreshold: 6,
+                    didMove: false, lastDownTime: 0
+                }
+            };
+            const database = {}, actions = {}, ui = {}, navigation = {}, editor = {};
+            // --- Database ---
+            database.init = function() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open("RestauroMapDB_v9", 2);
+                    request.onupgradeneeded = e => {
+                        const db = e.target.result;
+                        if (!db.objectStoreNames.contains('firmendaten')) db.createObjectStore('firmendaten', { keyPath: 'id' });
+                        if (!db.objectStoreNames.contains('projekte')) db.createObjectStore('projekte', { keyPath: 'id', autoIncrement: true });
+                        if (!db.objectStoreNames.contains('areas')) db.createObjectStore('areas', { keyPath: 'id', autoIncrement: true }).createIndex('projekt_id_idx', 'projekt_id');
+                        if (!db.objectStoreNames.contains('eintraege')) db.createObjectStore('eintraege', { keyPath: 'id', autoIncrement: true }).createIndex('area_id_idx', 'area_id');
+                    };
+                    request.onblocked = () => ui.showToast('DB blockiert. Bitte andere Tabs schließen.', 'error');
+                    request.onsuccess = e => { state.db = e.target.result; resolve(state.db); };
+                    request.onerror = e => reject(e.target.errorCode);
+                });
+            };
+            database.getStore = (name, mode = 'readonly') => state.db.transaction(name, mode).objectStore(name);
+            database.clearAllStores = () => Promise.all(['projekte', 'areas', 'eintraege', 'firmendaten'].map(name => new Promise((res, rej) => {
+                const r = database.getStore(name, 'readwrite').clear();
+                r.onsuccess = res; r.onerror = rej;
+            })));
+            // --- Actions ---
+            const promisifyRequest = req => new Promise((res, rej) => { req.onsuccess = e => res(e.target.result); req.onerror = e => rej(e.target.error); });
+            actions.getAll = storeName => promisifyRequest(database.getStore(storeName).getAll());
+            actions.getById = (storeName, id) => promisifyRequest(database.getStore(storeName).get(id));
+            actions.getIndexAll = (storeName, idx, key) => promisifyRequest(database.getStore(storeName).index(idx).getAll(key));
+            actions.add = (storeName, data) => promisifyRequest(database.getStore(storeName, 'readwrite').add(data));
+            actions.put = (storeName, data) => promisifyRequest(database.getStore(storeName, 'readwrite').put(data));
+            actions.delete = (storeName, id) => promisifyRequest(database.getStore(storeName, 'readwrite').delete(id));
+            actions.updateEntry = async (id, newInhaltOrPatch) => {
+    const store = database.getStore('eintraege', 'readwrite');
+    const existing = await promisifyRequest(store.get(id));
+    if (!existing) throw new Error('Eintrag nicht gefunden');
+    const patch = (typeof newInhaltOrPatch === 'string') ? { inhalt: newInhaltOrPatch } : (newInhaltOrPatch || {});
+    const updated = { ...existing, ...patch, updated_at: new Date().toISOString() };
+    return await promisifyRequest(store.put(updated));
+};
+            actions.readFileAsDataURL = file => new Promise((resolve, reject) => {
+                const fr = new FileReader();
+// Rasterize an SVG data:URL to PNG data:URL for jsPDF
+actions.svgDataUrlToPngDataUrl = function(svgDataUrl, size=512) {
+    return new Promise((resolve, reject) => {
+        try {
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const ratio = (img.width && img.height) ? img.width / img.height : 1;
+                    let w = size, h = size;
+                    if (ratio > 1) h = Math.round(size / ratio); else w = Math.round(size * ratio);
+                    const canvas = document.createElement('canvas');
+                    canvas.width = w; canvas.height = h;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, w, h);
+                    resolve(canvas.toDataURL('image/png'));
+                } catch (err) { reject(err); }
+            };
+            img.onerror = () => reject(new Error('SVG konnte nicht gerastert werden.'));
+            img.src = svgDataUrl;
+        } catch (err) { reject(err); }
+    });
+};
+            // Normalize any image dataURL to a jsPDF-friendly format (PNG/JPEG). Converts SVG and WebP to PNG.
+            actions.ensureImageDataUrlForPDF = async function(dataUrl) {
+                try {
+                    if (!dataUrl || typeof dataUrl !== 'string') return null;
+                    if (dataUrl.startsWith('data:image/svg')) {
+                        return await actions.svgDataUrlToPngDataUrl(dataUrl, 1024);
+                    }
+                    if (dataUrl.startsWith('data:image/webp') || dataUrl.startsWith('data:image/avif')) {
+                        // Draw into a canvas and export as PNG
+                        const img = new Image();
+                        const done = new Promise((resolve, reject) => {
+                            img.onload = () => {
+                                try {
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = img.naturalWidth || img.width || 512;
+                                    canvas.height = img.naturalHeight || img.height || 512;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                    resolve(canvas.toDataURL('image/png'));
+                                } catch (e) { reject(e); }
+                            };
+                            img.onerror = () => reject(new Error('Logo konnte nicht konvertiert werden.'));
+                        });
+                        img.src = dataUrl;
+                        return await done;
+                    }
+                    // Already PNG/JPEG: return as-is
+                    if (dataUrl.startsWith('data:image/png') || dataUrl.startsWith('data:image/jpeg')) return dataUrl;
+                    // Fallback: try drawing into canvas anyway
+                    const img = new Image();
+                    const done = new Promise((resolve, reject) => {
+                        img.onload = () => {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.naturalWidth || img.width || 512;
+                                canvas.height = img.naturalHeight || img.height || 512;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                resolve(canvas.toDataURL('image/png'));
+                            } catch (e) { reject(e); }
+                        };
+                        img.onerror = () => reject(new Error('Logo konnte nicht konvertiert werden.'));
+                    });
+                    img.src = dataUrl;
+                    return await done;
+                } catch (err) {
+                    console.error('ensureImageDataUrlForPDF error:', err);
+                    return null;
+                }
+            };
+                fr.onload = () => resolve(fr.result); fr.onerror = reject; fr.readAsDataURL(file);
+            });
+            actions.compressAndReadFileAsBase64 = file => new Promise((resolve, reject) => {
+                if (!file || !file.type.startsWith('image/')) return reject(new Error("Bitte nur Bilddateien auswählen."));
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const MAX_WIDTH = 4096;
+                        let { width, height } = img;
+                        if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+                        ctx.drawImage(img, 0, 0, width, height);
+                        resolve(canvas.toDataURL('image/jpeg', 0.92));
+                    };
+                    img.onerror = () => reject(new Error("Bild konnte nicht verarbeitet werden."));
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => reject(new Error("Datei konnte nicht gelesen werden."));
+                reader.readAsDataURL(file);
+            });
+            // Normalize any image dataURL to a jsPDF-friendly format (PNG/JPEG). Converts SVG and WebP to PNG.
+            actions.ensureImageDataUrlForPDF = async function(dataUrl) {
+                try {
+                    if (!dataUrl || typeof dataUrl !== 'string') return null;
+                    if (dataUrl.startsWith('data:image/svg')) {
+                        return await actions.svgDataUrlToPngDataUrl(dataUrl, 1024);
+                    }
+                    if (dataUrl.startsWith('data:image/webp') || dataUrl.startsWith('data:image/avif')) {
+                        const img = new Image();
+                        const done = new Promise((resolve, reject) => {
+                            img.onload = () => {
+                                try {
+                                    const canvas = document.createElement('canvas');
+                                    canvas.width = img.naturalWidth || img.width || 512;
+                                    canvas.height = img.naturalHeight || img.height || 512;
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                    resolve(canvas.toDataURL('image/png'));
+                                } catch (e) { reject(e); }
+                            };
+                            img.onerror = () => reject(new Error('Logo konnte nicht konvertiert werden.'));
+                        });
+                        img.src = dataUrl;
+                        return await done;
+                    }
+                    if (dataUrl.startsWith('data:image/png') || dataUrl.startsWith('data:image/jpeg')) return dataUrl;
+                    // Fallback: draw and export as PNG
+                    const img = new Image();
+                    const done = new Promise((resolve, reject) => {
+                        img.onload = () => {
+                            try {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = img.naturalWidth || img.width || 512;
+                                canvas.height = img.naturalHeight || img.height || 512;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                                resolve(canvas.toDataURL('image/png'));
+                            } catch (e) { reject(e); }
+                        };
+                        img.onerror = () => reject(new Error('Logo konnte nicht konvertiert werden.'));
+                    });
+                    img.src = dataUrl;
+                    return await done;
+                } catch (err) {
+                    console.error('ensureImageDataUrlForPDF error:', err);
+                    return null;
+                }
+            };
+            actions.handleFotoUpload = async (file, source = 'unknown') => {
+                if (!file) return;
+                ui.showLoader();
+                try {
+                    const compressedImage = await actions.compressAndReadFileAsBase64(file);
+                    await actions.add('eintraege', {
+                        area_id: state.currentAreaId, typ: 'foto', inhalt: compressedImage,
+                        source, created_at: new Date().toISOString()
+                    });
+                    ui.showToast(`Foto aus ${source === 'camera' ? 'Kamera' : 'Galerie'} gespeichert.`, "success");
+                    await navigation.to('page-details', state.currentAreaId);
+                } catch (err) { ui.showToast(err.message || "Fehler beim Verarbeiten des Fotos.", "error"); }
+                finally { ui.hideLoader(); }
+            };
+            actions.createNewProject = async e => {
+                e.preventDefault(); ui.showLoader();
+                try {
+                    const name = document.getElementById('project-name').value.trim();
+                    const ort = document.getElementById('project-location').value.trim();
+                    const file = document.getElementById('project-image-file').files[0];
+                    if (!name || !ort || !file) throw new Error("Bitte alle Felder ausfüllen.");
+                    const imageUrl = await actions.compressAndReadFileAsBase64(file);
+                    const newProjectId = await actions.add('projekte', { name, ort, imageUrl, created_at: new Date().toISOString() });
+                    ui.hideNewProjectModal(); ui.showToast("Projekt erfolgreich erstellt.", "success");
+                    await navigation.to('page-cockpit', newProjectId);
+                } catch (err) { ui.showToast(err.message, "error"); }
+                finally {
+                    ui.hideLoader(); document.getElementById('new-project-form').reset();
+                    document.getElementById('project-image-preview').innerHTML = '';
+                }
+            };
+            actions.deleteProject = async (id, name) => {
+                if (!(await ui.confirmDanger(`Wollen Sie das Projekt "${name}" wirklich löschen?`))) return;
+                ui.showLoader();
+                try {
+                    const areas = await actions.getIndexAll('areas', 'projekt_id_idx', id);
+                    for (const area of areas) {
+                        const entries = await actions.getIndexAll('eintraege', 'area_id_idx', area.id);
+                        for (const entry of entries) await actions.delete('eintraege', entry.id);
+                        await actions.delete('areas', area.id);
+                    }
+                    await actions.delete('projekte', id);
+                    ui.showToast("Projekt gelöscht.", "success");
+                    await navigation.to('page-projects');
+                } catch (err) { ui.showToast("Löschen fehlgeschlagen", "error"); }
+                finally { ui.hideLoader(); }
+            };
+            actions.createArea = async (name, wichtigkeit) => {
+                if (!state.drawingPoints || state.drawingPoints.length < 3) {
+                    state.drawingPoints = []; editor.draw();
+                    return ui.showToast("Mindestens 3 Punkte für einen Bereich nötig.", "error");
+                }
+                const newAreaId = await actions.add('areas', {
+                    projekt_id: state.currentProjectId, name, wichtigkeit,
+                    coords: state.drawingPoints, created_at: new Date().toISOString()
+                });
+                ui.showToast("Bereich erstellt.", "success");
+                editor.setDrawingMode(false);
+                // Direkt in den neu angelegten Bereich wechseln
+                await navigation.to('page-details', newAreaId);
+};
+            actions.deleteArea = async id => {
+                if (!id) return;
+                if (!(await ui.confirmDanger("Soll dieser Bereich mit allen Einträgen wirklich gelöscht werden?"))) return;
+                ui.showLoader();
+                try {
+                    const entries = await actions.getIndexAll('eintraege', 'area_id_idx', id);
+                    for (const entry of entries) await actions.delete('eintraege', entry.id);
+                    await actions.delete('areas', id);
+                    ui.showToast("Bereich gelöscht.", "success");
+                    await navigation.to('page-cockpit', state.currentProjectId);
+                } catch (err) { ui.showToast("Löschen fehlgeschlagen", "error"); }
+                finally { ui.hideLoader(); }
+            };
+            actions.deleteEntry = async id => {
+                if (!(await ui.confirmDanger("Soll dieser Eintrag wirklich gelöscht werden?"))) return;
+                ui.showLoader();
+                try {
+                    await actions.delete('eintraege', id);
+                    ui.showToast("Eintrag gelöscht.", "success");
+                    await navigation.to('page-details', state.currentAreaId);
+                } catch (err) { ui.showToast("Löschen fehlgeschlagen", "error"); }
+                finally { ui.hideLoader(); }
+            };
+            actions.validateData = async () => {
+                ui.showLoader();
+                try {
+                    const projects = await actions.getAll('projekte');
+                    const areas = await actions.getAll('areas');
+                    const entries = await actions.getAll('eintraege');
+                    const projIds = new Set(projects.map(p => p.id));
+                    const areaIds = new Set(areas.map(a => a.id));
+                    const errors = [];
+                    for (const a of areas) if (!projIds.has(a.projekt_id)) errors.push(`Bereich ${a.id} → fehlende projekt_id ${a.projekt_id}`);
+                    for (const e of entries) if (!areaIds.has(e.area_id)) errors.push(`Eintrag ${e.id} → fehlende area_id ${e.area_id}`);
+                    const el = document.getElementById('integrity-content');
+                    el.innerHTML = `
+                        <div class="card" style="margin:0 0 12px 0;">
+                          <div><strong>Projekte:</strong> ${projects.length} &nbsp; <strong>Bereiche:</strong> ${areas.length} &nbsp; <strong>Einträge:</strong> ${entries.length}</div>
+                        </div>
+                        ${errors.length === 0
+                            ? '<div class="card" style="border-left:4px solid var(--green-primary);"><strong>Alles OK.</strong> Keine Inkonsistenzen gefunden.</div>'
+                            : '<div class="card" style="border-left:4px solid var(--red-primary);"><strong>Probleme gefunden:</strong><ul style="margin:8px 0 0 16px;">' + errors.map(e=>`<li>${e}</li>`).join('') + '</ul></div>'
+                        }`;
+                    ui.showModal('integrity-modal');
+                } catch (err) {
+                    ui.showToast('Validierung fehlgeschlagen.', 'error');
+                } finally {
+                    ui.hideLoader();
+                }
+            };
+// 🔧 KORRIGIERTE FUNKTION – verhindert Einträge ohne area_id
+actions.confirmNewEntry = async e => {
+    e.preventDefault();
+    const inhalt = document.getElementById('eintrag-inhalt').value.trim();
+    if (!inhalt) return ui.showToast("Eingabe darf nicht leer sein.", "error");
+
+    if (!state.currentAreaId) {
+        return ui.showToast("Kein Bereich aktiv. Wechseln Sie zu einem Bereich, bevor Sie eine Notiz erstellen.", "error");
+    }
+
+    await actions.add('eintraege', {
+        area_id: state.currentAreaId,
+        typ: state.newEntryData.typ,
+        inhalt, created_at: new Date().toISOString()
+    });
+    ui.hideNewEintragModal();
+    ui.showToast("Eintrag gespeichert.", "success");
+    await navigation.to('page-details', state.currentAreaId);
+};
+            actions.exportBackup = async () => {
+                ui.showLoader();
+                try {
+                    const data = {
+                        projekte: await actions.getAll('projekte'), areas: await actions.getAll('areas'),
+                        eintraege: await actions.getAll('eintraege'), firmendaten: await actions.getAll('firmendaten')
+                    };
+                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                    const a = document.createElement('a');
+                    a.href = URL.createObjectURL(blob);
+                    a.download = `restauromap-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    a.click(); URL.revokeObjectURL(a.href);
+                    ui.showToast("Backup erfolgreich heruntergeladen.", "success");
+                } catch (err) { ui.showToast("Export fehlgeschlagen.", "error"); }
+                finally { ui.hideLoader(); }
+            };
+            actions.importBackup = file => {
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = async e => {
+                    // moved: ui.showLoader();
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (!data.projekte || !data.areas || !data.eintraege) throw new Error("Datei hat eine ungültige Struktur.");
+                        const ok = await ui.confirmDanger("Achtung: Der Import überschreibt ALLE vorhandenen Daten. Fortfahren?");
+      if (!ok) return;
+      ui.showLoader();
+                        await database.clearAllStores();
+                        for (const item of data.projekte)    await actions.put('projekte', item);
+                        for (const item of data.areas)       await actions.put('areas', item);
+                        for (const item of data.eintraege)   await actions.put('eintraege', item);
+                        if (Array.isArray(data.firmendaten)) {
+                            for (const item of data.firmendaten) await actions.put('firmendaten', item);
+                        }
+await (async function validate() {
+  const projIds = new Set((await actions.getAll('projekte')).map(p => p.id));
+  const areas = await actions.getAll('areas');
+  for (const a of areas) if (!projIds.has(a.projekt_id)) throw new Error(`Inkonsistenz: Bereich ${a.id} → projekt_id ${a.projekt_id} fehlt`);
+  const areaIds = new Set(areas.map(a => a.id));
+  const entries = await actions.getAll('eintraege');
+  for (const e of entries) if (!areaIds.has(e.area_id)) throw new Error(`Inkonsistenz: Eintrag ${e.id} → area_id ${e.area_id} fehlt`);
+})();
+ui.showToast("Daten erfolgreich importiert.", "success");
+                        await navigation.to('page-projects');
+                    } catch (err) { ui.showToast(`Import fehlgeschlagen: ${err.message}`, "error"); }
+                    finally { ui.hideLoader(); document.getElementById('import-file-input').value = ''; }
+                };
+                reader.readAsText(file);
+            };
+            actions.exportPDF = async () => {
+                ui.showToast("PDF-Bericht wird erstellt...", "info"); ui.showLoader();
+                try {
+                    const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+                    const project = await actions.getById('projekte', state.currentProjectId);
+                    const areas = await actions.getIndexAll('areas', 'projekt_id_idx', state.currentProjectId);
+                    const company = await actions.loadCompany();
+                    const margin = 15, pageWidth = doc.internal.pageSize.getWidth(), pageHeight = doc.internal.pageSize.getHeight();
+                    // --- PDF Helper Functions ---
+                    const drawHeader = (title, subtitle = "") => {
+                        doc.setFontSize(16).setTextColor(0, 122, 255).text(title, margin, 25);
+                        if (subtitle) doc.setFontSize(12).setTextColor(100).text(subtitle, pageWidth - margin - doc.getTextWidth(subtitle), 25);
+                        doc.setDrawColor(0, 122, 255).setLineWidth(0.5).line(margin, 28, pageWidth - margin, 28); doc.setTextColor(0);
+                    };
+                    const addFooter = () => {
+                        for (let i = 1; i <= doc.internal.getNumberOfPages(); i++) {
+                            doc.setPage(i); doc.setFontSize(9).setTextColor(120);
+                            doc.text(`${sanitizeForPDF(project.name)} | Seite ${i}`, margin, pageHeight - 10);
+                            const brand = (company && company.name) ? `(c) ${sanitizeForPDF(company.name)}` : "(c) RestauroMap";
+                            doc.text(brand, pageWidth - margin - doc.getTextWidth(brand), pageHeight - 10);
+                        }
+                    };
+                    const wichtigkeitLabel = w => ({ high: 'Hoch', medium: 'Mittel', low: 'Niedrig' }[w] || 'Unbekannt');
+                    // --- Title Page ---
+if (company && company.logoDataUrl) {
+  try {
+    // Normalize to PNG/JPEG to avoid jsPDF incompatibilities (e.g., SVG/WebP).
+    const normalizedLogo = await actions.ensureImageDataUrlForPDF(company.logoDataUrl);
+    if (normalizedLogo) {
+      const props = doc.getImageProperties(normalizedLogo);
+      const maxWmm = 78, maxHmm = 39;
+      const scale = Math.min(maxWmm / props.width, maxHmm / props.height);
+      const w = props.width * scale, h = props.height * scale;
+      const x = pageWidth - margin - w, y = 15;
+      const fmt = normalizedLogo.includes('image/png') ? 'PNG' : 'JPEG';
+      doc.addImage(normalizedLogo, fmt, x, y, w, h);
+    } else {
+      console.warn('Logo: keine gültigen Bilddaten.');
+    }
+  } catch (e) { console.warn('Logo konnte nicht gerendert werden:', e); }
+}
+                    doc.setFontSize(28).setTextColor(0, 122, 255).text(sanitizeForPDF(project.name), margin, 40);
+                    doc.setFontSize(16).setTextColor(60).text(`Ort: ${sanitizeForPDF(project.ort)}`, margin, 55);
+                    const dt = new Date(); doc.text(`Dokumentation: ${dt.toLocaleDateString('de-DE')} ${dt.toLocaleTimeString('de-DE')}`, margin, 65);
+                    if(company) { let y=80; doc.setFontSize(12).setTextColor(0); if(company.name) doc.text(`Firma: ${sanitizeForPDF(company.name)}`, margin, y+=8); if(company.email) doc.text(`Mail: ${sanitizeForPDF(company.email)}`, margin, y+=6); if(company.phone) doc.text(`Tel: ${sanitizeForPDF(company.phone)}`, margin, y+=6); if(company.website) doc.text(`${sanitizeForPDF(company.website)}`, margin, y+=6); }
+                    // --- Overview Page ---
+                    doc.addPage(); drawHeader("Übersicht mit markierten Bereichen");
+                    const overviewCanvas = await ui.generateOverviewCanvas(project, areas);
+                    const imgData = overviewCanvas.toDataURL('image/jpeg', 0.95);
+                    const imgProps = doc.getImageProperties(imgData);
+                    const maxW = pageWidth - margin * 2;
+const maxH = pageHeight - 80; // ← deutlich mehr Platz (80 mm für Header/Footer)
+const scale = Math.min(maxW / imgProps.width, maxH / imgProps.height);
+                    doc.addImage(imgData, 'JPEG', margin, 35, imgProps.width * scale, imgProps.height * scale);
+                    // --- Detail Pages ---
+                    for (const [index, area] of areas.entries()) {
+                        const areaNum = index + 1; doc.addPage();
+                        drawHeader(`Bereich ${areaNum}`, `${sanitizeForPDF(area.name)}`);
+                        let yPos = 40;
+                        doc.setFillColor(248, 249, 250).roundedRect(margin, yPos, pageWidth - margin * 2, 25, 3, 3, 'F');
+                        doc.setFontSize(16).setTextColor(0).text(`${areaNum}. ${sanitizeForPDF(area.name)}`, margin + 5, yPos+=8);
+                        doc.setFontSize(12).setTextColor(100).text(`Wichtigkeit: ${wichtigkeitLabel(area.wichtigkeit)}`, margin + 5, yPos+=8);
+                        doc.text(`Erstellt: ${new Date(area.created_at).toLocaleDateString('de-DE')}`, margin + 80, yPos);
+                        yPos += 15;
+                        const eintraege = (await actions.getIndexAll('eintraege', 'area_id_idx', area.id)).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
+                        if (eintraege.length === 0) { doc.setFontSize(11).setTextColor(150).text("> Keine Einträge vorhanden", margin, yPos); continue; }
+                        for (const [eIndex, entry] of eintraege.entries()) {
+                            if (yPos > pageHeight - 60) { doc.addPage(); drawHeader(`Bereich ${areaNum} (Forts.)`, `${sanitizeForPDF(area.name)}`); yPos = 40; }
+                            const title = `${entry.typ==='foto'?'[F]':'[N]'} ${entry.typ==='foto'?'Foto':'Notiz'} #${eIndex+1}`;
+                            doc.setFontSize(12).setTextColor(0).text(title, margin, yPos);
+                            const dateStr = new Date(entry.created_at).toLocaleString('de-DE'), dateW = doc.getTextWidth(dateStr);
+                            doc.setFontSize(9).setTextColor(120).text(dateStr, pageWidth - margin - dateW, yPos); yPos += 6;
+                            if (entry.typ === 'notiz') {
+                                doc.setFontSize(10).setTextColor(60);
+                                const lines = doc.splitTextToSize(sanitizeForPDF(entry.inhalt), pageWidth-margin*2-10);
+                                lines.forEach(line => { if (yPos>pageHeight-30){ doc.addPage(); drawHeader(`Bereich ${areaNum} (Forts.)`, `${sanitizeForPDF(area.name)}`); yPos = 40; } doc.text(line, margin+5, yPos); yPos += 5; });
+                            } else if (entry.typ === 'foto') {
+                                try {
+                                    const pProps = doc.getImageProperties(entry.inhalt);
+                                    const maxPW = 100, pH = (pProps.height * maxPW) / pProps.width;
+                                    if(yPos+pH > pageHeight-30) { doc.addPage(); drawHeader(`Bereich ${areaNum} (Forts.)`, `${sanitizeForPDF(area.name)}`); yPos = 40; }
+                                    doc.addImage(entry.inhalt, 'JPEG', margin+5, yPos, maxPW, pH); yPos += pH + 5;
+                                } catch (_err) { doc.setFontSize(9).setTextColor(150).text("(Bild defekt)", margin+5, yPos); yPos += 8; }
+                            }
+                            yPos += 8;
+                        }
+                    }
+                    addFooter();
+                    doc.save(`${project.name.replace(/[^a-z0-9]/gi, '_')}_Doku.pdf`);
+                    ui.showToast("PDF-Bericht erfolgreich erstellt.", "success");
+                } catch (err) { ui.showToast("PDF-Export fehlgeschlagen.", "error"); console.error("PDF Export Error:", err); }
+                finally { ui.hideLoader(); }
+            };
+            actions.loadCompany = () => actions.getById('firmendaten', 'company').catch(() => null);
+            actions.saveCompany = async payload => {
+                const existing = await actions.loadCompany();
+                const data = { id: 'company', ...existing, ...payload };
+                await actions.put('firmendaten', data);
+                ui.showToast('Firmendaten gespeichert.', 'success');
+            };
+            // --- UI ---
+            ui.showLoader = () => document.getElementById('loader-overlay').style.display = 'flex';
+            ui.hideLoader = () => document.getElementById('loader-overlay').style.display = 'none';
+            ui.applyTheme = theme => {
+                document.documentElement.setAttribute('data-theme', theme);
+                localStorage.setItem('theme', theme);
+                document.getElementById('theme-toggle').textContent = theme === 'dark' ? '☀️' : '🌓';
+            };
+            ui.toggleTheme = () => ui.applyTheme(localStorage.getItem('theme') === 'light' ? 'dark' : 'light');
+(function(el){ if(el) el.addEventListener('click', actions.validateData); })(document.getElementById('btn-validate-data'));
+// Integrity check button and modal close
+                document.getElementById('btn-close-integrity')?.addEventListener('click', () => ui.hideModal('integrity-modal'));
+ui.showPage = pageId => {
+                document.getElementById(state.currentPageId).classList.remove('active');
+                document.getElementById(pageId).classList.add('active'); state.currentPageId = pageId;
+                if (pageId !== 'page-cockpit') editor.setDrawingMode(false);
+            };
+            ui.renderProjects = projects => {
+                const container = document.getElementById('project-list-container');
+                container.innerHTML = projects.length === 0 ? `<div class="empty-state"><div class="empty-state-icon">📋</div><p>Keine Projekte vorhanden.<br>Klicken Sie auf + um zu beginnen.</p></div>`
+                : projects.map(p => `
+                    <div class="card interactive" data-id="${p.id}">
+                        <div class="project-card-header">
+                            <div><h3>${sanitizeHTML(p.name)}</h3><p>${sanitizeHTML(p.ort)}</p></div>
+                            <button class="delete-button" data-id="${p.id}" data-name="${sanitizeHTML(p.name)}">Löschen</button>
+                        </div>
+                    </div>`).join('');
+                container.querySelectorAll('.card').forEach(c => c.addEventListener('click', () => navigation.to('page-cockpit', c.dataset.id)));
+                container.querySelectorAll('.delete-button').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); actions.deleteProject(Number(b.dataset.id), b.dataset.name); }));
+            };
+            ui.renderCockpit = async (project, areas) => {
+                document.getElementById('cockpit-title').innerText = sanitizeHTML(project.name);
+                const img = new Image(); img.src = project.imageUrl;
+                await new Promise((res, rej) => { img.onload=res; img.onerror=()=>rej(new Error('Projektbild konnte nicht geladen werden.')); });
+                state.activeImage = img; state.allProjectAreas = areas; editor.init();
+            };
+            ui.renderDetails = (area, eintraege) => {
+                document.getElementById('details-title').innerText = sanitizeHTML(area.name);
+                const container = document.getElementById('detail-list-container');
+                if (eintraege.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📝</div><p>Keine Einträge.<br>Fügen Sie Fotos oder Notizen hinzu.</p></div>`; return;
+                }
+                container.innerHTML = [...eintraege].sort((a,b) => new Date(b.created_at)-new Date(a.created_at)).map((entry, index, arr) => {
+                    const icon = { foto: '📷', notiz: '📝' }[entry.typ];
+                    const source = entry.source ? ` (${{camera:'Kamera',gallery:'Galerie',annotated:'annot.'}[entry.source]})` : '';
+                    const title = `${entry.typ==='foto'?'Foto':'Notiz'} #${arr.length-index}${source}`;
+                    if (entry.typ === 'notiz') {
+                        return `<div class="card" data-entry-id="${entry.id}">
+                            <div class="detail-item-header">
+                                <div style="display:flex;align-items:center;"><span class="detail-item-icon">${icon}</span><span style="font-weight:500;">${title}</span></div>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <span class="detail-item-time">${new Date(entry.created_at).toLocaleString('de-DE')}</span>
+                                    <button class="edit-entry-button" title="Notiz bearbeiten">✏️</button>
+                                    <button class="delete-entry-button" title="Eintrag löschen">🗑️</button>
+                                </div>
+                            </div>
+                            <p>${sanitizeHTML(entry.inhalt)}</p>
+                        </div>`;
+                    } else {
+                        return `<div class="card" data-entry-id="${entry.id}">
+                            <div class="detail-item-header">
+                                <div style="display:flex;align-items:center;"><span class="detail-item-icon">${icon}</span><span style="font-weight:500;">${title}</span></div>
+                                <div style="display:flex;align-items:center;gap:12px;">
+                                    <span class="detail-item-time">${new Date(entry.created_at).toLocaleString('de-DE')}</span>
+                                    ${entry.typ==='foto' ? `<button class="annotate-entry-button button-icon" title="Foto annotieren" style="font-size:16px;">✏️</button>`:''}
+                                    <button class="delete-entry-button" title="Eintrag löschen">🗑️</button>
+                                </div>
+                            </div>
+                            <img src="${entry.inhalt}" alt="Foto" class="photo-preview">
+                        </div>`;
+                    }
+                }).join('');
+                container.querySelectorAll('.delete-entry-button').forEach(b => b.addEventListener('click', e => actions.deleteEntry(Number(e.target.closest('.card').dataset.entryId))));
+                container.querySelectorAll('.edit-entry-button').forEach(b => b.addEventListener('click', e => {
+                    const card = e.target.closest('.card');
+                    const entryId = Number(card.dataset.entryId);
+                    const p = card.querySelector('p');
+                    const currentText = p.textContent;
+                    p.innerHTML = `<textarea class="edit-note-textarea" rows="4" style="width:100%;box-sizing:border-box;">${currentText}</textarea>
+                                   <div style="display:flex;gap:8px;margin-top:8px;">
+                                     <button class="button button-secondary edit-cancel-btn">Abbrechen</button>
+                                     <button class="button edit-save-btn">Speichern</button>
+                                   </div>`;
+                    const textarea = p.querySelector('.edit-note-textarea');
+                    const cancelBtn = p.querySelector('.edit-cancel-btn');
+                    const saveBtn = p.querySelector('.edit-save-btn');
+                    cancelBtn.addEventListener('click', () => ui.renderDetails(area, eintraege));
+                    saveBtn.addEventListener('click', async () => {
+                        const newText = textarea.value.trim();
+                        if (!newText) {
+                            ui.showToast("Notiz darf nicht leer sein.", "error");
+                            return;
+                        }
+                        ui.showLoader();
+                        try {
+                            await actions.updateEntry(entryId, newText);
+                            ui.showToast("Notiz aktualisiert.", "success");
+                            const updatedEintraege = await actions.getIndexAll('eintraege', 'area_id_idx', state.currentAreaId);
+                            ui.renderDetails(area, updatedEintraege);
+                        } catch (err) {
+                            ui.showToast("Aktualisierung fehlgeschlagen.", "error");
+                        } finally {
+                            ui.hideLoader();
+                        }
+                    });
+                }));
+            };
+            ui.generateOverviewCanvas = (project, areas) => new Promise((resolve, reject) => {
+                const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d'), img = new Image();
+                img.onload = () => {
+                    canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+                    ctx.drawImage(img, 0, 0);
+                    areas.forEach((area, index) => {
+                        if (!area.coords || area.coords.length === 0) return;
+                        const c = editor.getPolygonCentroid(area.coords), size = Math.max(20, Math.min(img.width,img.height)*0.025);
+                        ctx.beginPath(); ctx.arc(c.x, c.y, size, 0, 2*Math.PI); ctx.fillStyle = '#007aff'; ctx.fill();
+                        ctx.strokeStyle = 'white'; ctx.lineWidth = size/8; ctx.stroke();
+                        ctx.fillStyle='white'; ctx.font=`bold ${size*0.8}px ${getComputedStyle(document.body).fontFamily}`;
+                        ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(index+1, c.x, c.y);
+                    });
+                    resolve(canvas);
+                };
+                img.onerror = () => reject(new Error("Bild für Übersicht konnte nicht geladen werden.")); img.src = project.imageUrl;
+            });
+            ui.showModal = id => { const m = document.getElementById(id); m.style.display = 'flex'; setTimeout(() => m.querySelector('input, textarea')?.focus(), 100); };
+            ui.hideModal = id => { const m = document.getElementById(id); m.style.display = 'none'; m.querySelector('form')?.reset(); };
+            ui.confirmDanger = msg => new Promise(resolve => {
+                const m = document.getElementById('confirm-modal'), p = document.getElementById('confirm-message'), ok = document.getElementById('confirm-ok'), cancel = document.getElementById('confirm-cancel');
+                p.textContent = msg || 'Wirklich löschen?'; m.style.display = 'flex';
+                const cleanup = res => { m.style.display = 'none'; ok.onclick=null; cancel.onclick=null; resolve(res); };
+                ok.onclick = () => cleanup(true); cancel.onclick = () => cleanup(false);
+            });
+            ui.showNewProjectModal = () => ui.showModal('new-project-modal');
+            ui.hideNewProjectModal = () => { ui.hideModal('new-project-modal'); document.getElementById('project-image-preview').innerHTML = ''; };
+            ui.showNewAreaModal = () => ui.showModal('new-area-modal');
+            ui.hideNewAreaModal = () => ui.hideModal('new-area-modal');
+            ui.showNewEintragModal = typ => { state.newEntryData.typ = typ; document.getElementById('new-eintrag-title').innerText = typ==='notiz'?'Neue Notiz':'Neues Foto'; ui.showModal('new-eintrag-modal'); };
+            ui.showAreaListModal = async () => {
+                // Render list from current project's areas
+                const areas = await actions.getIndexAll('areas', 'projekt_id_idx', state.currentProjectId);
+                const c = document.getElementById('area-list-container');
+                if (!areas || areas.length === 0) { c.innerHTML = '<p style="color:var(--text-tertiary)">Keine Bereiche vorhanden.</p>'; }
+                else {
+                    c.innerHTML = areas.map(a => `<button type="button" class="button button-secondary" data-id="${a.id}" style="justify-content:flex-start;">${a.name} — <span style="color:var(--text-tertiary); font-size:12px;">${a.wichtigkeit||'medium'}</span></button>`).join('');
+                    c.querySelectorAll('button[data-id]').forEach(b => b.addEventListener('click', async e => {
+                        const id = Number(e.currentTarget.dataset.id);
+                        ui.hideAreaListModal();
+                        await navigation.to('page-details', id);
+                    }));
+                }
+                document.getElementById('area-list-modal').style.display = 'flex';
+            };
+            ui.hideAreaListModal = () => { document.getElementById('area-list-modal').style.display = 'none'; };
+            ui.hideNewEintragModal = () => ui.hideModal('new-eintrag-modal');
+            ui.showCompanyModal = async () => { const d=await actions.loadCompany()||{}; document.getElementById('company-name').value=d.name||''; document.getElementById('company-email').value=d.email||''; document.getElementById('company-phone').value=d.phone||''; document.getElementById('company-website').value=d.website||''; const p=document.getElementById('company-logo-preview'); if(d.logoDataUrl){p.src=d.logoDataUrl;p.style.display='block';}else{p.removeAttribute('src');p.style.display='none';} ui.showModal('company-modal'); };
+            ui.hideCompanyModal = () => ui.hideModal('company-modal');
+            ui.showToast = (message, type = 'info', duration = 3500) => {
+                const c = document.getElementById('toast-container'), t = document.createElement('div');
+                t.className = `toast ${type}`; t.textContent = message; c.appendChild(t); setTimeout(() => t.remove(), duration);
+            };
+            // --- Navigation ---
+            navigation.to = async (pageId, dataId = null) => {
+                ui.showLoader();
+                try {
+                    ui.showPage(pageId); const id = dataId ? Number(dataId) : null;
+                    if (isNaN(id) && dataId !== null) throw new Error("Ungültige ID.");
+                    if (pageId === 'page-projects') await ui.renderProjects(await actions.getAll('projekte'));
+                    else if (pageId === 'page-cockpit') {
+                        state.currentProjectId = id;
+                        const p = await actions.getById('projekte', id);
+                        const a = await actions.getIndexAll('areas', 'projekt_id_idx', id);
+                        await ui.renderCockpit(p, a);
+                    } else if (pageId === 'page-details') {
+                        state.currentAreaId = id;
+                        const a = await actions.getById('areas', id); if (!a) throw new Error("Bereich nicht gefunden.");
+                        state.currentProjectId = a.projekt_id;
+                        const e = await actions.getIndexAll('eintraege', 'area_id_idx', id);
+                        ui.renderDetails(a, e);
+                    }
+                } catch (err) { ui.showToast(err.message, "error"); navigation.to('page-projects'); }
+                finally { ui.hideLoader(); }
+            };
+            // --- Canvas Editor ---
+            editor.canvas = document.getElementById('main-canvas');
+            editor.ctx = editor.canvas.getContext('2d', { alpha: false });
+            editor.init = () => editor.setupCanvas();
+            editor.setupCanvas = () => {
+                if (!state.activeImage) return;
+                const dpr = window.devicePixelRatio || 1;
+                const rect = editor.canvas.parentElement.getBoundingClientRect();
+                if (rect.width === 0 || rect.height === 0) return;
+                editor.canvas.style.width = `${rect.width}px`; editor.canvas.style.height = `${rect.height}px`;
+                editor.canvas.width = Math.floor(rect.width * dpr); editor.canvas.height = Math.floor(rect.height * dpr);
+                editor.resetTransform();
+                editor.draw();
+            };
+            editor.setDrawingMode = active => {
+                if (active === state.isDrawing) return; state.isDrawing = active;
+                document.getElementById('toggle-mode-btn').classList.toggle('active', active);
+                editor.canvas.classList.toggle('drawing-mode', active);
+                const btn = document.getElementById('toggle-mode-btn'), finish = document.getElementById('btn-finish-drawing');
+                if (active) { finish.style.display='inline-flex'; btn.textContent='✖️ Abbrechen'; ui.showToast("Zeichnen: Tippen um Punkte zu setzen.", "info", 5000); }
+                else { finish.style.display='none'; btn.textContent='[+] Bereich'; state.drawingPoints=[]; editor.draw(); }
+            };
+            editor.draw = () => requestAnimationFrame(() => {
+                if (!state.activeImage) return;
+                const dpr = window.devicePixelRatio || 1;
+                editor.ctx.setTransform(1, 0, 0, 1, 0, 0);
+                editor.ctx.fillStyle = getComputedStyle(editor.canvas).backgroundColor || '#fff';
+                editor.ctx.fillRect(0,0,editor.canvas.width, editor.canvas.height);
+                editor.ctx.setTransform(state.transform.a*dpr, state.transform.b*dpr, state.transform.c*dpr, state.transform.d*dpr, state.transform.e*dpr, state.transform.f*dpr);
+                editor.ctx.imageSmoothingEnabled = true; editor.ctx.imageSmoothingQuality = state.transform.a > 1 ? 'high' : 'medium';
+                editor.ctx.drawImage(state.activeImage, 0, 0);
+                state.allProjectAreas.forEach((area, i) => editor.drawPolygon(area, false, i+1));
+                if (state.drawingPoints.length > 0) editor.drawPolygon({ coords: state.drawingPoints, wichtigkeit: 'medium' }, true);
+            });
+            editor.drawPolygon = (area, isDrawing, number) => {
+                const scale = state.transform.a, lineWidth = Math.max(2, 3 / scale);
+                editor.ctx.lineWidth = state.hoveredAreaId===area.id ? lineWidth*1.5 : lineWidth;
+                const color = {high:'rgba(255,59,48,0.8)', medium:'rgba(255,149,0,0.8)', low:'rgba(52,199,89,0.8)'}[area.wichtigkeit] || 'rgba(255,149,0,0.8)';
+                editor.ctx.strokeStyle = color;
+                editor.ctx.fillStyle = state.hoveredAreaId===area.id ? color.replace('0.8','0.3') : color.replace('0.8','0.15');
+                editor.ctx.beginPath();
+                area.coords.forEach((p, i) => i === 0 ? editor.ctx.moveTo(p.x, p.y) : editor.ctx.lineTo(p.x, p.y));
+                if (!isDrawing) { editor.ctx.closePath(); editor.ctx.fill(); }
+                editor.ctx.stroke();
+                if (number && !isDrawing) {
+                    const c = editor.getPolygonCentroid(area.coords), size = Math.max(16, state.activeImage.naturalWidth*0.02)/scale;
+                    editor.ctx.font = `bold ${size}px ${getComputedStyle(document.body).fontFamily}`;
+                    editor.ctx.fillStyle = 'white'; editor.ctx.textAlign = 'center'; editor.ctx.textBaseline = 'middle';
+                    editor.ctx.shadowColor = 'rgba(0,0,0,0.8)'; editor.ctx.shadowBlur=6/scale;
+                    editor.ctx.fillText(number, c.x, c.y);
+                    editor.ctx.shadowColor = 'transparent'; editor.ctx.shadowBlur = 0;
+                }
+                if (isDrawing && area.coords.length > 0) {
+                    const p = area.coords[0]; editor.ctx.fillStyle = '#007aff';
+                    editor.ctx.beginPath(); editor.ctx.arc(p.x, p.y, 10/scale, 0, 2*Math.PI); editor.ctx.fill();
+                    editor.ctx.strokeStyle = 'white'; editor.ctx.lineWidth = 2/scale; editor.ctx.stroke();
+                }
+            };
+            editor.handlePointerDown = e => {
+                if (e.pointerType==='mouse' && e.button!==0) return;
+                state.pointer.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                editor.canvas.setPointerCapture(e.pointerId);
+                state.pointer.isDown = true;
+                state.pointer.didMove = false;
+                state.pointer.lastDownTime = performance.now();
+                state.pointer.startClient = { x: e.clientX, y: e.clientY };
+                if (state.pointer.pointers.size === 1) {
+                    state.pointer.mode = 'pan';
+                    state.pointer.lastClient = { x: e.clientX, y: e.clientY };
+                } else if (state.pointer.pointers.size === 2) {
+                    state.pointer.mode = 'pinch';
+                    const pts = [...state.pointer.pointers.values()];
+                    state.pointer.startDist = Math.hypot(pts[0].x - pts[1].x, pts[0].y - pts[1].y);
+                }
+            };
+            editor.handlePointerMove = e => {
+                if (!state.pointer.isDown || !state.pointer.pointers.has(e.pointerId) || state.isDrawing) return;
+                e.preventDefault();
+                state.pointer.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+                const dx = e.clientX - state.pointer.startClient.x; const dy = e.clientY - state.pointer.startClient.y; state.pointer.didMove = (Math.abs(dx) > state.pointer.moveThreshold || Math.abs(dy) > state.pointer.moveThreshold);
+                if (state.pointer.mode === 'pan' && state.pointer.pointers.size === 1) {
+                    editor.canvas.classList.add('panning-mode');
+                    editor.pan(e.clientX - state.pointer.lastClient.x, e.clientY - state.pointer.lastClient.y);
+                    state.pointer.lastClient = { x: e.clientX, y: e.clientY };
+                } else if (state.pointer.mode === 'pinch' && state.pointer.pointers.size === 2) {
+                    const pts = [...state.pointer.pointers.values()];
+                    const dist = Math.hypot(pts[0].x-pts[1].x, pts[0].y-pts[1].y);
+                    const scale = dist / state.pointer.startDist;
+                    const midpoint = { x: (pts[0].x+pts[1].x)/2, y: (pts[0].y+pts[1].y)/2 };
+                    const rect = editor.canvas.getBoundingClientRect();
+                    editor.zoom(scale, midpoint.x-rect.left, midpoint.y-rect.top);
+                    state.pointer.startDist = dist;
+                }
+            };
+            editor.handlePointerUp = e => {
+                editor.canvas.releasePointerCapture(e.pointerId);
+                state.pointer.pointers.delete(e.pointerId);
+                if (!state.pointer.didMove) editor.handleCanvasClick(e);
+                if (state.pointer.pointers.size < 2) state.pointer.mode = 'pan';
+                if (state.pointer.pointers.size < 1) {
+                    state.pointer.isDown = false; state.pointer.mode = 'none';
+                    editor.canvas.classList.remove('panning-mode');
+                } else { // if one pointer remains, reset its pan start point
+                    state.pointer.lastClient = [...state.pointer.pointers.values()][0];
+                }
+            };
+            editor.handleCanvasClick = e => {
+                const p = editor.getWorldCoords(e);
+                if (state.isDrawing) {
+                    if (state.drawingPoints.length >= 3) {
+                        const first = state.drawingPoints[0], dist = Math.hypot(p.x - first.x, p.y - first.y);
+                        if (dist < 32 / state.transform.a) { editor.finishDrawing(); return; }
+                    }
+                    state.drawingPoints.push(p); editor.draw();
+                } else {
+                    const clicked = [...state.allProjectAreas].reverse().find(area => editor.isPointInPolygon(p, area.coords));
+                    if (clicked) navigation.to('page-details', clicked.id);
+                }
+            };
+            editor.handleContextMenu = e => { e.preventDefault(); if (state.isDrawing && state.drawingPoints.length > 0) { state.drawingPoints.pop(); editor.draw(); ui.showToast("Letzter Punkt entfernt", "info"); } };
+            editor.handleMouseMove = e => {
+                if (state.isDrawing || state.pointer.isDown) return;
+                const p = editor.getWorldCoords(e);
+                const hovered = state.allProjectAreas.find(area => editor.isPointInPolygon(p, area.coords));
+                editor.canvas.style.cursor = hovered ? 'pointer' : 'default';
+                if ((hovered?.id || null) !== state.hoveredAreaId) { state.hoveredAreaId = hovered?.id || null; editor.draw(); }
+            };
+            editor.handleWheel = e => { e.preventDefault(); const scale = e.deltaY > 0 ? 0.9 : 1.1; const rect = editor.canvas.getBoundingClientRect(); editor.zoom(scale, e.clientX - rect.left, e.clientY - rect.top); };
+            editor._applyScaleAround = (targetScale, clientX, clientY) => {
+                const p = editor.getWorldCoords({clientX, clientY}), factor = targetScale / state.transform.a;
+                state.transform.translateSelf(p.x, p.y).scaleSelf(factor, factor).translateSelf(-p.x, -p.y);
+            };
+            editor.zoom = (factor, x, y) => {
+                const newScale = Math.max(0.02, Math.min(state.transform.a * factor, 40));
+                const rect = editor.canvas.getBoundingClientRect();
+                editor._applyScaleAround(newScale, rect.left + x, rect.top + y);
+                editor.draw();
+            };
+            editor.pan = (dx, dy) => { state.transform.e += dx; state.transform.f += dy; editor.draw(); };
+            editor.resetTransform = () => {
+                const dpr = window.devicePixelRatio || 1;
+                const cw = editor.canvas.width/dpr, ch = editor.canvas.height/dpr;
+                const scale = Math.min(cw/state.activeImage.naturalWidth, ch/state.activeImage.naturalHeight);
+                state.transform = new DOMMatrix();
+                state.transform.translateSelf((cw-state.activeImage.naturalWidth*scale)/2, (ch-state.activeImage.naturalHeight*scale)/2).scaleSelf(scale, scale);
+            };
+            editor.finishDrawing = () => ui.showNewAreaModal();
+            editor.isPointInPolygon = (p, poly) => { let inside=false; for(let i=0,j=poly.length-1;i<poly.length;j=i++){if(((poly[i].y>p.y)!==(poly[j].y>p.y)) && (p.x<(poly[j].x-poly[i].x)*(p.y-poly[i].y)/(poly[j].y-poly[i].y)+poly[i].x))inside=!inside;} return inside; };
+            editor.getPolygonCentroid = pts => { if(!pts||pts.length===0)return{x:0,y:0}; let x=0,y=0,a=0;for(let i=0;i<pts.length;i++){const p1=pts[i],p2=pts[(i+1)%pts.length],c=p1.x*p2.y-p2.x*p1.y;a+=c;x+=(p1.x+p2.x)*c;y+=(p1.y+p2.y)*c;} const f=a/2; return f===0?pts[0]:{x:x/(6*f),y:y/(6*f)}; };
+            editor.getWorldCoords = e => { const rect=editor.canvas.getBoundingClientRect(); return state.transform.inverse().transformPoint({x:e.clientX-rect.left,y:e.clientY-rect.top}); };
+            // --- Event Listeners ---
+            const bindEventListeners = () => {
+                document.getElementById('theme-toggle').addEventListener('click', ui.toggleTheme);
+                document.getElementById('btn-import-data').addEventListener('click', () => document.getElementById('import-file-input').click());
+                document.getElementById('btn-export-data').addEventListener('click', actions.exportBackup);
+                document.getElementById('import-file-input').addEventListener('change', e => actions.importBackup(e.target.files[0]));
+                document.getElementById('btn-fab-new-project').addEventListener('click', ui.showNewProjectModal);
+                document.getElementById('btn-back-to-projects').addEventListener('click', () => navigation.to('page-projects'));
+                document.getElementById('btn-back-to-cockpit').addEventListener('click', () => navigation.to('page-cockpit', state.currentProjectId));
+                document.getElementById('btn-export-pdf').addEventListener('click', actions.exportPDF);
+                document.getElementById('btn-area-list').addEventListener('click', ui.showAreaListModal);
+                document.getElementById('btn-close-area-list').addEventListener('click', ui.hideAreaListModal);
+                document.getElementById('btn-add-foto-camera').addEventListener('click', () => document.getElementById('foto-camera-input').click());
+                document.getElementById('btn-add-foto-gallery').addEventListener('click', () => document.getElementById('foto-gallery-input').click());
+                document.getElementById('btn-add-notiz').addEventListener('click', () => ui.showNewEintragModal('notiz'));
+                document.getElementById('foto-camera-input').addEventListener('change', e => { actions.handleFotoUpload(e.target.files[0], 'camera'); e.target.value = ''; });
+                document.getElementById('foto-gallery-input').addEventListener('change', e => { actions.handleFotoUpload(e.target.files[0], 'gallery'); e.target.value = ''; });
+                document.getElementById('project-image-file').addEventListener('change', e => { const f=e.target.files[0], p=document.getElementById('project-image-preview'); if(f&&f.type.startsWith('image/')) { const r=new FileReader(); r.onload=e=>p.innerHTML=`<img src="${e.target.result}" class="photo-preview">`; r.readAsDataURL(f); } else { p.innerHTML=''; } });
+                document.getElementById('new-project-form').addEventListener('submit', actions.createNewProject);
+                document.getElementById('btn-cancel-project').addEventListener('click', ui.hideNewProjectModal);
+                document.getElementById('new-area-form').addEventListener('submit', e => { e.preventDefault(); const name=document.getElementById('area-name').value.trim(), w=document.getElementById('area-wichtigkeit').value; if(name){actions.createArea(name,w);ui.hideNewAreaModal();} });
+                document.getElementById('btn-cancel-area').addEventListener('click', () => { editor.setDrawingMode(false); ui.hideNewAreaModal(); });
+                document.getElementById('new-eintrag-form').addEventListener('submit', actions.confirmNewEntry);
+                document.getElementById('btn-cancel-eintrag').addEventListener('click', ui.hideNewEintragModal);
+                document.getElementById('toggle-mode-btn').addEventListener('click', () => editor.setDrawingMode(!state.isDrawing));
+                document.getElementById('btn-finish-drawing').addEventListener('click', () => state.drawingPoints.length>=3 ? editor.finishDrawing() : ui.showToast("Mind. 3 Punkte setzen.","info"));
+                document.getElementById('btn-zoom-in').addEventListener('click', () => { const r=editor.canvas.getBoundingClientRect(); editor.zoom(1.3, r.width/2, r.height/2); });
+                document.getElementById('btn-zoom-out').addEventListener('click', () => { const r=editor.canvas.getBoundingClientRect(); editor.zoom(1/1.3, r.width/2, r.height/2); });
+                document.getElementById('btn-fit-to-screen').addEventListener('click', () => { editor.setupCanvas(); ui.showToast("Bild angepasst","info"); });
+                document.getElementById('btn-delete-area').addEventListener('click', () => actions.deleteArea(state.currentAreaId));
+                editor.canvas.addEventListener('contextmenu', editor.handleContextMenu);
+                editor.canvas.addEventListener('mousemove', editor.handleMouseMove);
+                editor.canvas.addEventListener('wheel', editor.handleWheel, { passive: false });
+                editor.canvas.addEventListener('pointerdown', editor.handlePointerDown);
+                editor.canvas.addEventListener('pointermove', editor.handlePointerMove);
+                editor.canvas.addEventListener('pointerup', editor.handlePointerUp);
+                editor.canvas.addEventListener('pointercancel', editor.handlePointerUp);
+                document.getElementById('btn-company').addEventListener('click', ui.showCompanyModal);
+                document.getElementById('btn-cancel-company').addEventListener('click', ui.hideCompanyModal);
+                document.getElementById('company-logo-file').addEventListener('change', async e => {
+    if (!e.target.files?.[0]) return;
+    try {
+        const raw = await actions.readFileAsDataURL(e.target.files[0]);
+        const normalized = await actions.ensureImageDataUrlForPDF(raw) || raw;
+        const p = document.getElementById('company-logo-preview');
+        p.src = normalized;
+        p.style.display = 'block';
+    } catch (err) { ui.showToast('Logo konnte nicht geladen werden','error'); }
+});
+                document.getElementById('company-form').addEventListener('submit', async e => { e.preventDefault(); await actions.saveCompany({ name:document.getElementById('company-name').value.trim(), email:document.getElementById('company-email').value.trim(), phone:document.getElementById('company-phone').value.trim(), website:document.getElementById('company-website').value.trim(), logoDataUrl:document.getElementById('company-logo-preview').src }); ui.hideCompanyModal(); });
+                new ResizeObserver(() => state.currentPageId === 'page-cockpit' && state.activeImage && editor.setupCanvas()).observe(document.querySelector('.cockpit-content'));
+            };
+            // --- App Init ---
+            database.init().then(() => {
+                ui.applyTheme(localStorage.getItem('theme') || 'light');
+                bindEventListeners();
+                navigation.to('page-projects');
+            }).catch(err => { ui.showToast("Schwerer Datenbankfehler. App neu laden.", "error"); });
+            // --- Annotator ---
+            (function(){
+              const modal = document.getElementById('sa-modal');
+              const canvas = document.getElementById('sa-canvas');
+              const ctx = canvas.getContext('2d');
+              const toolsWrap = document.getElementById('sa-tools');
+              const colorInput = document.getElementById('sa-color');
+              const palette = document.getElementById('sa-palette');
+              const widthSelect = document.getElementById('sa-width');
+              const btnDelete = document.getElementById('sa-delete');
+              const btnUndo = document.getElementById('sa-undo');
+              const btnCancel = document.getElementById('sa-cancel');
+              const btnSave = document.getElementById('sa-save');
+              const chkOverwrite = document.getElementById('sa-overwrite');
+              let baseImg = null;
+              // --- Hit Testing Helpers ---
+              function distPointToSeg(p, a, b){
+                const vx = b.x - a.x, vy = b.y - a.y;
+                const wx = p.x - a.x, wy = p.y - a.y;
+                const c1 = vx*wx + vy*wy;
+                if (c1 <= 0) return Math.hypot(p.x - a.x, p.y - a.y);
+                const c2 = vx*vx + vy*vy;
+                if (c2 <= c1) return Math.hypot(p.x - b.x, p.y - b.y);
+                const t = c1 / c2;
+                const projx = a.x + t * vx, projy = a.y + t * vy;
+                return Math.hypot(p.x - projx, p.y - projy);
+              }
+              function hitTest(shape, p, margin=10){
+                const m = Math.max(margin, (shape.width || 8, 16) * 0.8);
+                if (shape.type === 'line'){
+                  return distPointToSeg(p, {x:shape.x1,y:shape.y1}, {x:shape.x2,y:shape.y2}) <= m;
+                } else if (shape.type === 'ellipse'){
+                  const rx = Math.abs(shape.x2 - shape.x1)/2, ry = Math.abs(shape.y2 - shape.y1)/2;
+                  const cx = Math.min(shape.x1, shape.x2) + rx, cy = Math.min(shape.y1, shape.y2) + ry;
+                  if (rx < 1 || ry < 1) return false;
+                  const nx = (p.x - cx) / rx, ny = (p.y - cy) / ry;
+                  const val = nx*nx + ny*ny;
+                  // stroke hit: near perimeter within thickness
+                  const distToPerimeter = Math.abs(val - 1) * Math.max(rx, ry);
+const thickness = shape.width || 12;
+const inside = val <= 1;
+return distToPerimeter <= Math.max(m, thickness) || (inside && distToPerimeter <= thickness);
+                } else if (shape.type === 'pen'){
+                  if (!shape.points || shape.points.length < 2) return false;
+                  for (let i=1;i<shape.points.length;i++){
+                    if (distPointToSeg(p, shape.points[i-1], shape.points[i]) <= m) return true;
+                  }
+                  return false;
+                }
+                return false;
+              }
+              let tool = 'line';
+              let color = colorInput ? colorInput.value : '#ff3b30';
+              let width = parseInt(widthSelect ? widthSelect.value : '12', 10) || 12;
+              let current = null;
+              let shapes = [];
+              let selIdx = -1;
+              let entryId = null;
+              let areaId = null;
+              function resizeTo(img){
+                const w = img.naturalWidth || img.width;
+                const h = img.naturalHeight || img.height;
+                canvas.width = w; canvas.height = h;
+              }
+              function drawShape(g, s, selected){
+                g.save();
+                g.lineWidth = s.width; g.strokeStyle = s.color; g.fillStyle = s.color;
+                if (s.type === 'line') {
+                  g.beginPath(); g.moveTo(s.x1, s.y1); g.lineTo(s.x2, s.y2); g.stroke();
+                } else if (s.type === 'ellipse') {
+                  const rx = Math.abs(s.x2 - s.x1)/2, ry = Math.abs(s.y2 - s.y1)/2;
+                  const cx = Math.min(s.x1, s.x2) + rx, cy = Math.min(s.y1, s.y2) + ry;
+                  g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI*2); g.stroke();
+                } else if (s.type === 'pen') {
+                  g.beginPath();
+                  for (let i=0;i<s.points.length;i++){
+                    const p = s.points[i];
+                    if (i===0) g.moveTo(p.x, p.y); else g.lineTo(p.x, p.y);
+                  }
+                  g.stroke();
+                }
+                if (selected) {
+                  g.setLineDash([6,4]); g.lineWidth = 2; g.strokeStyle = '#007aff';
+                  const x1 = Math.min(s.x1 ?? s.points?.[0]?.x ?? 0, s.x2 ?? s.points?.[0]?.x ?? 0);
+                  const y1 = Math.min(s.y1 ?? s.points?.[0]?.y ?? 0, s.y2 ?? s.points?.[0]?.y ?? 0);
+                  const x2 = Math.max(s.x1 ?? s.points?.[s.points.length-1]?.x ?? 0, s.x2 ?? s.points?.[s.points.length-1]?.x ?? 0);
+                  const y2 = Math.max(s.y1 ?? s.points?.[s.points.length-1]?.y ?? 0, s.y2 ?? s.points?.[s.points.length-1]?.y ?? 0);
+                  g.strokeRect(x1-4, y1-4, (x2-x1)+8, (y2-y1)+8);
+                }
+                g.restore();
+              }
+              function compose(preview){
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                if (baseImg) ctx.drawImage(baseImg,0,0,canvas.width,canvas.height);
+                for (let i=0;i<shapes.length;i++) drawShape(ctx, shapes[i], i===selIdx);
+                if (preview && current) drawShape(ctx, current, false);
+              }
+              function getPoint(e){
+                const r = canvas.getBoundingClientRect();
+                return { x: (e.clientX - r.left) * (canvas.width / r.width),
+                         y: (e.clientY - r.top)  * (canvas.height / r.height) };
+              }
+              canvas.addEventListener('pointerdown', e => {
+                if (e.pointerType==='mouse' && e.button!==0) return;
+                const p = getPoint(e);
+                if (tool === 'select') {
+                  // pick top-most shape under pointer
+                  selIdx = -1;
+                  for (let i=shapes.length-1; i>=0; i--) {
+                    if (hitTest(shapes[i], p)) { selIdx = i; break; }
+                  }
+                  compose(false);
+                  return;
+                }
+                if (tool === 'pen') current = { type:'pen', color, width, points:[p] };
+                else current = { type:tool, color, width, x1:p.x, y1:p.y, x2:p.x, y2:p.y };
+                compose(true);
+                canvas.setPointerCapture(e.pointerId);
+              });
+              canvas.addEventListener('pointermove', e => {
+                if (!current) return;
+                const p = getPoint(e);
+                if (current.type==='pen') current.points.push(p);
+                else { current.x2 = p.x; current.y2 = p.y; }
+                compose(true);
+              });
+              canvas.addEventListener('pointerup', e => {
+                if (!current) return;
+                const p = getPoint(e);
+                if (current.type!=='pen') { current.x2 = p.x; current.y2 = p.y; }
+                shapes.push(current);
+                current = null;
+                compose(false);
+                canvas.releasePointerCapture(e.pointerId);
+              });
+              // Toolbar wiring
+              if (toolsWrap) {
+                toolsWrap.querySelectorAll('button[data-tool],#sa-select').forEach(btn => {
+                  btn.addEventListener('click', () => {
+                    toolsWrap.querySelectorAll('button').forEach(x=>x.classList.remove('active'));
+                    btn.classList.add('active');
+                    const t = btn.getAttribute('data-tool');
+                    tool = t || 'select';
+                    if (tool !== 'select') selIdx = -1;
+                    compose(false);
+                  });
+                });
+              }
+              if (colorInput) colorInput.oninput = e => {
+                color = e.target.value;
+                if (palette) { palette.querySelectorAll('.sa-color-swatch').forEach(b=>b.classList.toggle('active', b.dataset.color.toLowerCase()===color.toLowerCase())); }
+            };
+            if (palette) {
+                palette.querySelectorAll('.sa-color-swatch').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        color = btn.dataset.color;
+                        if (colorInput) colorInput.value = color;
+                        palette.querySelectorAll('.sa-color-swatch').forEach(b=>b.classList.remove('active'));
+                        btn.classList.add('active');
+                    });
+                });
+                // Set initial active swatch
+                const initBtn = palette.querySelector(`.sa-color-swatch[data-color="${color}"]`);
+                if (initBtn) initBtn.classList.add('active');
+            }
+              if (widthSelect) widthSelect.onchange = e => { width = parseInt(e.target.value,10) || width; };
+              if (btnDelete) btnDelete.onclick = () => { if (selIdx>-1) { shapes.splice(selIdx,1); selIdx=-1; compose(false); } };
+              if (btnUndo) btnUndo.onclick = () => { if (shapes.length>0) { shapes.pop(); if (selIdx>=shapes.length) selIdx=-1; compose(false); } };
+              btnCancel.onclick = () => { modal.style.display='none'; };
+              btnSave.onclick = async () => {
+                try {
+                  // Compose into an output canvas
+                  const out = document.createElement('canvas');
+                  out.width = canvas.width; out.height = canvas.height;
+                  const octx = out.getContext('2d');
+                  octx.drawImage(baseImg, 0, 0, out.width, out.height);
+                  for (const s of shapes) drawShape(octx, s, false);
+                  const dataUrl = out.toDataURL('image/jpeg', 0.95);
+                  const overwrite = !!(chkOverwrite && chkOverwrite.checked);
+                  if (overwrite && entryId) {
+                    await actions.put('eintraege', { id: entryId, area_id: areaId, typ: 'foto', inhalt: dataUrl, source: 'annotated', created_at: new Date().toISOString() });
+                  } else {
+                    await actions.add('eintraege', { area_id: areaId, typ: 'foto', inhalt: dataUrl, source: 'annotated', created_at: new Date().toISOString() });
+                  }
+                  ui.showToast('Annotation gespeichert.', 'success');
+                  modal.style.display = 'none';
+                  await navigation.to('page-details', areaId);
+                } catch (err) {
+                  ui.showToast('Speichern fehlgeschlagen', 'error');
+                }
+              };
+              // Public open function
+              window._saOpen = (id, src) => {
+                entryId = id || null;
+                areaId = state.currentAreaId;
+                baseImg = new Image();
+                baseImg.onload = () => { try { resizeTo(baseImg); shapes=[]; selIdx=-1; compose(false); modal.style.display='flex'; } catch(e) { ui.showToast('Annotator Fehler', 'error'); } };
+                baseImg.onerror = () => ui.showToast('Bild konnte nicht geladen werden', 'error');
+                baseImg.src = src;
+              };
+              // Wire annotate buttons
+              const wireAnnotate = (scope) => {
+                (scope || document).querySelectorAll('.annotate-entry-button').forEach(btn => {
+                  if (btn.dataset._wired) return;
+                  btn.dataset._wired = '1';
+                  btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const card = e.currentTarget.closest('.card');
+                    const img = card ? card.querySelector('img') : null;
+                    if (!img) return;
+                    const id = Number(card.dataset.entryId) || null;
+                    if (window._saOpen) window._saOpen(id, img.src);
+                  });
+                });
+              };
+              wireAnnotate(document);
+              const container = document.getElementById('detail-list-container');
+              if (container) new MutationObserver(() => wireAnnotate(document)).observe(container, { childList:true, subtree:true });
+            })();
+        });
+    </script>
+    <div class="app-footer" aria-hidden="true">© Kofler e.U. • RestauroMap v9.7</div>
+<div id="integrity-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h3 style="margin-top:0; font-size:20px; font-weight:600;">Integrität prüfen</h3>
+        <div id="integrity-content" style="max-height:60vh; overflow:auto; font-size:14px;"></div>
+        <div class="modal-actions">
+          <button id="btn-close-integrity" type="button" class="button button-secondary">Schließen</button>
+        </div>
+      </div>
+    </div>
+</body>
+</html>

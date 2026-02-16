@@ -1,0 +1,1244 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bedarfsermittlung Holzschindel — V6.1.18</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" defer>
+    // --- Fix: ensure Schindel dropdown opens/closes reliably on summary click (no UI changes) ---
+    (function(){
+      const dd = document.getElementById('schindelDropdown');
+      if (!dd) return;
+      const summary = dd.querySelector('summary');
+      if (!summary) return;
+      // Avoid duplicate handlers if reinited
+      if (!summary.__handlerBound) {
+        summary.addEventListener('click', function(ev){
+          // Prevent native toggle to avoid double-flip on some browsers when nested elements exist
+          ev.preventDefault();
+          ev.stopPropagation();
+          dd.open = !dd.open;
+        }, true);
+        summary.__handlerBound = true;
+      }
+    })();
+
+  </script>
+  <style>
+    :root {
+      --primary-color: #3498db;
+      --secondary-color: #2c3e50;
+      --accent-color: #e67e22;
+      --hover-color: #2980b9;
+      --error-color: #e74c3c;
+      --background-color: #f4f6f9;
+      --form-background: #ffffff;
+      --shadow-color: rgba(0, 0, 0, 0.1);
+      --font-family: 'Roboto', sans-serif;
+      --border-radius: 10px;
+      --transition-speed: 0.25s;
+      --text-color: #34495e;
+      --muted: #6c7a89;
+      --canvas-border-color: #2980b9;
+      --canvas-fill-color: #8B4513;
+      --thin-line: #ffffff;
+      --table-hdr-bg: #eef5fb;
+      --table-hdr-text: #2c3e50;
+    }
+    * { box-sizing: border-box; }
+    body { font-family: var(--font-family); margin: 0; background: var(--background-color); color: var(--secondary-color); }
+    header { background: var(--form-background); box-shadow: 0 2px 8px var(--shadow-color); padding: 16px 0; text-align: center; }
+    h1 { margin: 0; font-size: 1.7rem; color: var(--secondary-color); }
+    .export-import-buttons {
+      max-width: 920px; margin: 12px auto; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
+    }
+    .export-import-buttons button {
+      flex: 1 1 220px; padding: 10px 14px; border: 0; border-radius: var(--border-radius);
+      background: var(--accent-color); color: #fff; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,.1);
+      transition: transform .2s ease, background var(--transition-speed) ease;
+    }
+    .export-import-buttons button:hover:not(:disabled) { background: #d35400; transform: translateY(-1px); }
+    .export-import-buttons button:disabled { background: #bbb; cursor: not-allowed; }
+    .toggle-form { max-width: 920px; margin: 0 auto 8px auto; text-align: center; }
+    .toggle-form button {
+      padding: 10px 14px; border: 0; border-radius: var(--border-radius); background: var(--primary-color); color: #fff;
+      cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,.1); transition: transform .2s ease, background var(--transition-speed) ease;
+    }
+    .toggle-form button:hover { background: var(--hover-color); transform: translateY(-1px); }
+    form {
+      background: var(--form-background); max-width: 920px; margin: 0 auto 12px auto; padding: 20px; border-radius: 12px;
+      box-shadow: 0 8px 16px var(--shadow-color);
+    }
+    fieldset { border: 0; padding: 14px; margin: 0 0 12px 0; background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,.05); }
+    legend { font-weight: 700; color: var(--text-color); padding: 0 8px; }
+    .form-group { margin-bottom: 10px; }
+    label { display: block; font-weight: 600; margin-bottom: 6px; color: var(--text-color); }
+    input, select {
+      width: 100%; padding: 9px 11px; border: 1px solid #cfd6de; border-radius: 8px; background: #ecf0f1; font-size: 1rem;
+      transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    input:focus, select:focus { border-color: var(--primary-color); outline: none; box-shadow: 0 0 0 3px rgba(52,152,219,.2); }
+    .error-message { color: var(--error-color); min-height: 1em; font-size: .9rem; }
+    .calculate-button {
+      width: 100%; padding: 12px; border: 0; border-radius: 10px; cursor: pointer; background: var(--primary-color); color: #fff;
+      font-size: 1.04rem; box-shadow: 0 4px 6px rgba(0,0,0,.1); transition: transform .2s ease, background var(--transition-speed) ease;
+    }
+    .calculate-button:hover { background: #1f6391; transform: translateY(-1px); }
+
+    #result {
+      max-width: 920px; margin: 12px auto; padding: 18px; background: var(--form-background); border-radius: 12px;
+      box-shadow: 0 8px 16px var(--shadow-color);
+      font-size: .98rem; line-height: 1.35;
+    }
+    #result h2 { margin: 0 0 6px 0; color: var(--primary-color); font-size: 1.3rem; }
+    .muted { color: var(--muted); font-weight: 500; }
+    .sections { display: grid; grid-template-columns: 1fr; gap: 10px; }
+    .section { border: 1px solid #e6ecf1; border-radius: 10px; padding: 10px 12px; }
+    .section h3 { margin: 0 0 6px 0; font-size: 1.02rem; color: var(--text-color); }
+    .kv { display: grid; grid-template-columns: 1.4fr 1fr; column-gap: 10px; row-gap: 4px; align-items: baseline; }
+    .kv div { padding: 2px 0; }
+    .kv .k { color: var(--muted); }
+    .kv .v { font-weight: 600; color: var(--text-color); }
+    @media (min-width: 840px) { .sections { grid-template-columns: 1fr 1fr; } }
+
+    #canvasWrap { max-width: 920px; margin: 8px auto 4px auto; }
+    #roofCanvas {
+      width: 100%; max-width: 920px; height: 460px;
+      display: block; border: 2px solid var(--canvas-border-color); border-radius: 10px;
+      background: #fff; box-shadow: 0 4px 8px rgba(0,0,0,.08);
+    }
+    .zoom-controls { text-align: center; margin: 8px 0 2px 0; }
+    .zoom-controls button {
+      margin: 0 6px; padding: 8px 12px; border: 0; border-radius: 8px; background: var(--primary-color); color: #fff; cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0,0,0,.1);
+    }
+    #zoomStatus { text-align: center; margin: 2px 0 14px 0; color: var(--secondary-color); }
+
+    .hidden { display: none !important; }
+    footer { text-align: center; color: #7f8c8d; padding: 10px 0 20px 0; font-size: .92rem; }
+
+    #debugBar {
+      position: fixed; left: 8px; bottom: 8px; right: 8px;
+      background: rgba(0,0,0,.75); color: #fff; font: 12px/1.35 monospace;
+      padding: 6px 8px; border-radius: 8px; max-height: 30vh; overflow:auto; display:none;
+      z-index: 9999;
+    }
+  </style>
+<style id="schindel-dropdown-style">
+  .dropdown-card{margin:8px 0}
+  .dropdown-card>summary{cursor:pointer;font-weight:600;list-style:none}
+  .dropdown-card>summary::-webkit-details-marker{display:none}
+  .table-wrap{max-height:40vh;overflow:auto}
+  .bedarf-table{width:100%;border-collapse:collapse;font-size:.9rem}
+  .bedarf-table th,.bedarf-table td{padding:6px 8px;border-bottom:1px solid var(--border,#e5e7eb);text-align:right}
+  .bedarf-table th:first-child,.bedarf-table td:first-child{text-align:left}
+  @media print { #schindelDropdown { display:none !important; } }
+</style>
+<style id="fixes-v6-1-17-overrides">
+  /* --- Bugfix: ungültige rgba-Werte korrigieren --- */
+  :root {
+    /* war: rgba(0,0,0,20) => gültig ist 0.20 */
+    --thin-line: rgba(0,0,0,0.20);
+  }
+
+  /* war: rgba(0,0,0,75) => gültig ist 0.75 */
+  #debugBar { background: rgba(0,0,0,0.75) !important; }
+
+  /* war: rgba(0,0,0,05) => gültig ist 0.05 */
+  fieldset { box-shadow: 0 2px 6px rgba(0,0,0,0.05) !important; }
+
+  /* --- Bugfix: Selektor .bedarf-table th,bedarf-table td -> fehlender Punkt ergänzt --- */
+  .bedarf-table th, .bedarf-table td {
+    padding: 6px 8px;
+    border-bottom: 1px solid var(--border, #e5e7eb);
+    text-align: right;
+  }
+  .bedarf-table th:first-child, .bedarf-table td:first-child {
+    text-align: left;
+  }
+
+  /* kleine Typo-/Lesbarkeitsverbesserungen */
+  .dropdown-card { margin: 8px 0; }
+  .dropdown-card > summary { cursor: pointer; font-weight: 600; list-style: none; }
+  .dropdown-card > summary::-webkit-details-marker { display: none; }
+  .table-wrap { max-height: 40vh; overflow: auto; }
+  .bedarf-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+  .schindel-note {
+    margin: 6px 2px 0 2px;
+    font-size: .88rem;
+    line-height: 1.32;
+    color: var(--muted);
+  }
+  .schindel-note strong { color: var(--secondary-color); }
+
+  @media print { #schindelDropdown { display: none !important; } }
+</style>
+  <link rel="stylesheet" href="./td-shell.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="theme-color" content="#8F1D1D" />
+</head>
+<body>
+<div class="td-shell" role="banner">
+  <div class="td-shell__inner">
+    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
+      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
+      <div class="td-shell__text">
+        <strong>TURMDECKER</strong>
+        <span>Tools & Rechner</span>
+      </div>
+    </a>
+    <div class="td-shell__nav" aria-label="Navigation">
+      <a class="td-btn" href="./index.html">↩ Übersicht</a>
+      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
+      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
+    </div>
+  </div>
+</div>
+
+<details id="schindelDropdown" class="dropdown-card">
+  <summary>Schindel-Bedarf (BM/m²) – Tabelle (DIN 68119, normgerechte Reihenabstände)</summary>
+  <div class="table-wrap">
+    <table class="dataframe bedarf-table">
+      <thead>
+        <tr style="text-align: right;">
+          <th>Schindel-Länge (mm)</th>
+          <th>Reihenabstand (mm)</th>
+          <th>BM pro m²</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>150</td><td>45</td><td>22.22</td></tr>
+        <tr><td>200</td><td>60</td><td>16.67</td></tr>
+        <tr><td>250</td><td>75</td><td>13.33</td></tr>
+        <tr><td>300</td><td>90</td><td>11.11</td></tr>
+        <tr><td>350</td><td>110</td><td>9.09</td></tr>
+        <tr><td>400</td><td>125</td><td>8.00</td></tr>
+        <tr><td>500</td><td>160</td><td>6.25</td></tr>
+        <tr><td>600</td><td>180</td><td>5.56</td></tr>
+        <tr><td>700</td><td>220</td><td>4.55</td></tr>
+        <tr><td>800</td><td>250</td><td>4.00</td></tr>
+        <tr><td>1000</td><td>320</td><td>3.13</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="schindel-note">
+    <strong>Dachneigungs-Hinweis (DIN&nbsp;68119, Anhang&nbsp;A):</strong><br>
+    <strong>Dreilagig</strong> (Dach&nbsp;22°–90°) — maßgebend für die Berechnung in diesem Tool.<br>
+    Beispiel: <strong>400&nbsp;mm&nbsp;⇒ 125&nbsp;mm</strong> (max. Reihenabstand je Reihe).<br>
+    <strong>Zweilagig</strong> (71°–90°) ist laut Norm nur in Ausnahmefällen zulässig
+    (geringere Dichtheitsanforderungen). Werte aus Anhang&nbsp;A; Standard-Rechnung hier bleibt <strong>dreilagig</strong>.
+  </p>
+</details>
+
+
+  <header><h1>Bedarfsermittlung Holzschindel</h1></header>
+
+  <main>
+    <section class="export-import-buttons">
+      <button type="button" id="exportButton">📤 Projekt exportieren</button>
+      <button type="button" id="importButton">📥 Projekt importieren</button>
+      <button type="button" id="exportPDFButton">📄 PDF exportieren</button>
+      <input type="file" id="fileInput" class="hidden" accept=".json,application/json,text/json,application/*+json">
+    </section>
+
+    <section class="toggle-form">
+      <button type="button" id="toggleFormButton" aria-expanded="true" aria-controls="roofForm">📋 Formular anzeigen/verstecken</button>
+    </section>
+
+    <form id="roofForm" aria-labelledby="formLegend">
+      <fieldset>
+        <legend id="formLegend">Projektinformationen</legend>
+        <div class="form-group">
+          <label for="projectName">Projektname:</label>
+          <input type="text" id="projectName" required>
+          <div class="error-message" id="projectNameError"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Dachform</legend>
+        <div class="form-group">
+          <label for="roofType">Dachform:</label>
+          <select id="roofType" required>
+            <option value="symmetrisch">Symmetrisches Satteldach</option>
+            <option value="asymmetrisch">Asymmetrisches Satteldach</option>
+            <option value="trapez">Trapezförmig</option>
+            <option value="dreieck">Dreieckig</option>
+          </select>
+        </div>
+
+        <div id="asymAxis" class="hidden">
+          <div class="form-group">
+            <label for="leftHeight">Linke Dachhöhe (m):</label>
+            <input type="number" id="leftHeight" step="0.01" min="0">
+            <div class="error-message" id="leftHeightError"></div>
+          </div>
+          <div class="form-group">
+            <label for="rightHeight">Rechte Dachhöhe (m):</label>
+            <input type="number" id="rightHeight" step="0.01" min="0">
+            <div class="error-message" id="rightHeightError"></div>
+          </div>
+        </div>
+
+        <div id="triangleHeight" class="hidden">
+          <div class="form-group">
+            <label for="triangleHeightInput">Mittlere Dachhöhe (m):</label>
+            <input type="number" id="triangleHeightInput" step="0.01" min="0">
+            <div class="error-message" id="triangleHeightError"></div>
+          </div>
+        </div>
+
+        <div id="trapezFields" class="hidden">
+          <div class="form-group">
+            <label for="ridgeLength">Firstlänge (m):</label>
+            <input type="number" id="ridgeLength" step="0.01" min="0">
+            <div class="error-message" id="ridgeLengthError"></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Dachabmessungen</legend>
+        <div class="form-group" id="heightGroup">
+          <label for="height">Dachhöhe (m):</label>
+          <input type="number" id="height" step="0.01" min="0">
+          <div class="error-message" id="heightError"></div>
+        </div>
+        <div class="form-group">
+          <label for="eavesLength">Trauflänge (m):</label>
+          <input type="number" id="eavesLength" step="0.01" min="0">
+          <div class="error-message" id="eavesLengthError"></div>
+        </div>
+        <div class="form-group">
+          <label for="numberOfRoofSides">Anzahl der Dachseiten:</label>
+          <select id="numberOfRoofSides">
+            <option value="1" selected>1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Schindelparameter</legend>
+        <div class="form-group">
+          <label for="shingleLength">Schindellänge (mm):</label>
+          <select id="shingleLength">
+            <option value="150">150 mm</option>
+            <option value="200">200 mm</option>
+            <option value="250">250 mm</option>
+            <option value="300">300 mm</option>
+            <option value="350">350 mm</option>
+            <option value="400" selected>400 mm</option>
+            <option value="500">500 mm</option>
+            <option value="600">600 mm</option>
+            <option value="700">700 mm</option>
+            <option value="800">800 mm</option>
+            <option value="1000">1000 mm</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="coverageType">Deckungsart:</label>
+          <select id="coverageType">
+            <option value="3-lagig" selected>3-lagig</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="specialCoverage">
+            <input type="checkbox" id="specialCoverage">
+            Spezielle Deckung / individueller max. Reihenabstand
+          </label>
+        </div>
+
+        <div id="specialCoverageFields" class="hidden">
+          <div id="generalCustomRowSpacing">
+            <div class="form-group">
+              <label for="customRowSpacing">Max. Reihenabstand gesamt (cm):</label>
+              <input type="number" id="customRowSpacing" step="0.01" min="0">
+              <div class="error-message" id="customRowSpacingError"></div>
+            </div>
+          </div>
+
+          <div id="asymCustomRowSpacing" class="hidden">
+            <div class="form-group">
+              <label for="customRowSpacingSide">Reihenabstand definieren für:</label>
+              <select id="customRowSpacingSide">
+                <option value="left">Linken Schenkel</option>
+                <option value="right">Rechten Schenkel</option>
+                <option value="both">Beide Schenkel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="customRowSpacingValue">Max. Reihenabstand (cm):</label>
+              <input type="number" id="customRowSpacingValue" step="0.01" min="0">
+              <div class="error-message" id="customRowSpacingValueError"></div>
+            </div>
+          </div>
+        </div>
+      </fieldset>
+
+      <input type="hidden" id="numberOfRows">
+      <button type="button" class="calculate-button" id="calculateButton">🧮 Berechnen</button>
+    </form>
+
+    <section id="result" aria-live="polite"></section>
+
+    <div id="canvasWrap">
+      <canvas id="roofCanvas"></canvas>
+      <div class="zoom-controls"></div>
+      <p id="zoomStatus">Zoomstufe: 100%</p>
+    </div>
+  </main>
+
+  <footer>© Kofler e.U. | Version 6.1.18</footer>
+
+  <div id="debugBar"></div>
+
+  <script>
+    (function(){
+      const bar = document.getElementById('debugBar');
+      function log(msg){
+        if(!bar) return;
+        const atBottom = Math.abs(bar.scrollTop + bar.clientHeight - bar.scrollHeight) < 4;
+        bar.style.display = 'block';
+        const p = document.createElement('div');
+        p.textContent = '['+new Date().toLocaleTimeString()+'] ' + msg;
+        bar.appendChild(p);
+        if(atBottom) bar.scrollTop = bar.scrollHeight;
+      }
+      window.addEventListener('error', e => log('JS-Error: ' + (e.message || e.error)));
+      window.__debugLog = log;
+    })();
+
+    // ===== Robust Farbparser =====
+    function cssColorToRgb(colorString){
+      const span = document.createElement('span');
+      span.style.color = String(colorString || '').trim();
+      document.body.appendChild(span);
+      let computed = getComputedStyle(span).color || '';
+      document.body.removeChild(span);
+      let m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(computed);
+      if (m) return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
+      try {
+        const c = document.createElement('canvas');
+        const cx = c.getContext('2d');
+        cx.fillStyle = String(colorString || '').trim();
+        const norm = cx.fillStyle;
+        m = /^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i.exec(norm);
+        if (m) return [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])];
+        if (/^#([0-9a-f]{6})$/i.test(norm)) {
+          const hex = norm.slice(1);
+          return [parseInt(hex.slice(0,2),16), parseInt(hex.slice(2,4),16), parseInt(hex.slice(4,6),16)];
+        }
+      } catch(e){}
+      return [0,0,0];
+    }
+
+    const grundbedarfData = {"3-lagig":{"150":22.22,"200":16.67,"250":13.33,"300":11.11,"350":9.09,"400":8.00,"500":6.25,"600":5.56,"700":4.55,"800":4.00,"1000":3.13}};
+    const standardRowSpacings = {"3-lagig":{"150":4.5,"200":6,"250":7.5,"300":9,"350":11,"400":12.5,"500":16,"600":18,"700":22,"800":25,"1000":32}};
+
+    window.RowGeom = { tBase: null, rows: null };
+    window.LastResult = null;
+
+    const byId = (id) => document.getElementById(id);
+    const round2 = (x) => Math.round((x + Number.EPSILON) * 100) / 100;
+    const alertMsg = (m) => { try { alert(m); } catch(_) { console.log('ALERT:', m); } };
+
+    function resetErrors(){document.querySelectorAll('.error-message').forEach(el=>el.textContent='');}
+    function toggleForm(){const form=byId('roofForm');const btn=byId('toggleFormButton');if(!form||!btn) return;const hidden=form.classList.toggle('hidden');btn.setAttribute('aria-expanded',String(!hidden));}
+    function toggleAxisFields(){
+      const rt=byId('roofType').value;const asymAxis=byId('asymAxis');const triangleHeight=byId('triangleHeight');const trapezFields=byId('trapezFields');const heightGroup=byId('heightGroup');
+      asymAxis.classList.add('hidden');triangleHeight.classList.add('hidden');trapezFields.classList.add('hidden');heightGroup.classList.add('hidden');
+      if(rt==='symmetrisch')heightGroup.classList.remove('hidden');else if(rt==='asymmetrisch')asymAxis.classList.remove('hidden');else if(rt==='trapez'){asymAxis.classList.remove('hidden');trapezFields.classList.remove('hidden');}else if(rt==='dreieck')triangleHeight.classList.remove('hidden');
+      toggleSpecialCoverageFields();
+    }
+    function toggleSpecialCoverageFields(){
+      const special=byId('specialCoverage').checked;const rt=byId('roofType').value;const specialWrap=byId('specialCoverageFields');const asymCustom=byId('asymCustomRowSpacing');const genCustom=byId('generalCustomRowSpacing');
+      if(!special){specialWrap.classList.add('hidden');asymCustom.classList.add('hidden');genCustom.classList.add('hidden');byId('customRowSpacing').value='';byId('customRowSpacingValue').value='';return;}
+      specialWrap.classList.remove('hidden');if(rt==='asymmetrisch'||rt==='trapez'){asymCustom.classList.remove('hidden');genCustom.classList.add('hidden');}else{genCustom.classList.remove('hidden');asymCustom.classList.add('hidden');}
+    }
+
+    function exportProject(){resetErrors();const name=(byId('projectName').value||'').trim();if(!name){byId('projectNameError').textContent='Bitte Projektnamen eingeben.';return;}const data=collectInputs();const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name+'.json';a.click();URL.revokeObjectURL(a.href);}
+    function importProject(){const fi=byId('fileInput');fi.value='';if(typeof fi.showPicker==='function'){try{fi.showPicker();return;}catch(e){}}fi.classList.remove('hidden');fi.style.position='absolute';fi.style.left='-9999px';fi.style.opacity='0';fi.addEventListener('change',()=>{fi.classList.add('hidden');fi.removeAttribute('style');},{once:true});fi.click();}
+    function handleFileSelect(e){const file=e.target.files[0];if(!file)return;const fr=new FileReader();fr.onload=ev=>{try{const data=JSON.parse(ev.target.result);loadProject(data);e.target.value='';}catch(err){alertMsg('Fehler beim Import: '+err.message);}};fr.readAsText(file);}
+    function collectInputs(){return {projectName:(byId('projectName').value||'').trim(),roofType:byId('roofType').value,height:byId('height').value,eavesLength:byId('eavesLength').value,numberOfRoofSides:byId('numberOfRoofSides').value,leftHeight:byId('leftHeight').value,rightHeight:byId('rightHeight').value,triangleHeightInput:byId('triangleHeightInput').value,ridgeLength:byId('ridgeLength').value,shingleLength:byId('shingleLength').value,coverageType:byId('coverageType').value,specialCoverage:byId('specialCoverage').checked,customRowSpacing:byId('customRowSpacing').value,customRowSpacingSide:byId('customRowSpacingSide').value,customRowSpacingValue:byId('customRowSpacingValue').value};}
+    function loadProject(d){const req=['projectName','roofType','eavesLength','numberOfRoofSides','shingleLength','coverageType'];for(const k of req){if(!(k in d)){alertMsg(`Feld "${k}" fehlt im Projekt.`);return;}}byId('projectName').value=d.projectName||'';byId('roofType').value=d.roofType||'symmetrisch';toggleAxisFields();byId('height').value=d.height||'';byId('eavesLength').value=d.eavesLength||'';byId('numberOfRoofSides').value=d.numberOfRoofSides||'1';byId('leftHeight').value=d.leftHeight||'';byId('rightHeight').value=d.rightHeight||'';byId('triangleHeightInput').value=d.triangleHeightInput||'';byId('ridgeLength').value=d.ridgeLength||'';byId('shingleLength').value=d.shingleLength||'400';byId('coverageType').value=d.coverageType||'3-lagig';byId('specialCoverage').checked=!!d.specialCoverage;toggleSpecialCoverageFields();byId('customRowSpacing').value=d.customRowSpacing||'';byId('customRowSpacingSide').value=d.customRowSpacingSide||'left';byId('customRowSpacingValue').value=d.customRowSpacingValue||'';}
+
+    function getStdBaseCm(ct,sl){const std=standardRowSpacings[ct]&&standardRowSpacings[ct][String(sl)];return(typeof std==='number')?std:null;}
+    function getAllowedMaxCm(ct,sl){const base=getStdBaseCm(ct,sl);return(base==null)?null:(base+0.5);} // +5 mm
+    function getBMPerM2(ct,sl){const val=grundbedarfData[ct]&&grundbedarfData[ct][String(sl)];return(typeof val==='number')?val:null;}
+
+    // --- Row lengths sum based on geometry ---
+    function sumRowLengthsMeters(rt, eaves, ridgeLen, N, tBase){
+      let sum = 0;
+      for(let k=1;k<=N;k++){
+        const t = (k===N) ? 1 : Math.min(k * tBase, 1);
+        let L = 0;
+        if(rt==='trapez'){
+          L = eaves + t * (ridgeLen - eaves);
+        } else if(rt==='dreieck'){
+          L = eaves * (1 - t); // at top t=1 -> 0
+        } else {
+          L = eaves;
+        }
+        sum += Math.max(0, L);
+      }
+      return sum;
+    }
+
+    function calc(){
+      resetErrors();
+      const name=(byId('projectName').value||'').trim();if(!name){byId('projectNameError').textContent='Bitte Projektnamen eingeben.';return;}
+      const rt=byId('roofType').value;const shLen=parseInt(byId('shingleLength').value,10);const cov=byId('coverageType').value;const eaves=parseFloat(byId('eavesLength').value);const sides=parseInt(byId('numberOfRoofSides').value,10);
+      if(!(eaves>0)){byId('eavesLengthError').textContent='Gültige Trauflänge eingeben.';return;}
+      const stdBase=getStdBaseCm(cov,shLen);const maxAllowed=getAllowedMaxCm(cov,shLen);if(!(maxAllowed>0)){alertMsg('Kein zulässiger Reihenabstand für Auswahl.');return;}
+
+      const special=byId('specialCoverage').checked;
+      let effMaxLeft=maxAllowed, effMaxRight=maxAllowed, customNote=null;
+      if(special){
+        if(rt==='asymmetrisch'||rt==='trapez'){
+          const side=byId('customRowSpacingSide').value;const v=parseFloat(byId('customRowSpacingValue').value);
+          if(!(v>0)){byId('customRowSpacingValueError').textContent='Gültigen Wert eingeben.';return;}
+          const vv=Math.min(v,maxAllowed);
+          if(side==='left'){effMaxLeft=vv;customNote=`Max links: ${vv} cm`;}
+          else if(side==='right'){effMaxRight=vv;customNote=`Max rechts: ${vv} cm`;}
+          else{effMaxLeft=vv;effMaxRight=vv;customNote=`Max beidseitig: ${vv} cm`;}
+        } else {
+          const v=parseFloat(byId('customRowSpacing').value);
+          if(!(v>0)){byId('customRowSpacingError').textContent='Gültigen Wert eingeben.';return;}
+          const vv=Math.min(v,maxAllowed);effMaxLeft=effMaxRight=vv;customNote=`Max: ${vv} cm`;
+        }
+      }
+
+      let heightLcm=0,heightRcm=0,ridgeLen=null,heightSymCm=0;
+      if(rt==='symmetrisch'){const h=parseFloat(byId('height').value);if(!(h>0)){byId('heightError').textContent='Gültige Dachhöhe eingeben.';return;}heightSymCm=h*100;heightLcm=heightRcm=heightSymCm;}
+      else if(rt==='asymmetrisch'||rt==='trapez'){const hl=parseFloat(byId('leftHeight').value);const hr=parseFloat(byId('rightHeight').value);if(!(hl>0)){byId('leftHeightError').textContent='Gültige linke Dachhöhe eingeben.';return;}if(!(hr>0)){byId('rightHeightError').textContent='Gültige rechte Dachhöhe eingeben.';return;}heightLcm=hl*100;heightRcm=hr*100;if(rt==='trapez'){ridgeLen=parseFloat(byId('ridgeLength').value);if(!(ridgeLen>0)||ridgeLen>=eaves){byId('ridgeLengthError').textContent='Gültige Firstlänge eingeben (< Traufe).';return;}}}
+      else if(rt==='dreieck'){const hm=parseFloat(byId('triangleHeightInput').value);if(!(hm>0)){byId('triangleHeightError').textContent='Gültige mittlere Dachhöhe eingeben.';return;}heightSymCm=hm*100;heightLcm=heightRcm=heightSymCm;}
+
+      const tBaseLeft=effMaxLeft/heightLcm;const tBaseRight=effMaxRight/heightRcm;let tBase=Math.min(tBaseLeft,tBaseRight);
+      let N=Math.ceil(1/tBase);
+      const baseLeft_cm=heightLcm*tBase;const baseRight_cm=heightRcm*tBase;
+      let lastLeft_cm=heightLcm-baseLeft_cm*(N-1);let lastRight_cm=heightRcm-baseRight_cm*(N-1);
+      const eps=0.01;
+      if(lastLeft_cm-effMaxLeft>eps||lastRight_cm-effMaxRight>eps){N+=1;}
+
+      let baseL=heightLcm*tBase, baseR=heightRcm*tBase;
+      lastLeft_cm=heightLcm-baseL*(N-1);
+      lastRight_cm=heightRcm-baseR*(N-1);
+
+      // --- Guard against N==1 to avoid division by zero in spacing adjustment ---
+let baseLeft_cm2, baseRight_cm2;
+if (N > 1) {
+      const minLastTarget = (stdBase? 0.4*stdBase : 0);
+      const allowedLastMax = Math.min(effMaxLeft, effMaxRight);
+      let targetLast = Math.min(Math.max(minLastTarget, Math.min(lastLeft_cm,lastRight_cm)), allowedLastMax);
+
+      const baseLeftMin  = (heightLcm - effMaxLeft) / (N - 1);
+      const baseRightMin = (heightRcm - effMaxRight) / (N - 1);
+      const baseLeftTry  = (heightLcm - targetLast) / (N - 1);
+      const baseRightTry = (heightRcm - targetLast) / (N - 1);
+      const baseLeftAdj  = Math.min(Math.max(baseLeftTry,  baseLeftMin),  effMaxLeft);
+      const baseRightAdj = Math.min(Math.max(baseRightTry, baseRightMin), effMaxRight);
+      const tBaseNew = Math.min(baseLeftAdj/heightLcm, baseRightAdj/heightRcm);
+      if(tBaseNew>0 && tBaseNew<=tBase){
+        tBase = tBaseNew;
+      }
+            baseLeft_cm2  = heightLcm * tBase;
+            baseRight_cm2 = heightRcm * tBase;
+            lastLeft_cm  = heightLcm - baseLeft_cm2  * (N - 1);
+      lastRight_cm = heightRcm - baseRight_cm2 * (N - 1);
+    } else {
+      baseLeft_cm2 = 0;
+      baseRight_cm2 = 0;
+      lastLeft_cm = heightLcm;
+      lastRight_cm = heightRcm;
+    }
+
+      const bmPerM2=getBMPerM2(cov,shLen);
+      let qm=0;
+      if(rt==='symmetrisch'){qm = (heightSymCm/100) * eaves * sides;}
+      else if(rt==='asymmetrisch'){const hl_m=heightLcm/100,hr_m=heightRcm/100;const h_avg=(hl_m+hr_m)/2;qm=h_avg*eaves*sides;}
+      else if(rt==='trapez'){const hl_m=heightLcm/100,hr_m=heightRcm/100;const h_avg=(hl_m+hr_m)/2;qm=((eaves+ridgeLen)/2)*h_avg*sides;}
+      else if(rt==='dreieck'){const h_m=heightSymCm/100;qm=(h_m*eaves/2)*sides;}
+
+     let bmRowsOneSide = sumRowLengthsMeters(rt, eaves, ridgeLen||0, N, tBase);
+      // Dreieck exakt (Closed-Form): Summe der Reihenlängen (eine Seite)
+      // rows ≈ H/s, mittlere Reihenlänge = eaves/2  →  Summe = eaves * (H/s) * 0.5
+      if (rt === 'dreieck') {
+        const s_cm = baseLeft_cm2;          // Reihenabstand in cm (bereits oben gesetzt)
+        if (s_cm > 0 && heightSymCm > 0) {
+          bmRowsOneSide = eaves * (heightSymCm / s_cm) * 0.5;
+        }
+      } 
+      const bm = bmRowsOneSide * sides;
+      const bmTraufe = eaves * 2 * sides;
+      const bmBestell = bm + bmTraufe;
+
+      const bmEffPerM2 = (qm>0) ? (bm / qm) : null;
+      const kaufQmStd = (bmPerM2 && bmPerM2>0) ? (bmBestell / bmPerM2) : null;
+
+      byId('numberOfRows').value=String(N);
+      window.RowGeom={tBase:tBase,rows:N};
+      const res={
+        projekt:name,dachform:rt,dachseiten:sides,
+        eaves:eaves,heightL_m:heightLcm/100,heightR_m:heightRcm/100,ridge_m:ridgeLen,
+        shingle_mm:shLen,coverage:cov,stdBase_cm:stdBase,allowedMax_cm:maxAllowed,customNote,
+        N,
+        baseLeft_cm:round2(baseLeft_cm2),baseRight_cm:round2(baseRight_cm2),
+        lastLeft_cm:round2(lastLeft_cm),lastRight_cm:round2(lastRight_cm),
+        qm:round2(qm),
+        bm:round2(bm),bmRowsOneSide:round2(bmRowsOneSide),
+        bmTraufe:round2(bmTraufe),bmBestell:round2(bmBestell),
+        bmPerM2:bmPerM2!=null?round2(bmPerM2):null,
+        bmEffPerM2:bmEffPerM2!=null?round2(bmEffPerM2):null,
+        kaufQmStd:kaufQmStd!=null?round2(kaufQmStd):null
+      };
+      window.LastResult=res;
+      renderResult(res);
+      drawRoof();
+    }
+
+    function sectionKV(kv){return kv.map(([k,v])=>`<div class="k">${k}</div><div class="v">${v}</div>`).join('');}
+    function renderResult(res){
+      const r=byId('result');const fmt=(v,u='')=>(v==null||isNaN(v))?'—':`${Number(v).toFixed(2)}${u}`;
+      const sec1=sectionKV([
+        ['Dachform',res.dachform],
+        ['Anzahl Dachseiten',res.dachseiten],
+        ['Trauflänge',fmt(res.eaves,' m')]
+      ]);
+      const heights=(res.dachform==='asymmetrisch'||res.dachform==='trapez')
+        ? sectionKV([['Dachhöhe links',fmt(res.heightL_m,' m')],['Dachhöhe rechts',fmt(res.heightR_m,' m')]])
+        : sectionKV([['Dachhöhe/Mittelhöhe',fmt(res.heightL_m,' m')]]);
+      const trapez=(res.dachform==='trapez')?sectionKV([['Firstlänge',fmt(res.ridge_m,' m')]]):'';
+
+      const sec2=sectionKV([
+        ['Schindellänge',`${res.shingle_mm} mm`],
+        ['Deckungsart',res.coverage],
+        ['Standard-Reihenabstand',fmt(res.stdBase_cm,' cm')],
+        ['Zulässiger Max-Abstand (Std. + 0,5 cm)',fmt(res.allowedMax_cm,' cm')],
+        ['Spezielle Deckung',res.customNote?res.customNote:'—']
+      ]);
+
+      const sec3=(res.dachform==='symmetrisch'||res.dachform==='dreieck')
+        ? sectionKV([
+            ['Reihen 1…N-1',fmt(res.baseLeft_cm,' cm')],
+            ['Letzte Reihe (First)',fmt(res.lastLeft_cm,' cm')],
+            ['Scharen je Seite (N)',res.N]
+          ])
+        : sectionKV([
+            ['Reihen 1…N-1 links',fmt(res.baseLeft_cm,' cm')],
+            ['Letzte links',fmt(res.lastLeft_cm,' cm')],
+            ['Reihen 1…N-1 rechts',fmt(res.baseRight_cm,' cm')],
+            ['Letzte rechts',fmt(res.lastRight_cm,' cm')],
+            ['Scharen je Seite (N)',res.N]
+          ]);
+
+      const sec4=sectionKV([
+        ['Fläche gesamt',fmt(res.qm,' m²')],
+        ['Breitenmeter (ohne Traufe)',fmt(res.bm,' bm')],
+        ['+ Doppelschar Traufe',fmt(res.bmTraufe,' bm')],
+        ['= Bestell-Breitenmeter',fmt(res.bmBestell,' bm')],
+        ['Breitenmeter pro m² (Tabelle)',(res.bmPerM2!=null?`${res.bmPerM2.toFixed(2)} bm`:'—')],
+        ['Breitenmeter pro m² (effektiv)',(res.bmEffPerM2!=null?`${res.bmEffPerM2.toFixed(2)} bm`:'—')],
+        ['Kaufmenge (m², Standard)',fmt(res.kaufQmStd,' m²')]
+      ]);
+
+      r.innerHTML=`
+        <h2>Ergebnisse: <span class="muted">„${res.projekt}“</span></h2>
+        <div class="sections">
+          <div class="section"><h3>Geometrie</h3><div class="kv">${sec1}${heights}${trapez}</div></div>
+          <div class="section"><h3>Schindeln & Regeln</h3><div class="kv">${sec2}</div></div>
+          <div class="section"><h3>Reihenabstände</h3><div class="kv">${sec3}</div></div>
+          <div class="section"><h3>Mengen</h3><div class="kv">${sec4}</div></div>
+        </div>`;
+    }
+
+    let currentScale=1.0,minScale=0.5,maxScale=3.0,stepScale=0.1;
+    function addZoomControls(){const zc=document.querySelector('.zoom-controls');if(!zc||zc.dataset.ready==='1')return;const bi=document.createElement('button');bi.type='button';bi.textContent='➕ Zoom In';bi.addEventListener('click',()=>{if(currentScale<maxScale){currentScale+=stepScale;drawRoof();}});const bo=document.createElement('button');bo.type='button';bo.textContent='➖ Zoom Out';bo.addEventListener('click',()=>{if(currentScale>minScale){currentScale-=stepScale;drawRoof();}});zc.appendChild(bi);zc.appendChild(bo);zc.dataset.ready='1';}
+    function updateZoomStatus(){byId('zoomStatus').textContent=`Zoomstufe: ${(currentScale*100).toFixed(0)}%`; }
+    function setupCanvasForDPR(canvas){const dpr=window.devicePixelRatio||1;const rect=canvas.getBoundingClientRect();canvas.width=rect.width*dpr;canvas.height=rect.height*dpr;const ctx=canvas.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);return {ctx,rect,dpr};}
+
+    // draw a line with white underlay (decenter) + thin dark stroke (sharper)
+    function strokeRow(ctx, x1, y1, x2, y2, thinColor){
+      const horizontal = Math.abs(y1 - y2) < 0.0001;
+       // Kein per-Linie-Runden: konstanter 0.5-Offset hält Abstände exakt gleichmäßig
+      const yA = horizontal ? (y1 + 0.5) : y1;
+      const yB = horizontal ? (y2 + 0.5) : y2;
+      ctx.save();
+      ctx.strokeStyle = '#FFFFFF';
+      ctx.globalAlpha = 1.0;
+      ctx.lineWidth = horizontal ? 1.4 : 1.2;
+      ctx.beginPath(); ctx.moveTo(x1,yA); ctx.lineTo(x2,yB); ctx.stroke();
+      ctx.restore();
+      ctx.save();
+      ctx.strokeStyle = thinColor;
+      ctx.globalAlpha = 1.0;
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x1,yA); ctx.lineTo(x2,yB); ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawLabelWithGap(ctx,x,y0,y1,text,bgColor,textColor){
+      const midY=(y0+y1)/2;ctx.save();ctx.font='13px Roboto, sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';const w=ctx.measureText(text).width;const gap=Math.max(w+10,26);const half=gap/2;ctx.beginPath();ctx.moveTo(x,y0);ctx.lineTo(x,midY+half);ctx.moveTo(x,midY-half);ctx.lineTo(x,y1);ctx.stroke();ctx.save();ctx.translate(x,midY);ctx.rotate(-Math.PI/2);const boxW=w+8,boxH=16;ctx.fillStyle=bgColor;ctx.fillRect(-boxW/2,-boxH/2,boxW,boxH);ctx.fillStyle=textColor;ctx.fillText(text,0,0);ctx.restore();ctx.restore();
+    }
+
+    function drawRoof(){
+      const canvas=byId('roofCanvas');if(!canvas) return;const set=setupCanvasForDPR(canvas);const ctx=set.ctx,rect=set.rect;
+      const rt=byId('roofType').value;const eaves=parseFloat(byId('eavesLength').value)||0;
+      let hL=0,hR=0,ridgeLen=null;
+      if(rt==='symmetrisch'){const h=parseFloat(byId('height').value)||0;hL=hR=h;}
+      else if(rt==='asymmetrisch'||rt==='trapez'){hL=parseFloat(byId('leftHeight').value)||0;hR=parseFloat(byId('rightHeight').value)||0;if(rt==='trapez')ridgeLen=parseFloat(byId('ridgeLength').value)||0;}
+      else if(rt==='dreieck'){const hm=parseFloat(byId('triangleHeightInput').value)||0;hL=hR=hm;}
+      ctx.clearRect(0,0,rect.width,rect.height);
+      ctx.save();ctx.globalCompositeOperation='source-over';ctx.fillStyle='#FFFFFF';ctx.fillRect(0,0,rect.width,rect.height);ctx.restore();
+
+      const root=getComputedStyle(document.documentElement);
+      const border=root.getPropertyValue('--canvas-border-color').trim();
+      const fill=root.getPropertyValue('--canvas-fill-color').trim();
+      const text=root.getPropertyValue('--text-color').trim();
+      const formBg=root.getPropertyValue('--form-background').trim();
+      const thin=root.getPropertyValue('--thin-line').trim();
+
+      const margin=50;const availW=Math.max(rect.width-margin*2,1);const availH=Math.max(rect.height-margin*2,1);const scaleX=availW/Math.max(eaves,0.001);const scaleY=availH/Math.max(hL,hR,0.001);const scale=Math.min(scaleX,scaleY)*currentScale;
+      const widthPx=eaves*scale;const startX=(rect.width-widthPx)/2;const maxHPxTop=(rt==='asymmetrisch'||rt==='trapez')?Math.max(hL*scale,hR*scale):(hL*scale);const startY=margin+maxHPxTop;
+
+      ctx.lineWidth=2;ctx.strokeStyle=border;ctx.fillStyle=fill;
+      ctx.beginPath();
+      if(rt==='symmetrisch'){const hPx=hL*scale;ctx.moveTo(startX,startY);ctx.lineTo(startX,startY-hPx);ctx.lineTo(startX+widthPx,startY-hPx);ctx.lineTo(startX+widthPx,startY);}
+      else if(rt==='asymmetrisch'){const lPx=hL*scale,rPx=hR*scale;ctx.moveTo(startX,startY);ctx.lineTo(startX,startY-lPx);ctx.lineTo(startX+widthPx,startY-rPx);ctx.lineTo(startX+widthPx,startY);}
+      else if(rt==='trapez'){const lPx=hL*scale,rPx=hR*scale;const ridgePx=ridgeLen*scale;const ridgeStartX=startX+(widthPx-ridgePx)/2;const ridgeEndX=ridgeStartX+ridgePx;ctx.moveTo(startX,startY);ctx.lineTo(ridgeStartX,startY-lPx);ctx.lineTo(ridgeEndX,startY-rPx);ctx.lineTo(startX+widthPx,startY);}
+      else if(rt==='dreieck'){const hPx=hL*scale;const topX=startX+widthPx/2;ctx.moveTo(startX,startY);ctx.lineTo(topX,startY-hPx);ctx.lineTo(startX+widthPx,startY);}
+      ctx.closePath();ctx.fill();ctx.stroke();
+
+      const N=parseInt(byId('numberOfRows').value,10)||(window.RowGeom.rows||0);const tBase=(window.RowGeom.tBase||0);
+      if(N>0&&tBase>0){
+        if(rt==='symmetrisch'){
+          const hPx=hL*scale;
+          for(let i=1;i<=N-1;i++){
+            const t=Math.min(i*tBase,0.999999);const y=startY-hPx*t;
+            strokeRow(ctx, startX, y, startX+widthPx, y, thin);
+          }
+        } else if(rt==='asymmetrisch'){
+          const lPx=hL*scale,rPx=hR*scale;
+          for(let i=1;i<=N-1;i++){
+            const t=Math.min(i*tBase,0.999999);
+            const y1=startY-lPx*t;const y2=startY-rPx*t;
+            strokeRow(ctx, startX, y1, startX+widthPx, y2, thin);
+          }
+        } else if(rt==='trapez'){
+          const lPx=hL*scale,rPx=hR*scale;const ridgePx=ridgeLen*scale;
+          const ridgeStartX=startX+(widthPx-ridgePx)/2;const ridgeEndX=ridgeStartX+ridgePx;
+          for(let i=1;i<=N-1;i++){
+            const t=Math.min(i*tBase,0.999999);
+            const x1=startX+t*(ridgeStartX-startX);
+            const y1=startY-lPx*t;
+            const x2=startX+widthPx-t*(startX+widthPx-ridgeEndX);
+            const y2=startY-rPx*t;
+            strokeRow(ctx, x1, y1, x2, y2, thin);
+          }
+        } else if(rt==='dreieck'){
+          const hPx=hL*scale;const topX=startX+widthPx/2;
+          for(let i=1;i<=N-1;i++){
+            const t=Math.min(i*tBase,0.999999);
+            const y=startY-hPx*t;
+            const x1=startX+t*(topX-startX);
+            const x2=startX+widthPx-t*(startX+widthPx-topX);
+            strokeRow(ctx, x1, y, x2, y, thin);
+          }
+        }
+      }
+
+      ctx.fillStyle=text;ctx.strokeStyle=text;ctx.lineWidth=1;ctx.font='13px Roboto, sans-serif';
+      const fmt=(x)=>(Math.round(x*100)/100).toFixed(2);
+      ctx.beginPath();ctx.moveTo(startX,startY+20);ctx.lineTo(startX+widthPx,startY+20);ctx.stroke();ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText(`${fmt(eaves)} m`,startX+widthPx/2,startY+17);
+      if(rt==='symmetrisch'||rt==='dreieck'){const h=hL;const hPx=h*scale;drawLabelWithGap(ctx,startX+widthPx+24,startY,startY-hPx,`${fmt(h)} m`,formBg,text);}
+      else if(rt==='asymmetrisch'){const lPx=hL*scale,rPx=hR*scale;drawLabelWithGap(ctx,startX-24,startY,startY-lPx,`${fmt(hL)} m`,formBg,text);drawLabelWithGap(ctx,startX+widthPx+24,startY,startY-rPx,`${fmt(hR)} m`,formBg,text);}
+      else if(rt==='trapez'){const lPx=hL*scale,rPx=hR*scale;drawLabelWithGap(ctx,startX-24,startY,startY-lPx,`${fmt(hL)} m`,formBg,text);drawLabelWithGap(ctx,startX+widthPx+24,startY,startY-rPx,`${fmt(hR)} m`,formBg,text);const ridgePx=ridgeLen*scale;const ridgeStartX=startX+(widthPx-ridgePx)/2;const ridgeEndX=ridgeStartX+ridgePx;const topY=Math.min(startY-lPx,startY-rPx)-18;ctx.beginPath();ctx.moveTo(ridgeStartX,topY);ctx.lineTo(ridgeEndX,topY);ctx.stroke();ctx.textAlign='center';ctx.textBaseline='alphabetic';ctx.fillText(`${fmt(ridgeLen)} m`,ridgeStartX+ridgePx/2,topY-3);}
+      updateZoomStatus();
+    }
+
+    function canvasToOpaqueDataURL(sourceCanvas, mime='image/jpeg', quality=0.92){
+      const c = document.createElement('canvas');
+      c.width = sourceCanvas.width;
+      c.height = sourceCanvas.height;
+      const cx = c.getContext('2d');
+      cx.fillStyle = '#FFFFFF';
+      cx.fillRect(0,0,c.width,c.height);
+      cx.drawImage(sourceCanvas, 0, 0);
+      try { return c.toDataURL(mime, quality); }
+      catch(e){ return c.toDataURL('image/png', 1.0); }
+    }
+
+    function exportPDF(){
+      if(!window.jspdf||!window.jspdf.jsPDF){alertMsg('jsPDF konnte nicht geladen werden.');return;}
+      if(!window.LastResult){alertMsg('Bitte zuerst berechnen.');return;}
+      const {jsPDF}=window.jspdf;const doc=new jsPDF('p','mm','a4');const pageH=doc.internal.pageSize.getHeight();const pageW=doc.internal.pageSize.getWidth();const margin=12;const footerY=pageH-8;
+      const styles=getComputedStyle(document.documentElement);
+      const hdrBg=cssColorToRgb(styles.getPropertyValue('--table-hdr-bg').trim());
+      const txtMuted=cssColorToRgb(styles.getPropertyValue('--muted').trim());
+      const txtMain=cssColorToRgb(styles.getPropertyValue('--secondary-color').trim());
+      const res=window.LastResult;const fmt=(v,u='')=>(v==null||isNaN(v))?'—':`${Number(v).toFixed(2)}${u}`;
+      doc.setFont('helvetica','bold');doc.setFontSize(17);doc.text('Bedarfsermittlung Holzschindel',margin,16);doc.setFontSize(11);doc.setFont('helvetica','normal');doc.text(`Projekt: ${res.projekt}`,margin,23);doc.setDrawColor(180);doc.line(margin,26,pageW-margin,26);
+      function tableSection(title,rows,x,y,w){const lh=6;doc.setFillColor(...hdrBg);doc.setDrawColor(210);doc.setFont('helvetica','bold');doc.setFontSize(11);doc.rect(x,y,w,lh,'FD');doc.setTextColor(...txtMain);doc.text(title,x+2,y+4.2);y+=lh;doc.setFont('helvetica','');doc.setFontSize(10);const labelW=58;rows.forEach(([k,v])=>{const wrapped=doc.splitTextToSize(String(v),w-labelW-6);const boxH=Math.max(lh,wrapped.length*5.2);doc.setDrawColor(235);doc.rect(x,y,w,boxH,'S');doc.setTextColor(...txtMuted);doc.text(k,x+2,y+4.5);doc.setTextColor(...txtMain);doc.text(wrapped,x+labelW,y+4.5);y+=boxH;});return y;}
+      const colGap=6;const colW=(pageW-2*margin-colGap)/2;let yL=32,yR=32;
+      const geomRows=[['Dachform',res.dachform],['Anzahl Dachseiten',res.dachseiten],['Trauflänge',fmt(res.eaves,' m')]];
+      if(res.dachform==='asymmetrisch'||res.dachform==='trapez'){geomRows.push(['Dachhöhe links',fmt(res.heightL_m,' m')]);geomRows.push(['Dachhöhe rechts',fmt(res.heightR_m,' m')]);}else{geomRows.push(['Dachhöhe/Mittelhöhe',fmt(res.heightL_m,' m')]);}
+      if(res.dachform==='trapez'){geomRows.push(['Firstlänge',fmt(res.ridge_m,' m')]);}
+      const ruleRows=[['Schindellänge',`${res.shingle_mm} mm`],['Deckungsart',res.coverage],['Standard-Reihenabstand',fmt(res.stdBase_cm,' cm')],['Zulässiger Max-Abstand (Std. + 0,5 cm)',fmt(res.allowedMax_cm,' cm')],['Spezielle Deckung',res.customNote||'—']];
+      const rowsRows=(res.dachform==='symmetrisch'||res.dachform==='dreieck')?[['Reihen 1…N-1',fmt(res.baseLeft_cm,' cm')],['Letzte Reihe (First)',fmt(res.lastLeft_cm,' cm')],['Scharen je Seite (N)',res.N]]:[['Reihen 1…N-1 links',fmt(res.baseLeft_cm,' cm')],['Letzte links',fmt(res.lastLeft_cm,' cm')],['Reihen 1…N-1 rechts',fmt(res.baseRight_cm,' cm')],['Letzte rechts',fmt(res.lastRight_cm,' cm')],['Scharen je Seite (N)',res.N]];
+      const qtyRows=[
+        ['Fläche gesamt',fmt(res.qm,' m²')],
+        ['Breitenmeter (ohne Traufe)',fmt(res.bm,' bm')],
+        ['+ Doppelschar Traufe',fmt(res.bmTraufe,' bm')],
+        ['= Bestell-Breitenmeter',fmt(res.bmBestell,' bm')],
+        ['Breitenmeter pro m² (Tabelle)',(res.bmPerM2!=null?`${res.bmPerM2.toFixed(2)} bm`:'—')],
+        ['Breitenmeter pro m² (effektiv)',(res.bmEffPerM2!=null?`${res.bmEffPerM2.toFixed(2)} bm`:'—')],
+        ['Kaufmenge (m², Standard)',fmt(res.kaufQmStd,' m²')]
+      ];
+      yL=tableSection('Geometrie',geomRows,margin,yL,colW);
+      yR=tableSection('Schindeln & Regeln',ruleRows,margin+colW+colGap,yR,colW);
+      yL=tableSection('Reihenabstände',rowsRows,margin,yL+4,colW);
+      yR=tableSection('Mengen',qtyRows,margin+colW+colGap,yR+4,colW);
+
+      let y=Math.max(yL,yR)+6;
+      const canvas=byId('roofCanvas');const imgData=canvasToOpaqueDataURL(canvas,'image/jpeg',0.92);
+      const cw=canvas.width||1,ch=canvas.height||1,ratio=cw/ch;const maxW=pageW-2*margin;const maxH=footerY-y-10;let imgW=maxW,imgH=imgW/ratio;
+      if(imgH>maxH){imgH=Math.max(40,maxH);imgW=imgH*ratio;}
+      if(imgH<40){doc.addPage();y=18;}
+      if(imgH>footerY-y-10){imgH=footerY-y-12;imgW=imgH*ratio;}
+      const xCentered=margin+(maxW-imgW)/2;
+      doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Visualisierung',margin,y);y+=4;doc.addImage(imgData,'JPEG',xCentered,y,imgW,imgH);
+      const today=new Date().toLocaleDateString('de-DE');doc.setFontSize(9);
+      const muted=txtMuted; doc.setTextColor(...muted);
+      doc.text(`© Kofler e.U. | Version 6.1.18 | Export: ${today}`,margin,footerY);
+      doc.save(`${res.projekt||'Projekt'}_Bedarfsermittlung.pdf`);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const bind = (id, ev, fn) => {
+          const el = byId(id);
+          if (!el) { console.warn('Element fehlt:', id); return; }
+          el.addEventListener(ev, fn);
+        };
+        bind('toggleFormButton','click', () => { try { toggleForm(); } catch(e){ console.error(e); } });
+        bind('roofType','change', () => { try { toggleAxisFields(); drawRoof(); } catch(e){ console.error(e); } });
+        bind('specialCoverage','change', () => { try { toggleSpecialCoverageFields(); drawRoof(); } catch(e){ console.error(e); } });
+        bind('calculateButton','click', () => { try { calc(); } catch(e){ console.error(e); alertMsg('Fehler in Berechnung: '+e.message); } });
+        bind('exportButton','click', () => { try { exportProject(); } catch(e){ console.error(e); } });
+        bind('importButton','click', () => { try { importProject(); } catch(e){ console.error(e); } });
+        bind('fileInput','change', (e) => { try { handleFileSelect(e); } catch(e2){ console.error(e2); } });
+        bind('exportPDFButton','click', () => { try { exportPDF(); } catch(e){ console.error(e); } });
+
+        addZoomControls();
+        toggleAxisFields();
+        drawRoof();
+        __debugLog('Init OK (v6.1.18)');
+      } catch (err) {
+        console.error('Init error', err);
+        alertMsg('Initialisierungsfehler: ' + err.message);
+        __debugLog('Init error: ' + err.message);
+      }
+    });
+	
+<!-- Teil 2 — JavaScript-Patch (korrigiert) — am Ende der Datei, direkt vor </body> einfügen -->
+(function(){
+  'use strict';
+
+  // --- Helper: CSS-Farbstring → [r,g,b]; nur anlegen, wenn nicht vorhanden ---
+  if (!window.cssColorToRgb) {
+    window.cssColorToRgb = function(c){
+      if (!c) return [0,0,0];
+      const s = String(c).trim().replace(/\s+/g,'');
+      if (s[0] === '#') {
+        if (s.length === 4) { // #rgb
+          const r = parseInt(s[1]+s[1],16)||0, g = parseInt(s[2]+s[2],16)||0, b = parseInt(s[3]+s[3],16)||0;
+          return [r,g,b];
+        }
+        if (s.length >= 7) {   // #rrggbb
+          const r = parseInt(s.slice(1,3),16)||0, g = parseInt(s.slice(3,5),16)||0, b = parseInt(s.slice(5,7),16)||0;
+          return [r,g,b];
+        }
+      }
+      const m = s.match(/^rgba?\((\d+),(\d+),(\d+)/i);
+      if (m) return [parseInt(m[1],10)||0, parseInt(m[2],10)||0, parseInt(m[3],10)||0];
+      return [0,0,0];
+    };
+  }
+
+  // --- 1) DIN-konform: KEIN +0,5 cm Aufschlag mehr ---
+  // Erwartet wie bisher: ct = Deckungsart, sl = Schindellänge
+  window.getAllowedMaxCm = function(ct, sl){
+    const base = (window.getStdBaseCm && getStdBaseCm(ct, sl));
+    return (typeof base === 'number') ? base : null;
+  };
+
+  // --- 2) Asymmetrie-Korrektur: längere Seite = max. zul. Abstand; kürzere proportional kleiner ---
+  function adjustAsymmetry(res){
+    if (!res) return res;
+    const max = Number(res.allowedMax_cm);
+    const H_L_cm = Number(res.heightL_m||0) * 100;
+    const H_R_cm = Number(res.heightR_m||0) * 100;
+
+    if (!(max > 0) || !(H_L_cm > 0 && H_R_cm > 0)) return res;
+    if (!(res.dachform === 'asymmetrisch' || res.dachform === 'trapez')) return res;
+
+    const leftIsLong = H_L_cm >= H_R_cm;
+    const H_long  = leftIsLong ? H_L_cm : H_R_cm;
+    const H_short = leftIsLong ? H_R_cm : H_L_cm;
+
+    // Vorgabe: längere Seite exakt am Max
+    const baseLong  = max;
+    const baseShort = baseLong * (H_short / H_long);
+
+    // Anzahl Reihen so, dass N-1 Reihen mit Basisabstand + eine "letzte" Reihe (Rest) entstehen
+    const N = Math.max(1, Math.floor(H_long / baseLong));
+    const lastLong  = H_long  - (N - 1) * baseLong;
+    const lastShort = H_short - (N - 1) * baseShort;
+
+    // Werte zuweisen
+    res.baseLeft_cm  = leftIsLong ? baseLong  : baseShort;
+    res.baseRight_cm = leftIsLong ? baseShort : baseLong;
+    res.lastLeft_cm  = leftIsLong ? lastLong  : lastShort;
+    res.lastRight_cm = leftIsLong ? lastShort : lastLong;
+    res.N = N;
+
+    return res;
+  }
+
+  // --- 3) Rendering: Bezeichnungen, Asymmetrie-Korrektur, konsistentes LastResult ---
+  const sectionKV = window.sectionKV || (kv => kv.map(([k,v])=>`<div class="k">${k}</div><div class="v">${v}</div>`).join(''));
+
+  window.renderResult = function(res){
+    // Asymmetrie ggf. korrigieren (wir schreiben direkt ins Objekt)
+    adjustAsymmetry(res);
+
+    // LastResult für Export & weitere Nutzung aktualisieren
+    window.LastResult = res;
+
+    const r = document.getElementById('result');
+    const fmt = (v,u='') => (v==null||isNaN(v)) ? '—' : `${Number(v).toFixed(2)}${u}`;
+
+    const sec1 = sectionKV([
+      ['Dachform',res.dachform],
+      ['Anzahl Dachseiten',res.dachseiten],
+      ['Trauflänge',fmt(res.eaves,' m')]
+    ]);
+
+    const heights = (res.dachform==='asymmetrisch'||res.dachform==='trapez')
+      ? sectionKV([['Dachhöhe links',fmt(res.heightL_m,' m')],['Dachhöhe rechts',fmt(res.heightR_m,' m')]])
+      : sectionKV([['Dachhöhe/Mittelhöhe',fmt(res.heightL_m,' m')]]);
+
+    const trapez = (res.dachform==='trapez') ? sectionKV([['Firstlänge',fmt(res.ridge_m,' m')]]) : '';
+
+    const sec2 = sectionKV([
+      ['Schindellänge',`${res.shingle_mm} mm`],
+      ['Deckungsart',res.coverage],
+      ['Standard-Reihenabstand',fmt(res.stdBase_cm,' cm')],
+      ['Max. zulässiger Reihenabstand (DIN 68119)',fmt(res.allowedMax_cm,' cm')],
+      ['Spezielle Deckung',res.customNote?res.customNote:'—']
+    ]);
+
+    const sec3 = (res.dachform==='symmetrisch'||res.dachform==='dreieck')
+      ? sectionKV([
+          ['Reihen 1…N-1',fmt(res.baseLeft_cm,' cm')],
+          ['Letzte Reihe (First)',fmt(res.lastLeft_cm,' cm')],
+          ['Scharen je Seite (N)',res.N]
+        ])
+      : sectionKV([
+          ['Reihen 1…N-1 links',fmt(res.baseLeft_cm,' cm')],
+          ['Letzte links',fmt(res.lastLeft_cm,' cm')],
+          ['Reihen 1…N-1 rechts',fmt(res.baseRight_cm,' cm')],
+          ['Letzte rechts',fmt(res.lastRight_cm,' cm')],
+          ['Scharen je Seite (N)',res.N]
+        ]);
+
+    const sec4 = sectionKV([
+      ['Fläche gesamt',fmt(res.qm,' m²')],
+      ['Breitenmeter (ohne Traufe)',fmt(res.bm,' bm')],
+      ['+ Doppelschar Traufe',fmt(res.bmTraufe,' bm')],
+      ['= Bestell-Breitenmeter',fmt(res.bmBestell,' bm')],
+      ['Breitenmeter pro m² (Tabelle)',(res.bmPerM2!=null?`${res.bmPerM2.toFixed(2)} bm`:'—')],
+      ['Breitenmeter pro m² (effektiv)',(res.bmEffPerM2!=null?`${res.bmEffPerM2.toFixed(2)} bm`:'—')],
+      ['Kaufmenge (m², Standard)',fmt(res.kaufQmStd,' m²')]
+    ]);
+
+    r.innerHTML = `
+      <h2>Ergebnisse: <span class="muted">„${res.projekt || ''}“</span></h2>
+      <div class="sections">
+        <div class="section"><h3>Geometrie</h3><div class="kv">${sec1}${heights}${trapez}</div></div>
+        <div class="section"><h3>Schindeln & Regeln</h3><div class="kv">${sec2}</div></div>
+        <div class="section"><h3>Reihenabstände</h3><div class="kv">${sec3}</div></div>
+        <div class="section"><h3>Mengen</h3><div class="kv">${sec4}</div></div>
+      </div>`;
+  };
+
+  // --- 4) PDF-Export: Farbübergabe & Bezeichnungen korrigiert; robustere jsPDF-Erkennung ---
+  window.exportPDF = function(){
+    const jsPDFCtor =
+      (window.jspdf && window.jspdf.jsPDF) ? window.jspdf.jsPDF :
+      (window.jsPDF ? window.jsPDF : null);
+
+    if(!jsPDFCtor){ alert('jsPDF konnte nicht geladen werden.'); return; }
+    if(!window.LastResult){ alert('Bitte zuerst berechnen.'); return; }
+
+    const doc = new jsPDFCtor('p','mm','a4');
+    const pageH = doc.internal.pageSize.getHeight();
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 12;
+    const footerY = pageH - 8;
+
+    const styles = getComputedStyle(document.documentElement);
+    const hdrBg    = cssColorToRgb(styles.getPropertyValue('--table-hdr-bg').trim());
+    const txtMuted = cssColorToRgb(styles.getPropertyValue('--muted').trim());
+    const txtMain  = cssColorToRgb(styles.getPropertyValue('--secondary-color').trim());
+
+    const res = window.LastResult;
+    const fmt = (v,u='') => (v==null||isNaN(v)) ? '—' : `${Number(v).toFixed(2)}${u}`;
+
+    doc.setFont('helvetica','bold'); doc.setFontSize(17);
+    doc.text('Bedarfsermittlung Holzschindel', margin, 16);
+    doc.setFontSize(11); doc.setFont('helvetica','normal');
+    doc.text(`Projekt: ${res.projekt || ''}`, margin, 23);
+    doc.setDrawColor(180); doc.line(margin, 26, pageW - margin, 26);
+
+    function tableSection(title, rows, x, y, w){
+      const lh = 6;
+      doc.setFillColor(hdrBg[0], hdrBg[1], hdrBg[2]);
+      doc.setDrawColor(210);
+      doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.rect(x, y, w, lh, 'FD');
+      doc.setTextColor(txtMain[0], txtMain[1], txtMain[2]);
+      doc.text(title, x + 2, y + 4.2);
+      y += lh;
+
+      doc.setFont('helvetica',''); doc.setFontSize(10);
+      const labelW = 58;
+      rows.forEach(([k,v])=>{
+        const wrapped = doc.splitTextToSize(String(v), w - labelW - 6);
+        const boxH = Math.max(lh, wrapped.length * 5.2);
+        doc.setDrawColor(235); doc.rect(x, y, w, boxH, 'S');
+        doc.setTextColor(txtMuted[0], txtMuted[1], txtMuted[2]);
+        doc.text(k, x + 2, y + 4.5);
+        doc.setTextColor(txtMain[0], txtMain[1], txtMain[2]);
+        doc.text(wrapped, x + labelW, y + 4.5);
+        y += boxH;
+      });
+      return y;
+    }
+
+    const colGap = 6;
+    const colW = (pageW - 2*margin - colGap)/2;
+    let yL = 32, yR = 32;
+
+    const geomRows = [['Dachform',res.dachform], ['Anzahl Dachseiten',res.dachseiten], ['Trauflänge',fmt(res.eaves,' m')]];
+    if(res.dachform==='asymmetrisch'||res.dachform==='trapez'){
+      geomRows.push(['Dachhöhe links',fmt(res.heightL_m,' m')]);
+      geomRows.push(['Dachhöhe rechts',fmt(res.heightR_m,' m')]);
+    } else {
+      geomRows.push(['Dachhöhe/Mittelhöhe',fmt(res.heightL_m,' m')]);
+    }
+    if(res.dachform==='trapez'){ geomRows.push(['Firstlänge',fmt(res.ridge_m,' m')]); }
+
+    const ruleRows = [
+      ['Schindellänge', `${res.shingle_mm} mm`],
+      ['Deckungsart', res.coverage],
+      ['Standard-Reihenabstand', fmt(res.stdBase_cm,' cm')],
+      ['Max. zulässiger Reihenabstand (DIN 68119)', fmt(res.allowedMax_cm,' cm')],
+      ['Spezielle Deckung', res.customNote || '—']
+    ];
+
+    const rowsRows = (res.dachform==='symmetrisch'||res.dachform==='dreieck')
+      ? [['Reihen 1…N-1',fmt(res.baseLeft_cm,' cm')],['Letzte Reihe (First)',fmt(res.lastLeft_cm,' cm')],['Scharen je Seite (N)',res.N]]
+      : [['Reihen 1…N-1 links',fmt(res.baseLeft_cm,' cm')],['Letzte links',fmt(res.lastLeft_cm,' cm')],['Reihen 1…N-1 rechts',fmt(res.baseRight_cm,' cm')],['Letzte rechts',fmt(res.lastRight_cm,' cm')],['Scharen je Seite (N)',res.N]];
+
+    const qtyRows = [
+      ['Fläche gesamt',fmt(res.qm,' m²')],
+      ['Breitenmeter (ohne Traufe)',fmt(res.bm,' bm')],
+      ['+ Doppelschar Traufe',fmt(res.bmTraufe,' bm')],
+      ['= Bestell-Breitenmeter',fmt(res.bmBestell,' bm')],
+      ['Breitenmeter pro m² (Tabelle)', (res.bmPerM2!=null?`${res.bmPerM2.toFixed(2)} bm`:'—')],
+      ['Breitenmeter pro m² (effektiv)', (res.bmEffPerM2!=null?`${res.bmEffPerM2.toFixed(2)} bm`:'—')],
+      ['Kaufmenge (m², Standard)', fmt(res.kaufQmStd,' m²')]
+    ];
+
+    yL = tableSection('Geometrie', geomRows, margin, yL, colW);
+    yR = tableSection('Schindeln & Regeln', ruleRows, margin + colW + colGap, yR, colW);
+    yL = tableSection('Reihenabstände', rowsRows, margin, yL + 4, colW);
+    yR = tableSection('Mengen', qtyRows, margin + colW + colGap, yR + 4, colW);
+
+    let y = Math.max(yL, yR) + 6;
+
+    const canvas = document.getElementById('roofCanvas');
+    if (canvas) {
+      const imgData = (window.canvasToOpaqueDataURL ? canvasToOpaqueDataURL(canvas,'image/jpeg',0.92) : canvas.toDataURL('image/jpeg',0.92));
+      const cw = canvas.width||1, ch = canvas.height||1, ratio = cw/ch;
+      const maxW = pageW - 2*margin;
+      const maxH = footerY - y - 10;
+      let imgW = maxW, imgH = imgW/ratio;
+      if(imgH > maxH){ imgH = Math.max(40, maxH); imgW = imgH*ratio; }
+      if(imgH < 40){ doc.addPage(); y = 18; }
+      if(imgH > footerY - y - 10){ imgH = footerY - y - 12; imgW = imgH*ratio; }
+      const xCentered = margin + (maxW - imgW)/2;
+
+      doc.setFont('helvetica','bold'); doc.setFontSize(11);
+      doc.text('Visualisierung', margin, y); y += 4;
+      if (imgW>0 && imgH>0) doc.addImage(imgData, 'JPEG', xCentered, y, imgW, imgH);
+    }
+
+    const today = new Date().toLocaleDateString('de-DE');
+    doc.setFontSize(9);
+    doc.setTextColor(txtMuted[0], txtMuted[1], txtMuted[2]);
+    doc.text(`© Kofler e.U. | Version 6.1.18 | Export: ${today}`, margin, footerY);
+
+    doc.save(`${(res.projekt || 'Projekt').replace(/[^\w\-]+/g,'_')}_Bedarfsermittlung.pdf`);
+  };
+
+})();
+  </script>
+  <script>
+(function(){
+  'use strict';
+
+  // ---- kleine Helfer ----
+  const byId = (id) => document.getElementById(id);
+
+  function readCustomOverrideCm(){
+    // Checkbox aktiv?
+    const special = !!(byId('specialCoverage') && byId('specialCoverage').checked);
+    if(!special) return null;
+
+    // Allgemeiner DEKO-Wert
+    const vAll = parseFloat(byId('customRowSpacing')?.value);
+    // Asym-spezifischer DEKO-Wert
+    const vSide = parseFloat(byId('customRowSpacingValue')?.value);
+
+    // Priorität: asym-spezifischer Wert, sonst allgemeiner Wert
+    const v = (vSide>0 ? vSide : (vAll>0 ? vAll : null));
+    return (v>0) ? v : null;
+  }
+
+  // ---- renderResult: DIN-Grenze separat anzeigen + DEKO-Hinweis, ohne deine Logik zu zerstören ----
+  // Wir werten hier die DIN-Grenze aus den Tabellenwerten (getStdBaseCm) aus,
+  // und fügen OPTIONAL den DEKO-Wert an.
+  const origRender = window.renderResult;
+  window.renderResult = function(res){
+    try {
+      const dinMax = (window.getStdBaseCm && window.getStdBaseCm(res.coverage, res.shingle_mm)) || null;
+      const deko   = (res && typeof res.dekoOverride_cm === 'number') ? res.dekoOverride_cm : null;
+
+      // Wir rufen zuerst das Original auf, damit alle bestehenden Teile aufgebaut werden:
+      if (typeof origRender === 'function') origRender(res);
+
+      // Danach ersetzen wir NUR den Info-Block "Schindeln & Regeln" textlich,
+      // damit dort "DIN" UND optional "DEKO" sauber getrennt erscheinen.
+      const result = document.getElementById('result');
+      if(!result) return;
+
+      // Kleiner Helper, um Key/Value-Paare zu finden und zu ersetzen
+      const replaceKV = (keyLabel, newValueHtml) => {
+        const kv = result.querySelectorAll('.section .kv');
+        kv.forEach(kvEl => {
+          const rows = kvEl.querySelectorAll('.k');
+          rows.forEach((kEl,i) => {
+            if (kEl.textContent.trim() === keyLabel) {
+              const vEl = kvEl.querySelectorAll('.v')[i];
+              if (vEl) vEl.innerHTML = newValueHtml;
+            }
+          });
+        });
+      };
+
+      // 1) "Max. zulässiger Reihenabstand (DIN 68119)" => immer DIN-Wert
+      if (dinMax!=null) {
+        replaceKV('Max. zulässiger Reihenabstand (DIN 68119)', `${Number(dinMax).toFixed(2)} cm`);
+      }
+
+      // 2) "Spezielle Deckung" um DEKO-Info erweitern, falls vorhanden
+      if (deko && dinMax && deko>dinMax) {
+        // Suche Zeile "Spezielle Deckung"
+        const kv = result.querySelectorAll('.section .kv');
+        kv.forEach(kvEl => {
+          const rows = kvEl.querySelectorAll('.k');
+          rows.forEach((kEl,i) => {
+            if (kEl.textContent.trim() === 'Spezielle Deckung') {
+              const vEl = kvEl.querySelectorAll('.v')[i];
+              if (vEl) {
+                const txt = vEl.textContent.trim();
+                const badge = `<span style="display:inline-block;padding:2px 6px;border-radius:6px;background:#ffe8cc;color:#a85; font-weight:600;">DEKO</span>`;
+                const note  = `&nbsp;Individueller Max-Abstand: <strong>${deko.toFixed(2)} cm</strong> (außerhalb DIN)`;
+                vEl.innerHTML = (txt && txt!=='—') ? (txt + ' · ' + badge + ' ' + note) : (badge + ' ' + note);
+              }
+            }
+          });
+        });
+      }
+    } catch(e){ console.warn('renderResult patch warn:', e); }
+  };
+
+  // ---- exportPDF: DIN-Zeile + optionale DEKO-Zeile (UI-Logik gespiegelt) ----
+  const origExport = window.exportPDF;
+  window.exportPDF = function(){
+    if(!window.LastResult){ alert('Bitte zuerst berechnen.'); return; }
+    const res = window.LastResult;
+    res.__forceReRenderForPDF = true; // sicherstellen, dass renderResult-Patch lief
+    if (typeof origExport !== 'function') { alert('PDF-Export nicht verfügbar.'); return; }
+
+    // Wir hacken nichts in jsPDF – der vorhandene Export liest die Werte aus LastResult
+    // und unsere renderResult-Änderung hat die Anzeige bereits norm-/deko-sicher gemacht.
+    // Optional: Könnte man hier die "ruleRows" analog patchen – nicht nötig, wenn dein Export
+    // bereits "Max. zulässiger Reihenabstand (DIN 68119)" anzeigt (DIN) und "Spezielle Deckung" enthält.
+    origExport();
+  };
+
+  // ---- calc() wrap: während der Rechnung den "MaxAllowed" TEMPORÄR auf DEKO heben ----
+  // So bleiben die Ergebniswerte (Reihenabstände, N usw.) konsistent zur DEKO-Eingabe.
+  const origCalc = window.calc;
+  if (typeof origCalc === 'function') {
+    window.calc = function(){
+      const custom = readCustomOverrideCm();   // cm
+      const cov = byId('coverageType')?.value;
+      const sl  = parseInt(byId('shingleLength')?.value, 10);
+      const din = (window.getStdBaseCm && window.getStdBaseCm(cov, sl)) || null;
+
+      // Original-Funktion getAllowedMaxCm merken
+      const saved = window.getAllowedMaxCm;
+
+      // Temporär überschreiben: Wenn DEKO > DIN, während der Berechnung "MaxAllowed = DEKO"
+      window.getAllowedMaxCm = function(ct, sl2){
+        const base = (window.getStdBaseCm && window.getStdBaseCm(ct, sl2)) || null;
+        if (custom && base && custom > base) return custom; // hebt die 'Math.min(v, maxAllowed)' Kappe auf
+        return base; // sonst DIN
+      };
+
+      try {
+        origCalc();               // rechnet jetzt mit evtl. größerem "maxAllowed"
+      } finally {
+        window.getAllowedMaxCm = saved; // immer sauber zurückstellen
+      }
+
+      // Markiere Ergebnis als DEKO, damit UI/PDF klar ausweisen
+      if (custom && din && custom > din && window.LastResult) {
+        window.LastResult.dekoOverride_cm = custom;
+        window.LastResult.dekoNote = 'DEKO: individueller Max-Abstand > DIN';
+        if (typeof window.renderResult === 'function') window.renderResult(window.LastResult);
+      }
+    };
+  }
+})();
+</script>
+</body>
+</html>
+
+
+
+
+

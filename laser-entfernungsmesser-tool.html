@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Laser Entfernungsmesser App – V18.5.2 (Final)</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <style>
+    :root {
+      --primary-color: #007aff; --primary-color-hover: #005bb5;
+      --vis-fill-base: #c2c2c7; --vis-fill-light: #e5e5ea; --vis-fill-dark: #a2a2a7; --vis-stroke: #636366; --vis-highlight: rgba(255, 255, 255, 0.7); --vis-fill-2d: rgba(142, 142, 147, 0.5);
+      --success-color: #34c759; --success-color-hover: #28a745;
+      --danger-color: #ff3b30; --danger-color-hover: #c82333;
+      --secondary-color: #8e8e93; --secondary-color-hover: #6c757d;
+      --bg-color: #f2f2f7; --content-bg-color: #ffffff; --text-color: #1c1c1e; --border-color: #e5e5ea; --input-bg-color: #ffffff; --readonly-bg-color: #e9e9eb; --shadow-color: rgba(0, 0, 0, 0.08);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      --border-radius: 12px;
+      --button-padding: 12px 18px;
+    }
+    body.dark-mode {
+      --primary-color: #0a84ff; --primary-color-hover: #0060c0;
+      --vis-fill-base: #5a5a5e; --vis-fill-light: #7a7a7e; --vis-fill-dark: #3a3a3c; --vis-stroke: #d1d1d6; --vis-highlight: rgba(255, 255, 255, 0.4); --vis-fill-2d: rgba(158, 158, 163, 0.5);
+      --bg-color: #000000; --content-bg-color: #1c1c1e; --text-color: #f2f2f7; --border-color: #3a3a3c; --input-bg-color: #2c2c2e; --readonly-bg-color: #2c2c2e; --shadow-color: rgba(255, 255, 255, 0.1);
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.3s, color 0.3s; }
+    .container { max-width: 1400px; margin: 20px auto; padding: 20px; }
+    h1 { text-align: center; margin: 0 0 24px; font-size: 2rem; font-weight: 600; }
+    .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; padding: 20px; background-color: var(--content-bg-color); border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); border: 1px solid var(--border-color); }
+    .control-group label { font-weight: 500; color: var(--secondary-color); font-size: 14px; margin-bottom: 5px; }
+    button, select#unitSelector { padding: var(--button-padding); font-size: 16px; border: none; border-radius: var(--border-radius); cursor: pointer; color: #fff; background-color: var(--primary-color); transition: all .2s ease-in-out; font-weight: 500; text-align: center; }
+    button:hover { background-color: var(--primary-color-hover); transform: translateY(-2px); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    select#unitSelector { background-color: var(--input-bg-color); border: 1px solid var(--border-color); color: var(--text-color); }
+    .exportButton { background-color: var(--success-color); }
+    .exportButton:hover { background-color: var(--success-color-hover); }
+    #clearDataButton { background-color: var(--danger-color); }
+    #clearDataButton:hover { background-color: var(--danger-color-hover); }
+    .secondary-button { background-color: var(--secondary-color); }
+    .secondary-button:hover { background-color: var(--secondary-color-hover); }
+    .table-container { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 16px; }
+    th, td { padding: 16px; border-bottom: 1px solid var(--border-color); text-align: center; vertical-align: middle; }
+    th { font-weight: 600; color: var(--secondary-color); background-color: var(--content-bg-color); position: sticky; top: 0; z-index: 10; }
+    tbody tr { background-color: var(--content-bg-color); transition: background-color 0.3s; }
+    tbody tr.editing { box-shadow: 0 0 0 2px var(--primary-color) inset; }
+    .result-cell { min-width: 150px; }
+    .visualization-canvas { display: block; margin: 5px auto; width: 100%; height: auto; max-width: 150px; border-radius: 8px; }
+    input, select.formSelectInTable { width: 100%; padding: 10px; font-size: 16px; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--input-bg-color); color: var(--text-color); transition: border-color .3s, box-shadow .3s; }
+    input:focus, select:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary-color) 20%, transparent); }
+    input[readonly], select[disabled] { background: var(--readonly-bg-color); cursor: not-allowed; opacity: 0.7; }
+    input.invalid { border-color: var(--danger-color); background-color: color-mix(in srgb, var(--danger-color) 10%, transparent); }
+    .action-buttons button { background: transparent; border: 1px solid var(--border-color); color: var(--secondary-color); padding: 8px; margin: 0 4px; line-height: 1; font-size: 20px; width: 40px; height: 40px; }
+    .action-buttons button:hover { background-color: var(--input-bg-color); border-color: var(--primary-color); color: var(--primary-color); transform: scale(1.05); }
+    tr.collapsed .collapsible-cell { display: none; }
+    .collapsed-name-display { display: none; font-weight: 500; color: var(--text-color); padding: 10px 0; text-align: center; font-size: 18px; }
+    tr.collapsed .result-cell .result-text,
+    tr.collapsed .result-cell .visualization-canvas { display: none; }
+    tr.collapsed .result-cell .collapsed-name-display { display: block; }
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin-top: 30px; }
+    .stat-card { padding: 20px; background-color: var(--content-bg-color); border-radius: var(--border-radius); text-align: center; border: 1px solid var(--border-color); }
+    .stat-value { font-size: 24px; font-weight: 700; color: var(--primary-color); margin-bottom: 5px; }
+    .stat-label { font-size: 14px; color: var(--secondary-color); }
+    .toast-message { position: fixed; bottom: 20px; left: 50%; transform: translate(-50%, 150%); padding: 12px 24px; border-radius: var(--border-radius); color: #fff; font-weight: 500; z-index: 1001; opacity: 0; transition: transform 0.4s ease-in-out, opacity 0.4s ease-in-out; }
+    .toast-message.show { transform: translate(-50%, 0); opacity: 1; }
+    .toast-message.error { background-color: var(--danger-color); }
+    .toast-message.success { background-color: var(--success-color); }
+    footer { margin-top: 40px; text-align: center; color: var(--secondary-color); padding: 20px; font-size: 14px; }
+    .theme-switcher { background: var(--content-bg-color); border: 1px solid var(--border-color); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin-left: 15px; transition: all 0.2s; }
+    .theme-switcher:hover { transform: rotate(15deg); }
+    @media (max-width: 768px) {
+      h1 { font-size: 1.6rem; }
+      .controls { grid-template-columns: 1fr; }
+      table { border: 0; } thead { display: none; }
+      tr { display: block; margin-bottom: 20px; border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); border: 1px solid var(--border-color); background-color: var(--content-bg-color); overflow: hidden; }
+      td { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; text-align: right; border-bottom: 1px solid var(--border-color); }
+      td:last-child { border-bottom: 0; }
+      td::before { content: attr(data-label); font-weight: 500; text-align: left; margin-right: 15px; color: var(--secondary-color); }
+      .result-cell { padding: 20px 15px !important; }
+      .visualization-canvas { max-width: 100%; }
+      td[data-label="Ergebnis & Visualisierung"] { flex-direction: column; align-items: center; gap: 10px; }
+      td[data-label="Aktionen"] { justify-content: center; padding: 15px; background-color: color-mix(in srgb, var(--border-color) 20%, transparent); }
+      tr.collapsed .collapsible-cell { display: none !important; }
+      tr.collapsed td[data-label="Ergebnis & Visualisierung"]::before { display: none; }
+      tr.collapsed .result-cell { padding-top: 15px !important; padding-bottom: 15px !important; }
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="./td-shell.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="theme-color" content="#8F1D1D" />
+</head>
+<body>
+<div class="td-shell" role="banner">
+  <div class="td-shell__inner">
+    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
+      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
+      <div class="td-shell__text">
+        <strong>TURMDECKER</strong>
+        <span>Tools & Rechner</span>
+      </div>
+    </a>
+    <div class="td-shell__nav" aria-label="Navigation">
+      <a class="td-btn" href="./index.html">↩ Übersicht</a>
+      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
+      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
+    </div>
+  </div>
+</div>
+
+    <div class="container">
+        <h1>Laser Entfernungsmesser</h1>
+        <div class="controls">
+          <div class="control-group"><label for="unitSelector">Maßeinheit</label><select id="unitSelector"><option value="m" selected>Meter (m)</option><option value="cm">Zentimeter (cm)</option><option value="mm">Millimeter (mm)</option></select></div>
+          <div class="control-group"><label for="projectName">Projektname</label><input id="projectName" type="text" placeholder="z.B. Wohnzimmer Renovierung"></div>
+          <button id="addRowButton">➕ Neue Messung</button><button id="exportExcelButton" class="exportButton">📈 Excel Export</button><button id="collapseAllButton" class="secondary-button">⬇️ Alle einklappen</button><button id="expandAllButton" class="secondary-button">⬆️ Alle ausklappen</button><button id="clearDataButton">🗑️ Alles löschen</button>
+        </div>
+        <div class="table-container"><table id="measurementTable" aria-label="Messdaten Tabelle"><thead><tr><th>Länge / Radius</th><th>Breite</th><th>Höhe</th><th>Form</th><th>Bezeichnung</th><th>Ergebnis & Visualisierung</th><th>Aktionen</th></tr></thead><tbody></tbody></table></div>
+        <div class="stats-grid"><div class="stat-card"><div id="totalAreaValue" class="stat-value">0</div><div class="stat-label">Gesamtfläche</div></div><div class="stat-card"><div id="totalLengthValue" class="stat-value">0</div><div class="stat-label">Gesamtlänge</div></div><div class="stat-card"><div id="totalVolumeValue" class="stat-value">0</div><div class="stat-label">Gesamtvolumen</div></div><div class="stat-card"><div id="measurementCountValue" class="stat-value">0</div><div class="stat-label">Messungen</div></div></div>
+        <div id="toast" class="toast-message"></div>
+      </div>
+      <footer>© Kofler e.U | Laser Entfernungsmesser Tool V18.5.2<button id="themeSwitcher" class="theme-switcher" title="Design wechseln">☀️</button></footer>
+<script>
+// 1. Utility & Config
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+const formCfg = { "": "LBH", "Länge": "L", "Rechteck": "LB", "Dreieck": "L-H", "Trapez": "LB-H", "Parallelogramm": "L-H", "Kreisfläche": "R", "Ellipse": "LB", "Quader (Volumen)": "LBH", "Quader (Oberfläche)": "LBH", "Zylinder (Volumen)": "R-H", "Zylinder (Oberfläche)": "R-H", "Kegel (Volumen)": "R-H", "Kegel (Oberfläche)": "R-H", "Kugel (Volumen)": "R", "Kugel (Oberfläche)": "R", "Pyramide (Volumen)": "LB-H", "Pyramide (Oberfläche)": "LB-H" };
+const labelCfg = { 'Länge': { l: 'Länge' }, 'Dreieck': { l: 'Grundlinie', h: 'Höhe' }, 'Trapez': { l: 'Grundlinie a', b: 'Grundlinie c', h: 'Höhe' }, 'Parallelogramm': { l: 'Grundlinie', h: 'Höhe' }, 'Kreisfläche': { l: 'Radius' }, 'Ellipse': { l: 'Halbachse a', b: 'Halbachse b' }, 'Zylinder (Volumen)': { l: 'Radius', h: 'Höhe' }, 'Zylinder (Oberfläche)': { l: 'Radius', h: 'Höhe' }, 'Kegel (Volumen)': { l: 'Radius', h: 'Höhe' }, 'Kegel (Oberfläche)': { l: 'Radius', h: 'Höhe' }, 'Kugel (Volumen)': { l: 'Radius' }, 'Kugel (Oberfläche)': { l: 'Radius' }, 'Pyramide (Volumen)': { l: 'Länge (Grund.)', b: 'Breite (Grund.)', h: 'Höhe' }, 'Pyramide (Oberfläche)': { l: 'Länge (Grund.)', b: 'Breite (Grund.)', h: 'Höhe' } };
+const conv = {m: 1, cm: 100, mm: 1000};
+let UNIT = 'm';
+const LS_KEY = 'laserApp18.5.2';
+
+// 2. Helper Functions
+const fx = v => Number(v).toFixed(2);
+const num = v => parseFloat(v) || 0;
+function showMessage(message, type = 'success', duration = 3000) {
+    const toast = $('#toast');
+    toast.textContent = message;
+    toast.className = `toast-message ${type} show`;
+    setTimeout(() => { toast.classList.remove('show'); }, duration);
+}
+
+// 3. Geometry & Calculation
+function calculateGeometry(form, l, b, h) {
+    const s_pyramid = l * Math.sqrt(Math.pow(b / 2, 2) + h * h) + b * Math.sqrt(Math.pow(l / 2, 2) + h * h);
+    const calculations = {
+        'Länge': () => l, 'Rechteck': () => l * b, 'Dreieck': () => 0.5 * l * h, 'Trapez': () => 0.5 * (l + b) * h, 'Parallelogramm': () => l * h,
+        'Kreisfläche': () => Math.PI * l * l, 'Ellipse': () => Math.PI * l * b, 'Quader (Volumen)': () => l * b * h, 'Quader (Oberfläche)': () => 2 * (l * b + l * h + b * h),
+        'Zylinder (Volumen)': () => Math.PI * l * l * h, 'Zylinder (Oberfläche)': () => (2 * Math.PI * l * h) + (2 * Math.PI * l * l),
+        'Kegel (Volumen)': () => Math.PI * l * l * h / 3, 'Kegel (Oberfläche)': () => Math.PI * l * (l + Math.sqrt(h * h + l * l)),
+        'Kugel (Volumen)': () => (4 / 3) * Math.PI * Math.pow(l, 3), 'Kugel (Oberfläche)': () => 4 * Math.PI * l * l,
+        'Pyramide (Volumen)': () => (l * b * h) / 3, 'Pyramide (Oberfläche)': () => (l * b) + s_pyramid
+    };
+    return calculations[form] ? calculations[form]() : 0;
+}
+function getUnitSuffix(form) {
+    if (form.includes('(Volumen)')) return `${UNIT}³`;
+    if (form === 'Länge') return UNIT;
+    return `${UNIT}²`;
+}
+
+// 4. Row Management
+function createRow(data = {}, prepend = false) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td data-label="Länge / Radius" class="collapsible-cell"><input type="number" data-field="l" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Breite" class="collapsible-cell"><input type="number" data-field="b" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Höhe" class="collapsible-cell"><input type="number" data-field="h" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Form" class="collapsible-cell"><select data-field="form" class="formSelectInTable" disabled>${Object.keys(formCfg).map(f => `<option value="${f}"${f === (data.form || '') ? ' selected' : ''}>${f || 'Form wählen...'}</option>`).join('')}</select></td><td data-label="Bezeichnung" class="collapsible-cell"><input data-field="name" type="text" placeholder="Beschreibung..." readonly></td><td data-label="Ergebnis & Visualisierung" class="result-cell"><div class="collapsed-name-display"></div><div class="result-text">Werte eingeben...</div><canvas class="visualization-canvas"></canvas></td><td data-label="Aktionen" class="action-buttons"><button class="editButton" title="Bearbeiten / Speichern">✏️</button><button class="collapseButton" title="Einklappen / Ausklappen">⬇️</button><button class="deleteButton" title="Löschen">🗑️</button></td>`;
+    if (prepend) { $('#measurementTable tbody').prepend(tr); } else { $('#measurementTable tbody').appendChild(tr); }
+    if (data.l) tr.querySelector('[data-field="l"]').value = data.l;
+    if (data.b) tr.querySelector('[data-field="b"]').value = data.b;
+    if (data.h) tr.querySelector('[data-field="h"]').value = data.h;
+    if (data.name) tr.querySelector('[data-field="name"]').value = data.name;
+    updateRowUI(tr);
+    updateRow(tr);
+    return tr;
+}
+function updateRow(tr) {
+    const form = tr.querySelector('[data-field="form"]').value;
+    const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value);
+    const name = tr.querySelector('[data-field="name"]').value;
+    const resultText = tr.querySelector('.result-text');
+    const config = formCfg[form] || '';
+    tr.querySelector('[data-field="l"]').classList.toggle('invalid', !l && config.includes('L'));
+    tr.querySelector('[data-field="b"]').classList.toggle('invalid', !b && config.includes('B'));
+    tr.querySelector('[data-field="h"]').classList.toggle('invalid', !h && config.includes('H'));
+    const hasAllValues = (!config.includes('L') || l) && (!config.includes('B') || b) && (!config.includes('H') || h);
+    if (!form) { resultText.textContent = 'Form wählen...'; } else { const value = calculateGeometry(form, l, b, h); resultText.textContent = value > 0 && hasAllValues ? `${fx(value)} ${getUnitSuffix(form)}` : 'Werte eingeben...'; }
+    tr.querySelector('.collapsed-name-display').textContent = name || 'Unbenannt';
+    drawVisualization(tr, form, l, b, h);
+    updateTotals();
+    saveToLocalStorage();
+}
+function updateRowUI(tr) {
+    const form = tr.querySelector('[data-field="form"]').value;
+    const config = formCfg[form] || '';
+    const lInput = tr.querySelector('[data-field="l"]'), bInput = tr.querySelector('[data-field="b"]'), hInput = tr.querySelector('[data-field="h"]');
+    const lCell = lInput.closest('td'), bCell = bInput.closest('td'), hCell = hInput.closest('td');
+    const labels = labelCfg[form] || {};
+    const defaultLabels = { l: 'Länge', b: 'Breite', h: 'Höhe' };
+    const lLabel = labels.l || defaultLabels.l; lInput.placeholder = lLabel; lCell.dataset.label = lLabel;
+    const bLabel = labels.b || defaultLabels.b; bInput.placeholder = bLabel; bCell.dataset.label = bLabel;
+    const hLabel = labels.h || defaultLabels.h; hInput.placeholder = hLabel; hCell.dataset.label = hLabel;
+    bCell.style.display = config.includes('B') ? '' : 'none';
+    hCell.style.display = config.includes('H') ? '' : 'none';
+}
+
+// 5. Visualization - KORREKTUR: FEHLENDER CODE WIEDER EINGEFÜGT
+function drawVisualization(tr, form, l, b, h) {
+    const canvas = tr.querySelector('.visualization-canvas'); if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1; const rect = canvas.getBoundingClientRect();
+    const cssWidth = Math.min(rect.width > 0 ? rect.width : 150, 150), cssHeight = cssWidth * 0.75;
+    canvas.width = cssWidth * dpr; canvas.height = cssHeight * dpr; canvas.style.width = `${cssWidth}px`; canvas.style.height = `${cssHeight}px`;
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+    if (!form || (!l && !h && !b)) return;
+    const styles = getComputedStyle(document.body);
+    const c = { base: styles.getPropertyValue('--vis-fill-base').trim(), light: styles.getPropertyValue('--vis-fill-light').trim(), dark: styles.getPropertyValue('--vis-fill-dark').trim(), stroke: styles.getPropertyValue('--vis-stroke').trim(), highlight: styles.getPropertyValue('--vis-highlight').trim(), fill2d: styles.getPropertyValue('--vis-fill-2d').trim() };
+    ctx.lineJoin = 'round'; ctx.lineCap = 'round'; ctx.lineWidth = 1.2; ctx.strokeStyle = c.stroke;
+    const centerX = cssWidth / 2, centerY = cssHeight / 2;
+    const maxDim = Math.max(l, b, h, 1), scale = Math.min(cssWidth * 0.8, cssHeight * 0.8) / maxDim;
+    const drawPoly = (points, color) => { if (!points || points.length < 3) return; ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y); for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y); ctx.closePath(); ctx.fill(); };
+    const strokePoly = (points) => { if (!points || points.length < 2) return; ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y); for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y); if(points.length > 2) ctx.closePath(); ctx.stroke(); };
+    const drawFunctions = {
+        'Länge': () => { strokePoly([{x:centerX - l*scale/2, y:centerY}, {x:centerX + l*scale/2, y:centerY}]); },
+        'Rechteck': () => { const sw=l*scale, sh=b*scale; ctx.fillStyle=c.fill2d; ctx.fillRect(centerX-sw/2,centerY-sh/2,sw,sh); ctx.strokeRect(centerX-sw/2,centerY-sh/2,sw,sh); },
+        'Dreieck': () => { const points = [{x:centerX - l*scale/2, y:centerY + h*scale/2}, {x:centerX + l*scale/2, y:centerY + h*scale/2}, {x:centerX, y:centerY - h*scale/2}]; drawPoly(points, c.fill2d); strokePoly(points); },
+        'Trapez': () => { const sw1=l*scale, sw2=b*scale, sh=h*scale; const points = [{x:centerX-sw1/2, y:centerY+sh/2}, {x:centerX+sw1/2, y:centerY+sh/2}, {x:centerX+sw2/2, y:centerY-sh/2}, {x:centerX-sw2/2, y:centerY-sh/2}]; drawPoly(points, c.fill2d); strokePoly(points); },
+        'Parallelogramm': () => { const sw=l*scale, sh=h*scale, skew=sw*0.25; const points = [{x:centerX-sw/2, y:centerY+sh/2}, {x:centerX+sw/2, y:centerY+sh/2}, {x:centerX+sw/2-skew, y:centerY-sh/2}, {x:centerX-sw/2-skew, y:centerY-sh/2}]; drawPoly(points, c.fill2d); strokePoly(points); },
+        'Kreisfläche': () => { const r = l * scale; ctx.fillStyle=c.fill2d; ctx.beginPath(); ctx.arc(centerX, centerY, r/2, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); },
+        'Ellipse': () => { const rx=l*scale/2, ry=b*scale/2; ctx.fillStyle=c.fill2d; ctx.beginPath(); ctx.ellipse(centerX,centerY,rx,ry,0,0,2*Math.PI); ctx.fill(); ctx.stroke(); },
+        'Kugel': () => { const r=l*scale/2; const grad=ctx.createRadialGradient(centerX-r/2,centerY-r/2,r/10,centerX,centerY,r); grad.addColorStop(0,c.light); grad.addColorStop(1,c.dark); ctx.fillStyle=grad; ctx.beginPath(); ctx.arc(centerX,centerY,r,0,2*Math.PI); ctx.fill(); ctx.fillStyle=c.highlight; ctx.beginPath(); ctx.arc(centerX-r/3,centerY-r/3,r/5,0,2*Math.PI); ctx.fill(); },
+        'Quader': () => { const sw=l*scale, sh=h*scale, sd=b*scale*0.5, offX=sd*0.707, offY=sd*0.4; const p = [ {x:centerX-sw/2, y:centerY+sh/2}, {x:centerX+sw/2, y:centerY+sh/2}, {x:centerX+sw/2, y:centerY-sh/2}, {x:centerX-sw/2, y:centerY-sh/2}, {x:centerX-sw/2+offX, y:centerY+sh/2-offY}, {x:centerX+sw/2+offX, y:centerY+sh/2-offY}, {x:centerX+sw/2+offX, y:centerY-sh/2-offY}, {x:centerX-sw/2+offX, y:centerY-sh/2-offY} ]; drawPoly([p[0],p[1],p[5],p[4]], c.base); drawPoly([p[4],p[5],p[6],p[7]], c.light); drawPoly([p[1],p[2],p[6],p[5]], c.base); drawPoly([p[0],p[3],p[7],p[4]], c.dark); drawPoly([p[3],p[2],p[6],p[7]], c.light); drawPoly([p[0],p[1],p[2],p[3]], c.base); strokePoly([p[0],p[1],p[2],p[3],p[0]]); strokePoly([p[4],p[5],p[6],p[7],p[4]]); strokePoly([p[0],p[4]]); strokePoly([p[1],p[5]]); strokePoly([p[2],p[6]]); strokePoly([p[3],p[7]]); },
+        'Zylinder': () => { const r=l*scale/2, sh=h*scale, eH=Math.max(r*0.3,2); const grad=ctx.createLinearGradient(centerX-r,centerY,centerX+r,centerY); grad.addColorStop(0,c.dark); grad.addColorStop(0.5,c.light); grad.addColorStop(1,c.dark); ctx.fillStyle=c.dark; ctx.beginPath(); ctx.ellipse(centerX,centerY+sh/2-eH,r,eH,0,0,2*Math.PI); ctx.fill(); ctx.stroke(); ctx.fillStyle=grad; ctx.fillRect(centerX-r,centerY-sh/2+eH,r*2,sh-eH*2); strokePoly([{x:centerX-r,y:centerY-sh/2+eH},{x:centerX-r,y:centerY+sh/2-eH}]); strokePoly([{x:centerX+r,y:centerY-sh/2+eH},{x:centerX+r,y:centerY+sh/2-eH}]); ctx.fillStyle=c.light; ctx.beginPath(); ctx.ellipse(centerX,centerY-sh/2+eH,r,eH,0,0,2*Math.PI); ctx.fill(); ctx.stroke(); },
+        'Pyramide': () => { const sw=l*scale, sd=b*scale*0.5, sh=h*scale, offX=sd*0.707, offY=sd*0.4; const apex={x:centerX+offX/2, y:centerY-sh/2}; const base=[{x:centerX-sw/2, y:centerY+sh/2}, {x:centerX+sw/2, y:centerY+sh/2}, {x:centerX+sw/2+offX, y:centerY+sh/2-offY}, {x:centerX-sw/2+offX, y:centerY+sh/2-offY}]; drawPoly([apex,base[3],base[0]], c.dark); drawPoly([apex,base[0],base[1]], c.base); drawPoly([apex,base[1],base[2]],c.light); strokePoly([apex,base[0]]); strokePoly([apex,base[1]]); strokePoly([apex,base[2]]); strokePoly([base[0],base[1],base[2],base[3],base[0]]); },
+        'Kegel': () => { const r=l*scale/2, sh=h*scale, eH=Math.max(r*0.3,2); const apex={x:centerX, y:centerY-sh/2+eH}; const grad=ctx.createLinearGradient(centerX-r,centerY,centerX+r,centerY); grad.addColorStop(0,c.dark); grad.addColorStop(0.5,c.light); grad.addColorStop(1,c.dark); ctx.fillStyle=c.dark; ctx.beginPath(); ctx.ellipse(centerX,centerY+sh/2-eH,r,eH,0,0,2*Math.PI); ctx.fill(); ctx.stroke(); drawPoly([apex, {x:centerX-r,y:centerY+sh/2-eH}, {x:centerX+r,y:centerY+sh/2-eH}], grad); strokePoly([apex, {x:centerX-r,y:centerY+sh/2-eH}]); strokePoly([apex, {x:centerX+r,y:centerY+sh/2-eH}]); },
+    };
+    let baseForm = form.split(' (')[0];
+    let drawFunc = drawFunctions[baseForm] || null;
+    if (drawFunc) drawFunc();
+}
+
+// 6. Totals & Stats
+function updateTotals() {
+    let totalArea = 0, totalLength = 0, totalVolume = 0;
+    const rows = $$('#measurementTable tbody tr');
+    rows.forEach(tr => {
+        const form = tr.querySelector('[data-field="form"]').value; if (!form) return;
+        const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value);
+        const value = calculateGeometry(form, l, b, h);
+        if (value > 0) {
+            const unit = getUnitSuffix(form);
+            if (unit.includes('³')) totalVolume += value;
+            else if (unit.includes('²')) totalArea += value;
+            else totalLength += value;
+        }
+    });
+    $('#totalAreaValue').textContent = `${fx(totalArea)} ${UNIT}²`;
+    $('#totalLengthValue').textContent = `${fx(totalLength)} ${UNIT}`;
+    $('#totalVolumeValue').textContent = `${fx(totalVolume)} ${UNIT}³`;
+    $('#measurementCountValue').textContent = rows.length;
+}
+
+// 7. Event Handlers
+$('#measurementTable').addEventListener('input', e => { if (e.target.matches('input, select')) { const tr = e.target.closest('tr'); if (tr) { clearTimeout(tr._updateTimeout); tr._updateTimeout = setTimeout(() => updateRow(tr), 300); } } });
+$('#measurementTable').addEventListener('click', e => { const button = e.target.closest('button'); if (!button) return; const tr = button.closest('tr'); if (!tr) return; if (button.classList.contains('deleteButton')) { if (confirm('Diese Messung wirklich löschen?')) { tr.remove(); updateTotals(); saveToLocalStorage(); showMessage('Messung gelöscht', 'success'); } } else if (button.classList.contains('collapseButton')) { tr.classList.toggle('collapsed'); button.innerHTML = tr.classList.contains('collapsed') ? '⬆️' : '⬇️'; } else if (button.classList.contains('editButton')) { const isReadonly = tr.querySelector('[data-field="l"]').hasAttribute('readonly'); tr.classList.toggle('editing', isReadonly); tr.querySelectorAll('input, select').forEach(input => { if (isReadonly) { input.removeAttribute('readonly'); input.removeAttribute('disabled'); } else { input.setAttribute('readonly', 'true'); if (input.tagName === 'SELECT') input.setAttribute('disabled', 'true'); } }); button.innerHTML = isReadonly ? '💾' : '✏️'; if (!isReadonly) { updateRow(tr); showMessage('Änderungen gespeichert', 'success'); } } });
+$('#addRowButton').addEventListener('click', () => { const newRow = createRow({}, true); newRow.querySelector('.editButton').click(); newRow.querySelector('[data-field="form"]').focus(); newRow.scrollIntoView({ behavior: 'smooth', block: 'center' }); showMessage('Neue Messung hinzugefügt', 'success');});
+$('#unitSelector').addEventListener('change', e => { const newUnit = e.target.value, oldUnit = UNIT; const factor = conv[newUnit] / conv[oldUnit]; $$('#measurementTable input[type="number"]').forEach(input => { if (input.value) { const preciseValue = num(input.value) * factor; input.value = parseFloat(preciseValue.toPrecision(15)); } }); UNIT = newUnit; $$('#measurementTable tbody tr').forEach(updateRow); showMessage(`Einheit auf ${newUnit.toUpperCase()} geändert`, 'success');});
+$('#clearDataButton').addEventListener('click', () => { if (confirm('Wirklich alle Daten löschen? Dies kann nicht rückgängig gemacht werden.')) { $('#measurementTable tbody').innerHTML = ''; updateTotals(); localStorage.removeItem(LS_KEY); $('#projectName').value = ''; showMessage('Alle Daten gelöscht', 'error');}});
+$('#collapseAllButton').addEventListener('click', () => { $$('#measurementTable tbody tr').forEach(tr => { tr.classList.add('collapsed'); tr.querySelector('.collapseButton').innerHTML = '⬆️'; });});
+$('#expandAllButton').addEventListener('click', () => { $$('#measurementTable tbody tr').forEach(tr => { tr.classList.remove('collapsed'); tr.querySelector('.collapseButton').innerHTML = '⬇️'; });});
+$('#measurementTable').addEventListener('change', e => { if (e.target.matches('[data-field="form"]')) { const tr = e.target.closest('tr'); updateRowUI(tr); updateRow(tr); } });
+$('#measurementTable').addEventListener('keydown', e => { if (!e.target.matches('input, select')) return; if (e.key !== 'Enter' && e.key !== 'Tab') return; const activeElement = e.target; const tr = activeElement.closest('tr'); if (!tr) return; const focusOrder = ['form', 'l', 'b', 'h', 'name']; const visibleFields = focusOrder.map(field => tr.querySelector(`[data-field="${field}"]`)).filter(el => el && el.closest('td').style.display !== 'none'); const currentIndex = visibleFields.indexOf(activeElement); if (e.key === 'Tab' || (e.key === 'Enter' && currentIndex < visibleFields.length - 1)) { e.preventDefault(); const nextIndex = (currentIndex + 1) % visibleFields.length; visibleFields[nextIndex].focus(); } else if (e.key === 'Enter' && currentIndex === visibleFields.length - 1) { e.preventDefault(); const editButton = tr.querySelector('.editButton'); if (editButton.innerHTML === '💾') { editButton.click(); } } });
+
+// 8. Export & Storage
+function exportToExcel(){ if (typeof XLSX === 'undefined') { showMessage('Export-Funktion konnte nicht geladen werden. Prüfen Sie Ihre Internetverbindung.', 'error'); return; } const data = [ ['Länge/Radius', 'Breite', 'Höhe', 'Form', 'Bezeichnung', 'Ergebnis', 'Einheit'] ]; $$('#measurementTable tbody tr').forEach(tr => { const form = tr.querySelector('[data-field="form"]').value; const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value); data.push([l, b, h, form, tr.querySelector('[data-field="name"]').value, calculateGeometry(form, l, b, h), getUnitSuffix(form)]); }); const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Messungen'); XLSX.writeFile(wb, `${$('#projectName').value || 'Messungen'}.xlsx`); showMessage('Daten erfolgreich nach Excel exportiert', 'success'); }
+$('#exportExcelButton').addEventListener('click', exportToExcel);
+function saveToLocalStorage(){ try {const data = {theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',projectName: $('#projectName').value, unit: UNIT,measurements: $$('#measurementTable tbody tr').map(tr => ({l: tr.querySelector('[data-field="l"]').value, b: tr.querySelector('[data-field="b"]').value, h: tr.querySelector('[data-field="h"]').value,form: tr.querySelector('[data-field="form"]').value, name: tr.querySelector('[data-field="name"]').value})).reverse()};localStorage.setItem(LS_KEY, JSON.stringify(data));} catch (e) { console.warn("LocalStorage nicht verfügbar:", e); showMessage('Speichern fehlgeschlagen', 'error'); }}
+function loadFromLocalStorage(){ try {const saved = localStorage.getItem(LS_KEY); if (!saved) return; const data = JSON.parse(saved); if (data.theme === 'dark') { document.body.classList.add('dark-mode'); $('#themeSwitcher').textContent = '🌙'; } if (data.projectName) $('#projectName').value = data.projectName; if (data.unit && conv[data.unit]) { $('#unitSelector').value = data.unit; UNIT = data.unit; } if (data.measurements && data.measurements.length > 0) { data.measurements.forEach(m => createRow(m, false)); } updateTotals();} catch (error) { console.warn('Fehler beim Laden aus dem LocalStorage:', error); localStorage.removeItem(LS_KEY); }}
+$('#projectName').addEventListener('input', saveToLocalStorage);
+
+// 9. Theme Switcher & Init
+function redrawAllVisualizations() { $$('#measurementTable tbody tr').forEach(tr => { drawVisualization(tr, tr.querySelector('[data-field="form"]').value, num(tr.querySelector('[data-field="l"]').value), num(tr.querySelector('[data-field="b"]').value), num(tr.querySelector('[data-field="h"]').value)); }); }
+function toggleTheme(){ document.body.classList.toggle('dark-mode'); const isDark = document.body.classList.contains('dark-mode'); $('#themeSwitcher').textContent = isDark ? '🌙' : '☀️'; redrawAllVisualizations(); saveToLocalStorage(); }
+$('#themeSwitcher').addEventListener('click', toggleTheme);
+let resizeTimeout;
+window.addEventListener('resize', () => { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(redrawAllVisualizations, 150); });
+document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); console.log('Laser Entfernungsmesser App V18.5.2 geladen.'); });
+</script>
+</body>
+</html>

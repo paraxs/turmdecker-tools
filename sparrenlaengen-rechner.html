@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Sparrenlängen-Rechner v2.3</title>
+  <meta name="color-scheme" content="light dark">
+  <style>
+    :root{
+      --primary:#007aff; --primary-ghost: rgba(0,122,255,.12);
+      --bg:#f6f6f7; --card:#ffffff; --text:#1d1d1f; --muted:#6e6e73; --danger:#ff3b30; --ok:#34c759;
+      --border:#e5e5ea; --shadow:0 4px 20px rgba(0,0,0,.06);
+      --dimline: rgba(0,0,0,.25);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#111214; --card:#1b1c1f; --text:#ececee; --muted:#9a9aa0; --border:#2a2a30;
+        --shadow:0 6px 24px rgba(0,0,0,.35); --primary-ghost: rgba(0,122,255,.22);
+        --dimline: rgba(255,255,255,.28);
+      }
+    }
+    /* Optional: High-Contrast („Sonnenmodus“) */
+    .sun{
+      --bg:#0b0c0e; --card:#0f1114; --text:#ffffff; --muted:#d0d0d4; --border:#3a3a42;
+      --primary:#0aa2ff; --primary-ghost: rgba(10,162,255,.28);
+      --dimline: rgba(255,255,255,.45);
+    }
+
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font:17px ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Ubuntu}
+    body{background:var(--bg);color:var(--text);line-height:1.28}
+    .wrap{max-width:1000px;margin:0 auto;padding:12px 12px 24px}
+
+    header{padding:6px 0 10px}
+    .headbar{display:flex;align-items:center;justify-content:space-between;gap:12px}
+    h1{font-size:20px;margin:0}
+    .ver{font-size:12px;color:var(--muted)}
+    .toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+    .toggle{height:36px;padding:0 12px;border-radius:999px;border:1px solid var(--border);background:transparent}
+
+    .grid{display:grid;gap:12px}
+    /* responsive Hauptlayout: ab 900px zwei Spalten, linke Spalte flexibel */
+    @media (min-width:900px){
+      .grid{grid-template-columns:clamp(340px,44vw,460px) 1fr}
+    }
+
+    .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:12px}
+    .card h2{margin:0 0 6px;font-size:16px}
+    .block{margin-top:8px}
+    .block h3{margin:0 0 6px;font-size:14px;color:var(--muted)}
+
+    /* Eingabereihen: klein 1-spaltig, ab 640px 2-spaltig */
+    .row{display:grid;grid-template-columns:1fr;gap:10px}
+    @media (min-width:640px){
+      .row{grid-template-columns:1fr 1fr}
+    }
+
+    label{display:block;font-size:13px;color:var(--muted);margin:2px 0 6px}
+
+    input,select,button{
+      width:100%;height:48px;border-radius:14px;border:1px solid var(--border);background:transparent;
+      color:var(--text);padding:0 12px;font-size:16px;outline:none;-webkit-tap-highlight-color:transparent;
+    }
+    input:focus,select:focus,button:focus{border-color:var(--primary);box-shadow:0 0 0 4px var(--primary-ghost)}
+    button.primary{background:var(--primary);border-color:var(--primary);color:#fff;font-weight:600}
+    button.ghost{background:transparent;border-color:var(--border)}
+    button:active{transform:translateY(1px)}
+    .hint{font-size:12px;color:var(--muted)}
+
+    /* Segmented control */
+    .seg{display:flex;gap:6px;flex-wrap:wrap}
+    .seg input{display:none}
+    .seg label{
+      padding:10px 14px;border:1px solid var(--border);border-radius:999px;cursor:pointer;user-select:none;
+      font-size:14px;min-width:120px;text-align:center
+    }
+    .seg input:checked+label{
+      border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-ghost);
+      background:var(--primary-ghost);color:var(--primary)
+    }
+
+    .msg{white-space:pre-wrap;border-radius:14px;border:1px solid var(--border);padding:10px 12px;font-size:16px;min-height:52px}
+    .msg.ok{border-color:rgba(52,199,89,.45)}
+    .msg.err{border-color:rgba(255,59,48,.55)}
+    .big{font-size:20px;font-weight:700;letter-spacing:.2px}
+
+    /* Key-Value Ergebnislayout */
+    .msg.kv{white-space:normal}
+    .kv-row{display:grid;grid-template-columns:max-content 1fr;column-gap:12px;align-items:baseline;margin:4px 0}
+    .kv-key{color:var(--muted)}
+    .kv-val{font-variant-numeric:tabular-nums}
+    .kv-row.big .kv-key{font-size:16px;color:var(--text);font-weight:700}
+    .kv-row.big .kv-val{font-size:20px;font-weight:700;letter-spacing:.2px}
+    .nowrap{white-space:nowrap}
+
+    .btnbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .btnbar .primary{flex:1 1 auto}
+
+    .svgWrap{display:block;overflow:hidden;border-radius:16px;border:1px dashed var(--border);min-height:220px;position:relative}
+    .gridbg{position:absolute;inset:0;pointer-events:none}
+    .gridbg::before{
+      content:"";position:absolute;inset:0;background-image:
+        linear-gradient(to right,var(--dimline) 1px,transparent 1px),
+        linear-gradient(to bottom,var(--dimline) 1px,transparent 1px);
+      background-size:24px 24px;opacity:.25
+    }
+    svg{text-rendering:optimizeLegibility;color:var(--text)}
+    /* flexible SVG-Höhe: klein 240px, Tablet ~35vh, Desktop max 460px */
+    #roofSvg{width:100%; height:clamp(240px,35vh,460px)}
+    svg .label{fill:currentColor;font-size:13.5px;paint-order:stroke;stroke:var(--card);stroke-width:2.2px}
+    .sun svg line{stroke-width:2.6}
+
+    footer{margin-top:16px;text-align:center;color:var(--muted);font-size:12px}
+    .sr{position:absolute;left:-9999px}
+  </style>
+  <link rel="stylesheet" href="./td-shell.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="theme-color" content="#8F1D1D" />
+</head>
+<body>
+<div class="td-shell" role="banner">
+  <div class="td-shell__inner">
+    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
+      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
+      <div class="td-shell__text">
+        <strong>TURMDECKER</strong>
+        <span>Tools & Rechner</span>
+      </div>
+    </a>
+    <div class="td-shell__nav" aria-label="Navigation">
+      <a class="td-btn" href="./index.html">↩ Übersicht</a>
+      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
+      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="headbar">
+      <div>
+        <h1>Sparrenlängen-Rechner</h1>
+        <div class="ver">Version 2.3</div>
+      </div>
+      <div class="toolbar">
+        <label for="unit" class="sr">Längeneinheit</label>
+        <select id="unit" aria-label="Längeneinheit">
+          <option value="m">Meter [m]</option>
+          <option value="cm">Zentimeter [cm]</option>
+          <option value="mm">Millimeter [mm]</option>
+          <option value="ft">Feet [ft]</option>
+          <option value="in">Inch [in]</option>
+        </select>
+        <button id="sunBtn" class="toggle" title="Sonnenmodus (High-Contrast)">☀️ Sonnenmodus</button>
+        <button id="resetBtn" class="toggle">Zurücksetzen</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="grid">
+    <!-- Eingaben -->
+    <section class="card" aria-labelledby="inputsTitle">
+      <h2 id="inputsTitle">Eingaben</h2>
+
+      <!-- Block 1: Eingabeart -->
+      <div class="block">
+        <div class="seg" role="tablist" aria-label="Eingabeart">
+          <input type="radio" name="mode" id="modePitch" value="pitch" checked>
+          <label for="modePitch">Dachneigung</label>
+          <input type="radio" name="mode" id="modeRidge" value="ridge">
+          <label for="modeRidge">Firsthöhe</label>
+        </div>
+      </div>
+
+      <!-- Block 2: Einheiten -->
+      <div class="block">
+        <h3>Einheiten</h3>
+        <label for="pitchUnit">Neigungs-Einheit</label>
+        <select id="pitchUnit" aria-label="Einheit Dachneigung">
+          <option value="deg">Grad [°]</option>
+          <option value="pct">Prozent [%]</option>
+        </select>
+      </div>
+
+      <!-- Block 3: Grundmaße -->
+      <div class="block">
+        <h3>Grundmaße</h3>
+        <div class="row">
+          <div>
+            <label for="horizontalDepth">Tiefe in Draufsicht <span id="depthUnitLbl" class="muted">[m]</span></label>
+            <input id="horizontalDepth" type="number" inputmode="decimal" placeholder="z. B. 3,50"
+                   min="0.01" step="0.01" autocomplete="off">
+            <div class="hint">Traufe → First-Lot (Draufsicht)</div>
+          </div>
+          <div>
+            <label for="eavesOverhang">Traufüberstand <span id="overUnitLbl" class="muted">[m]</span></label>
+            <input id="eavesOverhang" type="number" inputmode="decimal" placeholder="z. B. 0,30"
+                   min="0" step="0.01" value="0" autocomplete="off">
+            <div class="hint">Wird zur Tiefe addiert → reale Sparrenlänge</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Block 4: Modus-Eingabe -->
+      <div class="block" id="pitchRow">
+        <h3>Dachneigung</h3>
+        <label for="roofPitch">Dachneigung (in gewählter Einheit)</label>
+        <input id="roofPitch" type="number" inputmode="decimal" placeholder="z. B. 35"
+               min="0.1" step="0.1" autocomplete="off">
+      </div>
+
+      <div class="block" id="ridgeRow" style="display:none">
+        <h3>Firsthöhe</h3>
+        <label for="ridgeHeight">Firsthöhe <span id="ridgeUnitLbl" class="muted">[m]</span></label>
+        <input id="ridgeHeight" type="number" inputmode="decimal" placeholder="z. B. 2,10"
+               min="0.01" step="0.01" autocomplete="off">
+      </div>
+
+      <!-- Block 5: Aktion & Ergebnis -->
+      <div class="block">
+        <h3>Aktion & Ergebnis</h3>
+        <div class="btnbar">
+          <button id="calcBtn" class="primary">Berechnen</button>
+        </div>
+        <div id="msg" class="msg" style="margin-top:8px" aria-live="polite">
+          <span class="muted">Gib Tiefe und Neigung oder Firsthöhe ein, dann „Berechnen“.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Visualisierung -->
+    <section class="card" aria-labelledby="vizTitle">
+      <h2 id="vizTitle">Visualisierung & Maße</h2>
+      <div class="svgWrap">
+        <div class="gridbg" aria-hidden="true"></div>
+        <svg id="roofSvg" viewBox="0 0 480 260" width="100%" role="img" aria-label="Dachgeometrie">
+          <!-- wird per JS gezeichnet -->
+        </svg>
+      </div>
+      <div class="hint" style="margin-top:8px">
+        Darstellung symbolisch; Zahlen sind real (gewählte Einheit).
+      </div>
+    </section>
+  </div>
+
+  <footer>© Kofler e. U. · Version 2.3</footer>
+</div>
+
+<script>
+(() => {
+  /* ===== Helpers ===== */
+  const $ = (id) => document.getElementById(id);
+  const qs = (sel, el=document) => el.querySelector(sel);
+
+  const state = { mode:'pitch', unit:'m', pUnit:'deg' };
+
+  const decimalsByUnit = { m:3, cm:1, mm:0, ft:3, in:2 };
+  const stepByUnit    = { m:.01, cm:.1, mm:1, ft:.01, in:.01 };
+  const minByUnit     = { m:.01, cm:.1, mm:1, ft:.01, in:.01 };
+
+  const toM   = (v,u)=>({m:+v, cm:+v/100, mm:+v/1000, ft:+v*0.3048, in:+v*0.0254}[u]);
+  const fromM = (v,u)=>({m:+v, cm:+v*100, mm:+v*1000, ft:+v/0.3048, in:+v/0.0254}[u]);
+  const fmt=(v)=>{ const d=decimalsByUnit[state.unit]??2; const n=Math.abs(v)<1e-12?0:v; return Number(n).toFixed(d); };
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  const degToPct=(deg)=>Math.tan(deg*Math.PI/180)*100;
+  const pctToDeg=(pct)=>Math.atan(pct/100)*180/Math.PI;
+  const riseFrom=(depth,pitchDeg)=>Math.tan(pitchDeg*Math.PI/180)*depth;
+  const rafterFrom=(depth,rise)=>Math.hypot(depth,rise);
+  const pitchFrom=(depth,rise)=>(Math.atan2(rise,depth)*180/Math.PI);
+  const debounce=(fn,delay=200)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),delay);}};
+
+  /* ===== UI refs ===== */
+  const els = {
+    unit: $('unit'), sunBtn: $('sunBtn'), resetBtn: $('resetBtn'),
+    modePitch: $('modePitch'), modeRidge: $('modeRidge'),
+    pitchUnit: $('pitchUnit'),
+    horizontalDepth: $('horizontalDepth'), eavesOverhang: $('eavesOverhang'),
+    roofPitch: $('roofPitch'), ridgeHeight: $('ridgeHeight'),
+    pitchRow: $('pitchRow'), ridgeRow: $('ridgeRow'),
+    depthUnitLbl: $('depthUnitLbl'), overUnitLbl: $('overUnitLbl'),
+    ridgeUnitLbl: $('ridgeUnitLbl'),
+    calcBtn: $('calcBtn'), msg: $('msg'), svg: $('roofSvg'),
+  };
+
+  function setUnitUI(){
+    const u=state.unit;
+    els.depthUnitLbl.textContent=`[${u}]`;
+    els.overUnitLbl.textContent=`[${u}]`;
+    els.ridgeUnitLbl.textContent=`[${u}]`;
+    [els.horizontalDepth,els.eavesOverhang,els.ridgeHeight].forEach(e=>{
+      if(!e) return; e.step=stepByUnit[u]; e.min=e===els.eavesOverhang?0:minByUnit[u];
+    });
+    calc();
+  }
+
+  function toggleMode(){
+    const pitch=state.mode==='pitch';
+    els.pitchRow.style.display=pitch?'':'none';
+    els.ridgeRow.style.display=pitch?'none':'';
+    els.pitchUnit.disabled=!pitch;
+  }
+
+  function showMsg(text,type='ok',isGrid=false){
+    els.msg.classList.remove('ok','err');
+    els.msg.classList.add(type==='err'?'err':'ok');
+    els.msg.classList.toggle('kv', !!isGrid);
+    els.msg.innerHTML=text;
+  }
+  function readNumber(el){ const v=String(el.value).replace(',','.'); return parseFloat(v); }
+
+  // Persistenz
+  const LS_KEY='sparren-2.3';
+  function saveState(){
+    try{
+      localStorage.setItem(LS_KEY, JSON.stringify({
+        mode:state.mode, unit:state.unit, pUnit:state.pUnit,
+        horizontalDepth:els.horizontalDepth.value, eavesOverhang:els.eavesOverhang.value,
+        roofPitch:els.roofPitch.value, ridgeHeight:els.ridgeHeight.value,
+        sun: document.documentElement.classList.contains('sun')?1:0
+      }));
+    }catch(_){}
+  }
+  function restoreState(){
+    try{
+      const s=JSON.parse(localStorage.getItem(LS_KEY)||'null'); if(!s) return;
+      state.mode=(s.mode==='ridge')?'ridge':'pitch';
+      state.unit=s.unit||'m'; state.pUnit=(s.pUnit==='pct')?'pct':'deg';
+      els.modePitch.checked=state.mode==='pitch'; els.modeRidge.checked=state.mode==='ridge';
+      els.unit.value=state.unit; els.pitchUnit.value=state.pUnit;
+      els.horizontalDepth.value=s.horizontalDepth??''; els.eavesOverhang.value=s.eavesOverhang??'0';
+      els.roofPitch.value=s.roofPitch??''; els.ridgeHeight.value=s.ridgeHeight??'';
+      if(s.sun) document.documentElement.classList.add('sun');
+    }catch(_){}
+  }
+
+  /* ===== Berechnung & Zeichnung ===== */
+  function calc(){
+    const depthRaw=readNumber(els.horizontalDepth);
+    const overRaw =readNumber(els.eavesOverhang);
+    if(!(depthRaw>0)){ showMsg('<span class="muted">Bitte Tiefe in Draufsicht eingeben (&gt;0).</span>','err'); draw(); return; }
+    if(!(overRaw>=0)){ showMsg('<span class="muted">Traufüberstand darf nicht negativ sein.</span>','err'); draw(); return; }
+
+    const depth=toM(depthRaw,state.unit);
+    const over =toM(overRaw,state.unit);
+    const dTot =depth+over;
+
+    let pitchDeg,riseM;
+    if(state.mode==='pitch'){
+      const raw=readNumber(els.roofPitch);
+      if(!(raw>0)){ showMsg('<span class="muted">Bitte Dachneigung eingeben (&gt;0).</span>','err'); draw(); return; }
+      pitchDeg=state.pUnit==='deg'?raw:pctToDeg(raw);
+      pitchDeg=clamp(pitchDeg,0.1,89.9);
+      riseM=riseFrom(dTot,pitchDeg);
+    }else{
+      const rhRaw=readNumber(els.ridgeHeight);
+      if(!(rhRaw>0)){ showMsg('<span class="muted">Bitte Firsthöhe eingeben (&gt;0).</span>','err'); draw(); return; }
+      riseM=toM(rhRaw,state.unit);
+      pitchDeg=pitchFrom(dTot,riseM);
+    }
+
+    const rafterM=rafterFrom(dTot,riseM);
+    const rafterU=fromM(rafterM,state.unit);
+    const riseU  =fromM(riseM,state.unit);
+    const depthU =fromM(dTot, state.unit);
+    const overU  =fromM(over,  state.unit);
+
+    const pitchDisp = (state.pUnit==='deg'||state.mode==='ridge')
+      ? `${pitchDeg.toFixed(1)}°`
+      : `${degToPct(pitchDeg).toFixed(1)}&nbsp;%`;
+
+    const unit = state.unit;
+    const html =
+      `<div class="kv-row big"><div class="kv-key">Sparrenlänge:</div><div class="kv-val nowrap">${fmt(rafterU)}&nbsp;${unit}</div></div>`+
+      `<div class="kv-row"><div class="kv-key">Firsthöhe:</div><div class="kv-val nowrap">${fmt(riseU)}&nbsp;${unit}</div></div>`+
+      `<div class="kv-row"><div class="kv-key">Tiefe:</div><div class="kv-val nowrap">${fmt(depthU)}&nbsp;${unit}</div></div>`+
+      `<div class="kv-row"><div class="kv-key">Überstand:</div><div class="kv-val nowrap">${fmt(overU)}&nbsp;${unit}</div></div>`+
+      `<div class="kv-row"><div class="kv-key">Neigung:</div><div class="kv-val nowrap">${pitchDisp}</div></div>`;
+    showMsg(html,'ok',true);
+
+    draw(depthU,riseU,pitchDeg,`${fmt(rafterU)} ${state.unit}`,overU);
+    saveState();
+  }
+  const debouncedCalc=debounce(calc,200);
+
+  /* ===== SVG helpers ===== */
+  function solid(x1,y1,x2,y2){ const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+    l.setAttribute('x1',x1); l.setAttribute('y1',y1); l.setAttribute('x2',x2); l.setAttribute('y2',y2);
+    l.setAttribute('stroke','currentColor'); l.setAttribute('stroke-width','2'); return l; }
+  function dashed(x1,y1,x2,y2){ const l=solid(x1,y1,x2,y2); l.setAttribute('stroke-dasharray','6 6'); l.setAttribute('stroke-width','1.5'); return l; }
+  function label(x,y,txt,anchor='middle'){ const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+    t.setAttribute('x',x); t.setAttribute('y',y); t.setAttribute('text-anchor',anchor);
+    t.setAttribute('class','label'); t.setAttribute('font-size','13.5'); t.textContent=txt; return t; }
+  function dimTick(x,y,dx,dy){ const l=solid(x-dx,y-dy,x+dx,y+dy); l.setAttribute('stroke-width','1.5'); return l; }
+
+  function draw(depthU=0,riseU=0,pitchDeg=0,rafterStr='',overU=0){
+    const svg=els.svg; svg.innerHTML='';
+    if(!(depthU>0)||!(riseU>0)) return;
+
+    const W=480,H=260, baseY=H-30, centerX=W/2;
+    const scale=170/Math.max(depthU,riseU);
+    const dPx=depthU*scale, rPx=riseU*scale;
+    const footX=centerX-dPx, ridgeX=centerX, ridgeY=baseY-rPx;
+
+    // Baseline + Sparren
+    svg.appendChild(solid(footX,baseY,ridgeX,baseY));
+    svg.appendChild(solid(footX,baseY,ridgeX,ridgeY));
+
+    // Tiefe (unten)
+    svg.appendChild(dashed(footX,baseY+20,ridgeX,baseY+20));
+    svg.appendChild(dimTick(footX,baseY+20,0,8));
+    svg.appendChild(dimTick(ridgeX,baseY+20,0,8));
+    svg.appendChild(label((footX+ridgeX)/2,baseY+36,`Tiefe ${fmt(depthU)} ${state.unit}`));
+
+    // Trauf-Überstand (separat)
+    if(overU>0){
+      const overPx=overU*scale, y=baseY+52;
+      svg.appendChild(dashed(footX,y,footX+overPx,y));
+      svg.appendChild(dimTick(footX,y,0,8));
+      svg.appendChild(dimTick(footX+overPx,y,0,8));
+      svg.appendChild(label(footX+overPx/2,y+16,`Überstand ${fmt(overU)} ${state.unit}`));
+    }
+
+    // Firsthöhe (rechts)
+    svg.appendChild(dashed(ridgeX+24,baseY,ridgeX+24,ridgeY));
+    svg.appendChild(dimTick(ridgeX+24,baseY,8,0));
+    svg.appendChild(dimTick(ridgeX+24,ridgeY,8,0));
+    svg.appendChild(label(ridgeX+32,(baseY+ridgeY)/2,`H ${fmt(riseU)} ${state.unit}`,'start'));
+
+    // Sparrenmaß + Neigung
+    svg.appendChild(label(ridgeX-12,(baseY+ridgeY)/2,rafterStr,'end'));
+    svg.appendChild(label(footX+24,baseY-18,`${pitchDeg.toFixed(1)}°`,'start'));
+  }
+
+  /* ===== Events ===== */
+  els.unit.addEventListener('change',(e)=>{ state.unit=e.target.value; setUnitUI(); });
+  [els.modePitch,els.modeRidge].forEach(r=>r.addEventListener('change',()=>{ state.mode=els.modePitch.checked?'pitch':'ridge'; toggleMode(); calc(); }));
+  els.pitchUnit.addEventListener('change',(e)=>{ state.pUnit=e.target.value; calc(); });
+
+  [els.horizontalDepth,els.eavesOverhang,els.roofPitch,els.ridgeHeight].forEach(el=>{
+    if(!el) return; el.addEventListener('input',debouncedCalc,{passive:true});
+  });
+
+  els.calcBtn.addEventListener('click',calc);
+
+  els.resetBtn.addEventListener('click',()=>{
+    localStorage.removeItem(LS_KEY);
+    els.horizontalDepth.value=''; els.eavesOverhang.value='0'; els.roofPitch.value=''; els.ridgeHeight.value='';
+    state.mode='pitch'; els.modePitch.checked=true; els.modeRidge.checked=false;
+    state.unit='m'; els.unit.value='m'; state.pUnit='deg'; els.pitchUnit.value='deg';
+    document.documentElement.classList.remove('sun');
+    toggleMode(); setUnitUI();
+    showMsg('<span class="muted">Zurückgesetzt. Bitte Eingaben machen.</span>','ok');
+    els.svg.innerHTML='';
+  });
+
+  document.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ calc(); } },{passive:true});
+
+  // Sonnenmodus (optional)
+  $('sunBtn').addEventListener('click',()=>{
+    document.documentElement.classList.toggle('sun');
+    calc(); saveState();
+  });
+
+  /* ===== Init ===== */
+  restoreState(); toggleMode(); setUnitUI();
+  const hasAny=[els.horizontalDepth,els.roofPitch,els.ridgeHeight].some(el=>el&&String(el.value).trim()!=='');
+  if(hasAny) calc();
+})();
+</script>
+</body>
+</html>

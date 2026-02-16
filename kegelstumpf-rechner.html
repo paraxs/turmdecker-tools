@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kegelstumpf Rechner v2.3.1 (Bugfix)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* --- GRUNDLAGEN & THEME --- */
+        :root {
+            --bg-color: #f0f2f5; --card-bg-color: #ffffff; --text-primary: #1c1c1e;
+            --text-secondary: #6e6e73; --border-color: #dcdce0; --input-bg-color: #f0f2f5;
+            --primary-action-color: #007aff; --primary-action-hover: #005bb5;
+            --secondary-action-color: #e5e5ea; --secondary-action-hover: #d1d1d6;
+            --secondary-text-color: #1c1c1e; --shadow-color: rgba(0, 0, 0, 0.05);
+            --toast-bg-color: #ff3b30; --toast-text-color: #ffffff;
+            --canvas-bg: #ffffff; --btn-disabled-bg: #e5e5ea; --btn-disabled-text: #aeaeb2;
+            --helper-color: #AF52DE; --highlight-color: rgba(0, 122, 255, 0.15);
+            --info-icon-color: #aeaeb2;
+            --centerline-color: #FF9500;
+            --warning-color: #FF9500;
+            /* Zeichnungsfarben */
+            --color-outer-arc: #0A84FF;
+            --color-inner-arc: #FF453A;
+            --color-mantle: #30D158;
+            --color-segment: #8A8A8E;
+            --color-center-helper: #C7C7CC;
+            --color-allowance: rgba(175, 82, 222, 0.25);
+        }
+        [data-theme="dark"] {
+            --bg-color: #000000; --card-bg-color: #1c1c1e; --text-primary: #ffffff;
+            --text-secondary: #8e8e93; --border-color: #3a3a3c; --input-bg-color: #2c2c2e;
+            --secondary-action-color: #3a3a3c; --secondary-action-hover: #4a4a4c;
+            --secondary-text-color: #ffffff; --shadow-color: rgba(0, 0, 0, 0.25);
+            --btn-disabled-bg: #2c2c2e; --btn-disabled-text: #505054;
+            --highlight-color: rgba(0, 122, 255, 0.25);
+            --info-icon-color: #6e6e73;
+            --centerline-color: #FF9F0A;
+            --warning-color: #FF9F0A;
+            /* Dark-Theme Zeichnungsfarben */
+            --color-outer-arc: #0A84FF;
+            --color-inner-arc: #FF453A;
+            --color-mantle: #30D158;
+            --color-segment: #8e8e93;
+            --color-center-helper: #48484a;
+            --color-allowance: rgba(191, 90, 242, 0.25);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--bg-color); color: var(--text-primary); transition: background-color 0.3s, color 0.3s; display: flex; flex-direction: column; }
+        .container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 24px; display: flex; flex-direction: column; gap: 24px; }
+        .card { background-color: var(--card-bg-color); border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px var(--shadow-color); transition: background-color 0.3s, box-shadow 0.3s; }
+        header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .header-title h1 { font-size: 2.2rem; font-weight: 700; margin-bottom: 4px; }
+        .header-title p { font-size: 1rem; color: var(--text-secondary); }
+        #theme-toggle { background: none; border: none; cursor: pointer; color: var(--text-secondary); padding: 8px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: background-color 0.2s; }
+        #theme-toggle:hover { background-color: var(--secondary-action-color); }
+        #theme-toggle svg { width: 24px; height: 24px; }
+        .icon-sun, .icon-moon { display: none; }
+        html[data-theme="light"] .icon-sun { display: block; }
+        html[data-theme="dark"] .icon-moon { display: block; }
+        .input-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+        .input-group { display: flex; flex-direction: column; }
+        .input-group label { display: flex; align-items: center; font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 8px; font-weight: 500; }
+        .label-icon { margin-left: 6px; color: var(--info-icon-color); cursor: help; }
+        .label-icon svg { width: 15px; height: 15px; }
+        .input-wrapper { position: relative; flex-grow: 1; }
+        .input-group input { width: 100%; padding: 12px; font-size: 1rem; border: 1px solid var(--border-color); border-radius: 8px; background-color: var(--input-bg-color); color: var(--text-primary); transition: border-color 0.3s, background-color 0.3s, box-shadow 0.2s; text-align: center; }
+        .input-group input:focus { outline: none; border-color: var(--primary-action-color); box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.3); }
+        .unit { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+        .input-wrapper-extended { display: flex; align-items: center; gap: 8px; }
+        .btn-stepper { flex-shrink: 0; width: 44px; height: 44px; font-size: 1.5rem; font-weight: 400; line-height: 44px; text-align: center; color: var(--primary-action-color); background-color: var(--secondary-action-color); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.1s; user-select: none; }
+        .btn-stepper:hover { background-color: var(--secondary-action-hover); }
+        .btn-stepper:active { transform: scale(0.95); background-color: var(--highlight-color); }
+        .mode-selector { display: flex; border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; margin-bottom: 8px; }
+        .mode-btn { flex: 1; padding: 8px 12px; font-size: 0.9rem; font-weight: 500; text-align: center; background-color: transparent; border: none; cursor: pointer; color: var(--text-secondary); transition: background-color 0.2s, color 0.2s; border-right: 1px solid var(--border-color); }
+        .mode-btn:last-child { border-right: none; }
+        .mode-btn.active { background-color: var(--primary-action-color); color: white; }
+        .input-info { font-size: 0.8rem; color: var(--text-secondary); text-align: center; height: 1.2em; margin-top: 4px; }
+
+        .action-buttons { display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .btn { padding: 10px 20px; border: 1px solid transparent; border-radius: 8px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease-in-out; display: inline-flex; align-items: center; justify-content: center; gap: 8px; line-height: 1.2; }
+        .btn svg { width: 18px; height: 18px; }
+        .btn:active { transform: scale(0.98); }
+        .btn:disabled { background-color: var(--btn-disabled-bg) !important; color: var(--btn-disabled-text) !important; border-color: transparent !important; cursor: not-allowed; transform: none; }
+        .btn-primary { background-color: var(--primary-action-color); color: white; border-color: var(--primary-action-color); }
+        .btn-primary:hover:not(:disabled) { background-color: var(--primary-action-hover); border-color: var(--primary-action-hover); box-shadow: 0 4px 8px rgba(0, 122, 255, 0.2); }
+        .btn-secondary { background-color: var(--secondary-action-color); color: var(--secondary-text-color); border-color: transparent; }
+        .btn-secondary:hover:not(:disabled) { background-color: var(--secondary-action-hover); }
+
+        .legend-instructions { margin-left: 20px; line-height: 1.4; }
+        .legend-instructions li { margin-bottom: 6px; }
+        #canvas-container { position: relative; width: 100%; padding-top: 65%; overflow: hidden; } 
+        #canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: 8px; background-color: var(--canvas-bg); cursor: grab; touch-action: none; }
+        #canvas:active { cursor: grabbing; }
+
+        .canvas-controls {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 5;
+        }
+        .control-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--card-bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: background-color 0.2s, transform 0.1s;
+        }
+        .control-btn:hover { background-color: var(--secondary-action-hover); }
+        .control-btn:active { transform: scale(0.95); }
+        .control-btn svg { width: 20px; height: 20px; }
+
+        .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; }
+        .legend-section h3 { font-size: 1.1rem; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--border-color); }
+        .legend-list { list-style: none; }
+        .legend-list li { display: flex; align-items: flex-start; padding: 8px 6px; border-radius: 8px; cursor: pointer; margin-bottom: 4px; transition: background-color 0.2s; }
+        .legend-list li:hover, .legend-list li.highlighted { background-color: var(--highlight-color); }
+        .color-box { width: 16px; height: 16px; border-radius: 4px; margin-right: 12px; flex-shrink: 0; border: 1px solid var(--border-color); margin-top: 3px; }
+        .legend-text { display: flex; flex-direction: column; flex-grow: 1; }
+        .legend-label { font-weight: 500; }
+        .legend-value { color: var(--text-secondary); font-size: 1.1rem; font-weight: 600; }
+        .legend-item-wrapper { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+
+        .legend-extra-container { margin-top: 16px; }
+        .legend-extra-container details { border-top: 1px solid var(--border-color); padding-top: 12px; }
+        .legend-extra-container summary { cursor: pointer; font-weight: 600; color: var(--text-secondary); list-style: none; }
+        .legend-extra-container summary::-webkit-details-marker { display: none; }
+        .legend-extra-title { display: inline-flex; align-items: center; gap: 6px; }
+        .legend-extra-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 12px; }
+
+        footer { text-align: center; padding: 24px; color: var(--text-secondary); font-size: 0.85rem; }
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .toast { background-color: var(--toast-bg-color); color: var(--toast-text-color); padding: 12px 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); font-weight: 500; opacity: 0; transform: translateY(-20px); animation: toast-in 0.3s forwards; }
+        .toast.success { background-color: #30D158; }
+        .toast.warning { background-color: var(--warning-color); }
+        .toast.fade-out { animation: toast-out 0.3s forwards; }
+        @keyframes toast-in { to { opacity: 1; transform: translateY(0); } }
+        @keyframes toast-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-20px); } }
+        #loading-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.1); z-index: 10; display: none; align-items: center; justify-content: center; color: var(--primary-action-color); font-weight: 500; font-size: 1.1rem; border-radius: 8px; }
+        
+        @media print {
+            body { background-color: white; color: black; }
+            header, .input-grid, .action-buttons, footer, #theme-toggle, .canvas-controls { display: none !important; }
+            .container { max-width: 100%; padding: 0; margin: 0; }
+            .card { box-shadow: none; border: none; padding: 0; margin-bottom: 20px; }
+            #canvas-container { border: 1px solid #ccc; margin-bottom: 20px; }
+            .legend-list li { break-inside: avoid; }
+        }
+
+        @media (max-width: 768px) {
+            .header-title h1 { font-size: 1.8rem; }
+            .container, .card { padding: 16px; } .container { gap: 16px; }
+            .legend-grid { grid-template-columns: 1fr; gap: 24px; } #canvas-container { padding-top: 100%; }
+            .legend-extra-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+  <link rel="stylesheet" href="./td-shell.css" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <meta name="theme-color" content="#8F1D1D" />
+</head>
+<body>
+<div class="td-shell" role="banner">
+  <div class="td-shell__inner">
+    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
+      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
+      <div class="td-shell__text">
+        <strong>TURMDECKER</strong>
+        <span>Tools & Rechner</span>
+      </div>
+    </a>
+    <div class="td-shell__nav" aria-label="Navigation">
+      <a class="td-btn" href="./index.html">↩ Übersicht</a>
+      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
+      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
+    </div>
+  </div>
+</div>
+
+    <div id="toast-container"></div>
+    <div class="container">
+        <header>
+            <div class="header-title">
+                <h1>Kegelstumpf Rechner</h1>
+                <p>Präzise Zuschnitte für die Werkstatt</p>
+            </div>
+            <button id="theme-toggle" title="Theme umschalten" aria-label="Theme umschalten">
+                <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.106a.75.75 0 010 1.06l-1.591 1.59a.75.75 0 11-1.06-1.06l1.59-1.59a.75.75 0 011.06 0zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5h2.25a.75.75 0 01.75.75zM17.894 17.894a.75.75 0 01-1.06 0l-1.59-1.591a.75.75 0 111.06-1.06l1.59 1.59a.75.75 0 010 1.061zM12 21.75a.75.75 0 01-.75-.75v-2.25a.75.75 0 011.5 0v2.25a.75.75 0 01-.75-.75zM5.106 17.894a.75.75 0 010-1.06l1.59-1.59a.75.75 0 111.061 1.06l-1.59 1.591a.75.75 0 01-1.06 0zM3 12a.75.75 0 01.75-.75h2.25a.75.75 0 010 1.5H3.75A.75.75 0 013 12zM6.106 5.106a.75.75 0 011.06 0l1.59 1.591a.75.75 0 01-1.06 1.06L5.106 6.167a.75.75 0 010-1.06z"/></svg>
+                <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 004.472-.69a.75.75 0 01.98.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-3.51 1.713-6.634 4.398-8.552a.75.75 0 01.818.162z" clip-rule="evenodd" /></svg>
+            </button>
+        </header>
+        <main class="container">
+            <div class="card">
+                <div class="input-grid">
+                    <div class="input-group">
+                        <div class="mode-selector">
+                            <button class="mode-btn active" data-type="unten" data-mode="radius">Radius unten (R₁)</button>
+                            <button class="mode-btn" data-type="unten" data-mode="umfang">Umfang unten (U₁)</button>
+                        </div>
+                        <div class="input-wrapper-extended">
+                            <button class="btn-stepper" data-for="radiusUnter" data-step="-1">-</button>
+                            <div class="input-wrapper"><input type="number" id="radiusUnter" value="14.8" step="0.1" min="0.1" inputmode="decimal"><span class="unit">cm</span></div>
+                            <button class="btn-stepper" data-for="radiusUnter" data-step="1">+</button>
+                        </div>
+                        <div class="input-info" id="info-unten"></div>
+                    </div>
+                    <div class="input-group">
+                        <div class="mode-selector">
+                            <button class="mode-btn active" data-type="oben" data-mode="radius">Radius oben (R₂)</button>
+                            <button class="mode-btn" data-type="oben" data-mode="umfang">Umfang oben (U₂)</button>
+                        </div>
+                        <div class="input-wrapper-extended">
+                            <button class="btn-stepper" data-for="radiusOben" data-step="-1">-</button>
+                            <div class="input-wrapper"><input type="number" id="radiusOben" value="4.25" step="0.1" min="0" inputmode="decimal"><span class="unit">cm</span></div>
+                            <button class="btn-stepper" data-for="radiusOben" data-step="1">+</button>
+                        </div>
+                        <div class="input-info" id="info-oben"></div>
+                    </div>
+                    <div class="input-group">
+                        <label for="hoehe">Höhe des Bauteils (H)</label>
+                        <div class="input-wrapper-extended">
+                            <button class="btn-stepper" data-for="hoehe" data-step="-1">-</button>
+                            <div class="input-wrapper"><input type="number" id="hoehe" value="134" step="1" min="0.1" inputmode="decimal"><span class="unit">cm</span></div>
+                            <button class="btn-stepper" data-for="hoehe" data-step="1">+</button>
+                        </div>
+                        <div class="input-info"></div>
+                    </div>
+                    <div class="input-group">
+                        <label for="segmente">Anzahl Abkantungen
+                           <span class="label-icon" title="Anzahl der Biegelinien für eine eckige Form."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.44a.75.75 0 00-1.38-.586l-1.5 3.5A.75.75 0 007.25 11h3.5a.75.75 0 00.586-1.38l-1.5-3.5a.75.75 0 00-.946-.18zM10 12.5a.75.75 0 01.75.75v.008a.75.75 0 01-1.5 0V13.25a.75.75 0 01.75-.75z" clip-rule="evenodd" /></svg></span>
+                        </label>
+                        <div class="input-wrapper-extended">
+                            <button class="btn-stepper" data-for="segmente" data-step="-1">-</button>
+                            <div class="input-wrapper"><input type="number" id="segmente" value="18" step="1" min="2" inputmode="decimal"></div>
+                            <button class="btn-stepper" data-for="segmente" data-step="1">+</button>
+                        </div>
+                        <div class="input-info"></div>
+                    </div>
+                     <div class="input-group">
+                        <label for="anzahlHilfssehnen">Anreißpunkte (pro Bogenhälfte)
+                            <span class="label-icon" title="Anzahl der Hilfspunkte zum manuellen Anreißen der Kurve."><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zM8.94 6.44a.75.75 0 00-1.38-.586l-1.5 3.5A.75.75 0 007.25 11h3.5a.75.75 0 00.586-1.38l-1.5-3.5a.75.75 0 00-.946-.18zM10 12.5a.75.75 0 01.75.75v.008a.75.75 0 01-1.5 0V13.25a.75.75 0 01.75-.75z" clip-rule="evenodd" /></svg></span>
+                        </label>
+                        <div class="input-wrapper-extended">
+                            <button class="btn-stepper" data-for="anzahlHilfssehnen" data-step="-1">-</button>
+                            <div class="input-wrapper"><input type="number" id="anzahlHilfssehnen" value="8" step="1" min="2" inputmode="decimal"></div>
+                            <button class="btn-stepper" data-for="anzahlHilfssehnen" data-step="1">+</button>
+                        </div>
+                         <div class="input-info"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="action-buttons">
+                    <button id="export-pdf-button" class="btn btn-primary" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 2.75a.75.75 0 00-1.5 0v8.25h-3.25a.75.75 0 00-.53 1.28l4 4a.75.75 0 001.06 0l4-4a.75.75 0 00-.53-1.28h-3.25V2.75z" /><path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" /></svg>
+                        Als PDF exportieren
+                    </button>
+                    <button id="export-dxf-button" class="btn btn-secondary" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4.25 2A2.25 2.25 0 002 4.25v2.5a.75.75 0 001.5 0v-2.5a.75.75 0 01.75-.75h2.5a.75.75 0 000-1.5h-2.5zM13.25 2a.75.75 0 000 1.5h2.5a.75.75 0 01.75.75v2.5a.75.75 0 001.5 0v-2.5A2.25 2.25 0 0015.75 2h-2.5zM18 13.25a.75.75 0 00-1.5 0v2.5a.75.75 0 01-.75.75h-2.5a.75.75 0 000 1.5h2.5A2.25 2.25 0 0018 15.75v-2.5zM6.75 18a.75.75 0 000-1.5h-2.5a.75.75 0 01-.75-.75v-2.5a.75.75 0 00-1.5 0v2.5A2.25 2.25 0 004.25 18h2.5z" clip-rule="evenodd" /><path d="M10 6.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7z" /></svg>
+                        DXF (CNC)
+                    </button>
+                    <button id="export-image-button" class="btn btn-secondary" disabled>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M1 5.25A2.25 2.25 0 013.25 3h13.5A2.25 2.25 0 0119 5.25v9.5A2.25 2.25 0 0116.75 17H3.25A2.25 2.25 0 011 14.75v-9.5zm1.5 5.81v3.69c0 .414.336.75.75.75h13.5a.75.75 0 00.75-.75v-2.81l-2.12-2.12a.75.75 0 00-1.06 0L9.53 14.47a.75.75 0 01-1.06 0L6.22 12.22a.75.75 0 00-1.06 0L2.5 14.81zM16.75 4.5a.75.75 0 00-.75.75v4.51l-2.124-2.123a.75.75 0 00-1.06 0L9.53 10.94l-1.72-1.72a.75.75 0 00-1.06 0L3.25 12.72V5.25c0-.414.336-.75.75-.75h12zM9.5 7.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" clip-rule="evenodd" /></svg>
+                        Bild (PNG)
+                    </button>
+                    <button id="reset-button" class="btn btn-secondary">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 01-9.201-4.441 5.5 5.5 0 019.201 4.441zM1.953 8.374a.75.75 0 011.06 0l1.01 1.01a.75.75 0 11-1.06 1.06l-1.01-1.01a.75.75 0 010-1.06zM11.22 2.72a.75.75 0 010 1.06l-1.01 1.01a.75.75 0 01-1.06-1.06l1.01-1.01a.75.75 0 011.06 0zM17.25 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 01.75.75zM16.188 6.312a.75.75 0 111.06-1.06l1.01 1.01a.75.75 0 11-1.06 1.06l-1.01-1.01zM10 15.75a.75.75 0 01.75.75v1.5a.75.75 0 01-1.5 0v-1.5a.75.75 0 01.75-.75zM6.312 16.188a.75.75 0 11-1.06 1.06l-1.01-1.01a.75.75 0 111.06-1.06l1.01 1.01zM3.5 10a.75.75 0 01-.75.75h-1.5a.75.75 0 010-1.5h1.5a.75.75 0 01.75.75z" clip-rule="evenodd" /></svg>
+                        Reset
+                    </button>
+                </div>
+            </div>
+            <div class="card">
+                <div id="canvas-container">
+                    <canvas id="canvas"></canvas>
+                    <div id="loading-overlay">Berechnung läuft.</div>
+                    <div class="canvas-controls">
+                        <button class="control-btn" id="zoom-in" title="Vergrößern">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" /></svg>
+                        </button>
+                        <button class="control-btn" id="zoom-out" title="Verkleinern">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 10a.75.75 0 01.75-.75h10.5a.75.75 0 010 1.5H4.75A.75.75 0 014 10z" clip-rule="evenodd" /></svg>
+                        </button>
+                        <button class="control-btn" id="zoom-fit" title="Einpassen">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.25 3.25a.75.75 0 00-.75.75v3.5a.75.75 0 001.5 0v-3.5h3.5a.75.75 0 000-1.5h-4.25zM12.75 2.5a.75.75 0 000 1.5h3.5v3.5a.75.75 0 001.5 0v-4.25a.75.75 0 00-.75-.75h-4.25zM17.5 12.75a.75.75 0 00-1.5 0v3.5h-3.5a.75.75 0 000 1.5h4.25a.75.75 0 00.75-.75v-4.25zM2.5 12.75a.75.75 0 001.5 0v3.5h3.5a.75.75 0 000 1.5h-4.25a.75.75 0 00-.75-.75v-4.25z" clip-rule="evenodd" /></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card legend">
+                <div class="legend-grid">
+                    <div class="legend-section">
+                        <h3>Geometrie & Radien</h3>
+                        <ul id="legend-geometric" class="legend-list"></ul>
+                    </div>
+                    <div class="legend-section">
+                        <h3>Anleitung (Werkstatt)</h3>
+                        <ol id="legend-instructions" class="legend-instructions"></ol>
+                    </div>
+                    <div class="legend-section">
+                        <h3>Abkantung & Anriss</h3>
+                        <ul id="legend-bending" class="legend-list"></ul>
+                    </div>
+                </div>
+
+                <div class="legend-extra-container">
+                    <details id="legend-extra-details">
+                        <summary>
+                            <span class="legend-extra-title">
+                                <span>Erweiterte Maße &amp; Hilfswerte</span>
+                            </span>
+                        </summary>
+                        <div class="legend-extra-grid">
+                            <div class="legend-section">
+                                <h3>Geometrie (erweitert)</h3>
+                                <ul id="legend-geometric-extra" class="legend-list"></ul>
+                            </div>
+                            <div class="legend-section">
+                                <h3>Abkantung &amp; Anriss (erweitert)</h3>
+                                <ul id="legend-bending-extra" class="legend-list"></ul>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </div>
+        </main>
+        <footer><!-- Wird per JS befüllt --></footer>
+    </div>
+<script>
+(function() {
+    'use strict';
+
+    // --- 1. KONFIGURATION & ZUSTAND ---
+    const CONFIG = {
+        VERSION: "2.3.2",
+        ZOOM_SENSITIVITY: 1.1, MIN_ZOOM: 0.1, MAX_ZOOM: 20, DEBOUNCE_DELAY: 250,
+        ALLOWANCE_1: 1.5, ALLOWANCE_2: 3.0,
+        PDF: { MARGIN: 10, HEADER_HEIGHT: 20, LEGEND_WIDTH: 90, LINE_WIDTH_FACTOR: 0.25, HELPER_POINT_RADIUS: 0.7 },
+        STORAGE_KEY: 'kegelstumpf_data_v2'
+    };
+    const state = {
+        lastCalculation: {},
+        inputMode: { unten: 'radius', oben: 'radius' },
+        drawingElements: {}, drawingColors: {},
+        transform: { scale: 1, userOffsetX: 0, userOffsetY: 0, initialOffsetX: 0, initialOffsetY: 0 },
+        interaction: { isInteracting: false, lastPointerPosition: { x: 0, y: 0 }, lastPinchDistance: 0 },
+        animationFrameId: null, debounceTimer: null,
+        lastCanvasSize: { w: 0, h: 0 }
+    };
+    const dom = {
+        canvas: document.getElementById('canvas'), ctx: document.getElementById('canvas').getContext('2d'),
+        canvasContainer: document.getElementById('canvas-container'),
+        inputs: {
+            radiusUnter: document.getElementById('radiusUnter'), radiusOben: document.getElementById('radiusOben'),
+            hoehe: document.getElementById('hoehe'), segmente: document.getElementById('segmente'),
+            anzahlHilfssehnen: document.getElementById('anzahlHilfssehnen'),
+        },
+        infos: { unten: document.getElementById('info-unten'), oben: document.getElementById('info-oben') },
+        buttons: {
+            exportPdf: document.getElementById('export-pdf-button'), 
+            exportDxf: document.getElementById('export-dxf-button'),
+            exportImage: document.getElementById('export-image-button'),
+            resetView: document.getElementById('reset-button'), themeToggle: document.getElementById('theme-toggle'),
+            zoomIn: document.getElementById('zoom-in'), 
+            zoomOut: document.getElementById('zoom-out'), 
+            zoomFit: document.getElementById('zoom-fit'), 
+        },
+        modeSelectors: { unten: document.querySelectorAll('.mode-btn[data-type="unten"]'), oben: document.querySelectorAll('.mode-btn[data-type="oben"]') },
+        legends: {
+            geometric: document.getElementById('legend-geometric'),
+            bending: document.getElementById('legend-bending'),
+            geometricExtra: document.getElementById('legend-geometric-extra'),
+            bendingExtra: document.getElementById('legend-bending-extra')
+        },
+        overlays: { loading: document.getElementById('loading-overlay'), toast: document.getElementById('toast-container') }
+    };
+    
+    // --- 2. FUNKTIONEN ---
+
+    function calculateAndPrepareDrawing() {
+        showLoading(true);
+        // Buttons deaktivieren, falls sie existieren
+        [dom.buttons.exportPdf, dom.buttons.exportDxf, dom.buttons.exportImage].forEach(b => { if(b) b.disabled = true; });
+        
+        setTimeout(() => {
+            try {
+                const inputs = getInputs();
+                if (!inputs || !validateInputs(inputs)) { 
+                    // showLoading(false) wird im finally-Block aufgerufen
+                    return; 
+                }
+                
+                saveState();
+
+                const baseGeo = calculateGeometry(inputs);
+                const derivedMetrics = calculateDerivedMetrics({ ...inputs, ...baseGeo });
+                state.lastCalculation = { ...inputs, ...baseGeo, ...derivedMetrics };
+                state.drawingElements = createDrawingElements(state.lastCalculation);
+                
+                updateLegendUI();
+                updateInstructionUI(); 
+                resetView();
+                
+                // Buttons aktivieren
+                [dom.buttons.exportPdf, dom.buttons.exportDxf, dom.buttons.exportImage].forEach(b => { if(b) b.disabled = false; });
+
+            } catch (e) {
+                console.error("Critical Error during calculation:", e);
+                showToast("Ein Fehler ist aufgetreten. Bitte Seite neu laden.", 'warning');
+            } finally {
+                showLoading(false); // WICHTIG: Immer Lade-Overlay entfernen
+            }
+        }, 10);
+    }
+
+    function debouncedCalculate() {
+        clearTimeout(state.debounceTimer);
+        showLoading(true);
+        state.debounceTimer = setTimeout(calculateAndPrepareDrawing, CONFIG.DEBOUNCE_DELAY);
+    }
+    
+    function showLoading(isLoading) { if(dom.overlays.loading) dom.overlays.loading.style.display = isLoading ? 'flex' : 'none'; }
+    function showToast(message, type = 'error') {
+        if(!dom.overlays.toast) return;
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        toast.textContent = message;
+        dom.overlays.toast.appendChild(toast);
+        setTimeout(() => { toast.classList.add('fade-out'); toast.addEventListener('animationend', () => toast.remove()); }, 4000);
+    }
+    
+    function saveState() {
+        try {
+            const data = {
+                r1: dom.inputs.radiusUnter.value, r2: dom.inputs.radiusOben.value,
+                h: dom.inputs.hoehe.value, seg: dom.inputs.segmente.value,
+                hilfs: dom.inputs.anzahlHilfssehnen.value,
+                modeUnten: state.inputMode.unten, modeOben: state.inputMode.oben
+            };
+            localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(data));
+        } catch (e) { console.warn("LocalStorage access failed"); }
+    }
+
+    function loadState() {
+        try {
+            const raw = localStorage.getItem(CONFIG.STORAGE_KEY);
+            if (!raw) return;
+            const data = JSON.parse(raw);
+            if (data.r1) dom.inputs.radiusUnter.value = data.r1;
+            if (data.r2) dom.inputs.radiusOben.value = data.r2;
+            if (data.h) dom.inputs.hoehe.value = data.h;
+            if (data.seg) dom.inputs.segmente.value = data.seg;
+            if (data.hilfs) dom.inputs.anzahlHilfssehnen.value = data.hilfs;
+            if (data.modeUnten) toggleInputMode('unten', data.modeUnten, false);
+            if (data.modeOben) toggleInputMode('oben', data.modeOben, false);
+        } catch (e) { console.warn("Error loading state"); }
+    }
+
+    function getInputs() {
+        let r1_val = parseFloat(dom.inputs.radiusUnter.value);
+        let r2_val = parseFloat(dom.inputs.radiusOben.value);
+        const r1 = state.inputMode.unten === 'umfang' ? r1_val / (2 * Math.PI) : r1_val;
+        const r2 = state.inputMode.oben === 'umfang' ? r2_val / (2 * Math.PI) : r2_val;
+        const h = parseFloat(dom.inputs.hoehe.value);
+        const n = parseInt(dom.inputs.segmente.value);
+        const anzahlHilfssehnen = parseInt(dom.inputs.anzahlHilfssehnen.value);
+        if ([r1, r2, h, n, anzahlHilfssehnen].some(isNaN)) {
+            showToast('Bitte alle Felder mit gültigen Zahlen füllen.'); return null;
+        }
+        return { r1, r2, h, n, anzahlHilfssehnen };
+    }
+
+    function validateInputs({r1, r2, h}) {
+        let isValid = true;
+        if (r1 <= 0 || h <= 0) { showToast('Großer Radius und Höhe müssen > 0 sein.'); isValid = false; }
+        if (r2 < 0) { showToast('Kleiner Radius darf nicht negativ sein.'); isValid = false; }
+        if (r1 <= r2) { showToast('Großer Radius (unten) muss größer als der kleine Radius (oben) sein.'); isValid = false; }
+        if (Math.abs(r1 - r2) < 0.001) { showToast('Gleiche Radien (Zylinder) werden nicht unterstützt.', 'warning'); isValid = false; }
+        return isValid;
+    }
+    
+    function calculateGeometry({r1, r2, h}) {
+        const rDiff = r1 - r2;
+        if (Math.abs(rDiff) < 0.000001) return { s:0, S1:0, S2:0, hFull:0, L1:0, L2:0, theta:0 };
+        const s = Math.hypot(h, rDiff); 
+        const S1 = (r1 * s) / rDiff; 
+        const S2 = (r2 * s) / rDiff;
+        const hFull = (S1 > r1) ? Math.sqrt(S1*S1 - r1*r1) : 0;
+        const L1 = r1 * 2 * Math.PI;
+        const L2 = r2 * 2 * Math.PI;
+        const theta = S1 !== 0 && isFinite(S1) ? (L1 / S1) : 0;
+        return { s, S1, S2, hFull, L1, L2, theta };
+    }
+
+    function calculateDerivedMetrics({n, anzahlHilfssehnen, L1, L2, S1, S2, theta}) {
+        const segDistL = L1 / n; const segDistS = L2 / n; const abkippWert = 360 / n;
+        const subAngle = theta / (anzahlHilfssehnen * 2); 
+        const chordLengthOuter = 2 * S1 * Math.sin(subAngle / 2);
+        const chordLengthInner = 2 * S2 * Math.sin(subAngle / 2);
+        return { segDistL, segDistS, abkippWert, chordLengthOuter, chordLengthInner };
+    }
+
+    function createDrawingElements({S1, S2, theta, n, anzahlHilfssehnen}) {
+        if (!S1 || !isFinite(S1)) return {};
+        const elements = { arcs: [], mantleLines: [], segmentLines: [], allowancePolygons: [], centerHelperLines: [], centerLine: [], centerPoint: {}, helperPoints: [] };
+        const startAngle = -theta / 2 + Math.PI / 2;
+        const centerX = 0, centerY = 0;
+        // ÄNDERUNG: lineWidth von 2 auf 3 erhöht
+        elements.arcs.push({ radius: S1, startAngle, endAngle: startAngle + theta, color: state.drawingColors.outerArc, lineWidth: 3, type: 'radius_S1' });
+        if (S2 > 0) elements.arcs.push({ radius: S2, startAngle, endAngle: startAngle + theta, color: state.drawingColors.innerArc, lineWidth: 3, type: 'radius_S2' });
+        const segmentTheta = theta / n;
+        for (let i = 0; i <= n; i++) {
+            const currentTheta = startAngle + i * segmentTheta;
+            const cos = Math.cos(currentTheta), sin = Math.sin(currentTheta);
+            const pInner = { x: centerX + S2 * cos, y: centerY + S2 * sin };
+            const pOuter = { x: centerX + S1 * cos, y: centerY + S1 * sin };
+            const line = { x1: pInner.x, y1: pInner.y, x2: pOuter.x, y2: pOuter.y };
+            if (i === 0 || i === n) {
+                // ÄNDERUNG: lineWidth von 2 auf 2.5 erhöht
+                elements.mantleLines.push({ ...line, color: state.drawingColors.mantle, lineWidth: 2.5, type: 'mantleLine' });
+                elements.centerHelperLines.push({ x1: centerX, y1: centerY, x2: pOuter.x, y2: pOuter.y, color: state.drawingColors.centerHelper, lineWidth: 1.5, dashed: true, type: 'centerHelper' });
+            } else {
+                // ÄNDERUNG: lineWidth von 1 auf 1 erhöht
+                elements.segmentLines.push({ ...line, color: state.drawingColors.segmentLines, lineWidth: 1, dashed: true, type: 'segmentLine' });
+            }
+        }
+        const midAngle = startAngle + theta / 2;
+        elements.centerLine.push({
+            x1: centerX, y1: centerY,
+            x2: centerX + S1 * Math.cos(midAngle), y2: centerY + S1 * Math.sin(midAngle),
+            color: state.drawingColors.centerLine, lineWidth: 1.5, dashed: true, type: 'centerLine'
+        });
+        elements.centerPoint = { x: centerX, y: centerY, radius: 4, color: state.drawingColors.centerHelper, type: 'centerPoint' };
+        const [firstMantle, lastMantle] = elements.mantleLines;
+        if (firstMantle && lastMantle) {
+            [{ line: firstMantle, allowance: CONFIG.ALLOWANCE_1 }, { line: lastMantle, allowance: CONFIG.ALLOWANCE_2 }].forEach(({ line, allowance }) => {
+                const dx = line.x2 - line.x1, dy = line.y2 - line.y1; const len = Math.hypot(dx, dy);
+                const nx = -dy / len, ny = dx / len;
+                elements.allowancePolygons.push({
+                    points: [ {x: line.x1, y: line.y1}, {x: line.x2, y: line.y2}, {x: line.x2 + nx * allowance, y: line.y2 + ny * allowance}, {x: line.x1 + nx * allowance, y: line.y1 + ny * allowance} ],
+                    color: state.drawingColors.allowance, type: 'allowance'
+                });
+            });
+        }
+        const subAngle = theta / (anzahlHilfssehnen * 2);
+        const midAngleHL = startAngle + theta / 2;
+        for (let k = -anzahlHilfssehnen; k <= anzahlHilfssehnen; k++) {
+            const currentTheta = midAngleHL + k * subAngle;
+            const cos = Math.cos(currentTheta), sin = Math.sin(currentTheta);
+            // ÄNDERUNG: Punkte etwas größer (Radius 2.5)
+            elements.helperPoints.push({ x: centerX + S1 * cos, y: centerY + S1 * sin, radius: 2.5, color: state.drawingColors.helper, type: 'helperPoint' });
+            if (S2 > 0) elements.helperPoints.push({ x: centerX + S2 * cos, y: centerY + S2 * sin, radius: 2.5, color: state.drawingColors.helper, type: 'helperPoint' });
+        }
+        return elements;
+    }
+
+    function renderCanvas() {
+        if (!state.drawingElements.arcs) return;
+        const dpr = window.devicePixelRatio || 1; 
+        const T = state.transform;
+        
+        dom.ctx.save();
+        dom.ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--canvas-bg').trim();
+        // Canvas löschen
+        dom.ctx.fillRect(0, 0, dom.canvas.width / dpr, dom.canvas.height / dpr);
+        
+        // KORREKTUR: Transform muss DPR berücksichtigen!
+        // Wir setzen die Matrix: Scale X, Skew Y, Skew X, Scale Y, Trans X, Trans Y
+        dom.ctx.setTransform(dpr, 0, 0, dpr, 0, 0); 
+        
+        // Jetzt die User-Transformationen anwenden
+        dom.ctx.translate(T.initialOffsetX + T.userOffsetX, T.initialOffsetY + T.userOffsetY);
+        dom.ctx.scale(T.scale, T.scale);
+        
+        // Zeichnungs-Funktionen (Linienstärke angepasst wie in V2.1.3)
+        const drawPoint = (p) => { 
+            dom.ctx.beginPath(); 
+            dom.ctx.arc(p.x, p.y, p.radius / T.scale, 0, 2 * Math.PI); 
+            dom.ctx.fillStyle = p.isHighlighted ? state.drawingColors.highlightStroke : p.color; 
+            dom.ctx.fill(); 
+        };
+        
+        const drawArc = (a) => { 
+            dom.ctx.beginPath(); 
+            dom.ctx.arc(0, 0, a.radius, a.startAngle, a.endAngle); 
+            dom.ctx.strokeStyle = a.isHighlighted ? state.drawingColors.highlightStroke : a.color; 
+            // KORREKTUR: Linienstärke nicht durch T.scale teilen, damit sie beim Zoomen "mitwächst" (bessere Sichtbarkeit)
+            // Oder nur leicht skalieren. Hier die V2.1.3 Logik:
+            dom.ctx.lineWidth = (a.isHighlighted ? a.lineWidth + 2 : a.lineWidth) / T.scale; 
+            dom.ctx.stroke(); 
+        };
+        
+        const drawLine = (l) => { 
+            dom.ctx.beginPath(); 
+            dom.ctx.moveTo(l.x1, l.y1); 
+            dom.ctx.lineTo(l.x2, l.y2); 
+            dom.ctx.strokeStyle = l.isHighlighted ? state.drawingColors.highlightStroke : l.color; 
+            dom.ctx.lineWidth = (l.isHighlighted ? l.lineWidth + 2 : l.lineWidth) / T.scale; 
+            if (l.dashed) { dom.ctx.setLineDash([4 / T.scale, 4 / T.scale]); } 
+            dom.ctx.stroke(); 
+            dom.ctx.setLineDash([]); 
+        };
+        
+        const drawPolygon = (p) => { 
+            dom.ctx.beginPath(); 
+            dom.ctx.moveTo(p.points[0].x, p.points[0].y); 
+            for (let i = 1; i < p.points.length; i++) { dom.ctx.lineTo(p.points[i].x, p.points[i].y); } 
+            dom.ctx.closePath(); 
+            dom.ctx.fillStyle = p.isHighlighted ? state.drawingColors.highlightStroke + '80' : p.color; 
+            dom.ctx.fill(); 
+        };
+
+        state.drawingElements.allowancePolygons.forEach(drawPolygon);
+        [...state.drawingElements.mantleLines, ...state.drawingElements.segmentLines, ...state.drawingElements.centerHelperLines, ...state.drawingElements.centerLine].forEach(drawLine);
+        state.drawingElements.arcs.forEach(drawArc);
+        if (state.drawingElements.centerPoint) drawPoint(state.drawingElements.centerPoint);
+        state.drawingElements.helperPoints.forEach(drawPoint);
+        
+        dom.ctx.restore();
+    }
+    
+    function requestRender() { if (state.animationFrameId) cancelAnimationFrame(state.animationFrameId); state.animationFrameId = requestAnimationFrame(renderCanvas); }
+    function setupCanvas() { const dpr = window.devicePixelRatio || 1; const rect = dom.canvas.getBoundingClientRect(); dom.canvas.width = rect.width * dpr; dom.canvas.height = rect.height * dpr; dom.ctx.setTransform(1, 0, 0, 1, 0, 0); dom.ctx.scale(dpr, dpr); }
+    
+    function resizeCanvas() { 
+        // Einfachere Logik: Immer anpassen bei Resize, damit Zentrierung stimmt
+        setupCanvas(); 
+        centerView();
+    }
+
+    function getBoundingBox(elements) { if (!elements.arcs || !elements.arcs.length) return null; let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity; const allPoints = [{x:0, y:0}, ...(elements.allowancePolygons || []).flatMap(p => p.points)]; elements.arcs.forEach(arc => { const r = arc.radius; for (let i = 0; i <= 20; i++) { const angle = arc.startAngle + (arc.endAngle - arc.startAngle) * (i / 20); allPoints.push({ x: Math.cos(angle) * r, y: Math.sin(angle) * r }); } }); allPoints.forEach(p => { minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x); minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y); }); return { minX, maxX, minY, maxY, width: maxX - minX, height: maxY - minY }; }
+    function centerView() { if (!state.drawingElements.arcs || !state.drawingElements.arcs.length) return; const padding = 40, bb = getBoundingBox(state.drawingElements); if (!bb || bb.width === 0 || bb.height === 0) return; const scaleX = (dom.canvasContainer.clientWidth - padding * 2) / bb.width; const scaleY = (dom.canvasContainer.clientHeight - padding * 2) / bb.height; state.transform.scale = Math.min(scaleX, scaleY, CONFIG.MAX_ZOOM); state.transform.initialOffsetX = dom.canvasContainer.clientWidth / 2 - (bb.minX + bb.width / 2) * state.transform.scale; state.transform.initialOffsetY = dom.canvasContainer.clientHeight / 2 - (bb.minY + bb.height / 2) * state.transform.scale; state.transform.userOffsetX = 0; state.transform.userOffsetY = 0; requestRender(); }
+    function resetView() { centerView(); }
+    
+    function handlePointerDown(e) { e.preventDefault(); state.interaction.isInteracting = true; if (e.touches) { if (e.touches.length === 1) { state.interaction.lastPointerPosition = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } else if (e.touches.length >= 2) { state.interaction.lastPinchDistance = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); } } else { dom.canvas.style.cursor = 'grabbing'; state.interaction.lastPointerPosition = { x: e.clientX, y: e.clientY }; } }
+    function handlePointerMove(e) { if (!state.interaction.isInteracting) return; e.preventDefault(); if (e.touches) { if (e.touches.length === 1) { const cP = { x: e.touches[0].clientX, y: e.touches[0].clientY }; state.transform.userOffsetX += cP.x - state.interaction.lastPointerPosition.x; state.transform.userOffsetY += cP.y - state.interaction.lastPointerPosition.y; state.interaction.lastPointerPosition = cP; } else if (e.touches.length >= 2) { const pD = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY); if (state.interaction.lastPinchDistance > 0) applyZoom(pD / state.interaction.lastPinchDistance, { x: (e.touches[0].clientX + e.touches[1].clientX) / 2, y: (e.touches[0].clientY + e.touches[1].clientY) / 2 }); state.interaction.lastPinchDistance = pD; } } else { const cP = { x: e.clientX, y: e.clientY }; state.transform.userOffsetX += cP.x - state.interaction.lastPointerPosition.x; state.transform.userOffsetY += cP.y - state.interaction.lastPointerPosition.y; state.interaction.lastPointerPosition = cP; } requestRender(); }
+    function handlePointerUp() { state.interaction.isInteracting = false; state.interaction.lastPinchDistance = 0; dom.canvas.style.cursor = 'grab'; }
+    function handleWheel(e) { e.preventDefault(); applyZoom(e.deltaY < 0 ? CONFIG.ZOOM_SENSITIVITY : 1 / CONFIG.ZOOM_SENSITIVITY, { x: e.clientX, y: e.clientY }); }
+    function applyZoom(factor, origin) { const newScale = Math.max(CONFIG.MIN_ZOOM, Math.min(CONFIG.MAX_ZOOM, state.transform.scale * factor)); const rect = dom.canvas.getBoundingClientRect(); const mouseX = origin.x - rect.left, mouseY = origin.y - rect.top; const scaleChange = newScale / state.transform.scale; state.transform.userOffsetX = (state.transform.userOffsetX - (mouseX - state.transform.initialOffsetX)) * scaleChange + (mouseX - state.transform.initialOffsetX); state.transform.userOffsetY = (state.transform.userOffsetY - (mouseY - state.transform.initialOffsetY)) * scaleChange + (mouseY - state.transform.initialOffsetY); state.transform.scale = newScale; requestRender(); }
+
+    // --- LEGENDE ---
+    function getLegendData() {
+        const d = state.lastCalculation;
+        if (!d.S1) return { geometric: [], bending: [] };
+        const format = (val) => val.toFixed(2);
+        // ÄNDERUNG: Sonderzeichen (₁, ₂, θ) durch ASCII (1, 2, Theta) ersetzt für PDF-Kompatibilität
+        return {
+            geometric: [
+                { isCore: true, color: state.drawingColors.centerHelper, label: 'Zirkelpunkt (Z)', value: 'Mittelpunkt', type: 'centerPoint' },
+                { isCore: true, color: state.drawingColors.outerArc, label: 'Radius gr. Bogen (S1)', value: `${format(d.S1)} cm`, type: 'radius_S1' },
+                { isCore: true, color: state.drawingColors.innerArc, label: 'Radius kl. Bogen (S2)', value: d.S2 > 0 ? `${format(d.S2)} cm` : '–', type: 'radius_S2' },
+                { isCore: true, color: state.drawingColors.mantle, label: 'Mantellinie (s)', value: `${format(d.s)} cm`, type: 'mantleLine' },
+                { isCore: true, color: state.drawingColors.centerLine, label: 'Sektorwinkel (Theta)', value: `${(d.theta * 180 / Math.PI).toFixed(2)} Grad`, type: 'centerLine' },
+                { isCore: false, color: state.drawingColors.centerLine, label: 'Mittellinie (Sektor = S1)', value: `${format(d.S1)} cm`, type: 'centerLine' },
+                { isCore: false, color: 'var(--text-secondary)', label: 'Gesamthöhe Kegel (H0)', value: `${format(d.hFull)} cm`, type: 'none' },
+            ],
+            bending: [
+                { isCore: true, color: state.drawingColors.outerArc, label: 'Äußere Bogenlänge (L1)', value: `${format(d.L1)} cm`, type: 'radius_S1' },
+                { isCore: true, color: state.drawingColors.innerArc, label: 'Innere Bogenlänge (L2)', value: d.L2 > 0 ? `${format(d.L2)} cm` : '–', type: 'radius_S2' },
+                { isCore: true, color: state.drawingColors.segmentLines, label: 'Abstand Abkantung (Gr.)', value: `${format(d.segDistL)} cm`, type: 'segmentLine' },
+                { isCore: true, color: state.drawingColors.segmentLines, label: 'Abstand Abkantung (Kl.)', value: d.segDistS > 0 ? `${format(d.segDistS)} cm` : '–', type: 'segmentLine' },
+                { isCore: true, color: state.drawingColors.helper, label: 'Hilfssehne Groß (c1)', value: `${format(d.chordLengthOuter)} cm`, type: 'helperPoint' },
+                { isCore: true, color: state.drawingColors.helper, label: 'Hilfssehne Klein (c2)', value: d.chordLengthInner > 0 ? `${format(d.chordLengthInner)} cm` : '–', type: 'helperPoint' },
+                { isCore: true, color: state.drawingColors.allowance, label: 'Falz-Zugabe', value: `${CONFIG.ALLOWANCE_1} & ${CONFIG.ALLOWANCE_2} cm`, type: 'allowance' },
+                { isCore: false, color: 'var(--text-secondary)', label: 'Abkant-Winkel', value: `${format(d.abkippWert)} Grad`, type: 'none' },
+            ]
+        };
+    }
+    
+    function updateLegendUI() {
+        if (!state.lastCalculation.S1) return;
+        const legendData = getLegendData();
+        const createLegendItemHTML = (item) => `<li data-type="${item.type}"><span class="color-box" style="background-color:${item.color};"></span><div class="legend-text"><div class="legend-item-wrapper"><span class="legend-label">${item.label}</span><span class="legend-value">${item.value}</span></div></div></li>`;
+        if(dom.legends.geometric) dom.legends.geometric.innerHTML = legendData.geometric.filter(i => i.isCore).map(createLegendItemHTML).join('');
+        if(dom.legends.bending) dom.legends.bending.innerHTML = legendData.bending.filter(i => i.isCore).map(createLegendItemHTML).join('');
+        if (dom.legends.geometricExtra) dom.legends.geometricExtra.innerHTML = legendData.geometric.filter(i => !i.isCore).map(createLegendItemHTML).join('');
+        if (dom.legends.bendingExtra) dom.legends.bendingExtra.innerHTML = legendData.bending.filter(i => !i.isCore).map(createLegendItemHTML).join('');
+
+        document.querySelectorAll('.legend-list li').forEach(li => {
+            const type = li.dataset.type; if (type === 'none') return;
+            li.addEventListener('mouseenter', () => { li.classList.add('highlighted'); Object.values(state.drawingElements).flat().forEach(el => { if(el && el.type === type) el.isHighlighted = true; }); requestRender(); });
+            li.addEventListener('mouseleave', () => { li.classList.remove('highlighted'); Object.values(state.drawingElements).flat().forEach(el => { if(el && el.type === type) el.isHighlighted = false; }); requestRender(); });
+        });
+    }
+
+    function getInstructionSteps() {
+        const d = state.lastCalculation || {};
+        if (!d || !d.S1) return [];
+        const fmt = (v) => (typeof v === 'number' ? v.toFixed(2) : v);
+        const steps = [];
+        
+        // 1. Zirkelschlag
+        steps.push(`Zirkel auf S1 = ${fmt(d.S1)} cm einstellen und vom Zirkelpunkt (Z) den Außenbogen schlagen.` + ((d.S2 && d.S2 > 0) ? ` Zusätzlich: S2 = ${fmt(d.S2)} cm für den Innenbogen.` : ''));
+        
+        // 2. Mittellinie
+        steps.push(`Mittellinie (radial) von Z zur Bogenkrone markieren.`);
+        
+        // 3. Sektorbreite & Step-off (KORREKTUR: c2 Logik eingefügt)
+        var deg = d.theta ? (d.theta * 180 / Math.PI) : 0;
+        var c1 = d.chordLengthOuter ? fmt(d.chordLengthOuter) : '–';
+        var c2 = d.chordLengthInner ? fmt(d.chordLengthInner) : '–';
+        
+        // Text dynamisch aufbauen
+        let stepText = `Sektorbreite: Winkel +/- ${fmt(deg/2)} Grad ab Mittellinie, oder Step-off: Außen je ${d.anzahlHilfssehnen}x mit c1 = ${c1} cm`;
+        
+        // Wenn Innenradius existiert, auch c2 anzeigen
+        if (d.S2 > 0 && c2 !== '–') {
+            stepText += `, Innen je ${d.anzahlHilfssehnen}x mit c2 = ${c2} cm`;
+        }
+        stepText += `.`;
+        
+        steps.push(stepText);
+        
+        // 4. Zugaben
+        steps.push(`Falz-Zugaben an den Mantellinien anreißen.`);
+        
+        return steps;
+    }
+    function updateInstructionUI() { const ol = document.getElementById('legend-instructions'); if (ol) ol.innerHTML = getInstructionSteps().map(s => `<li>${s}</li>`).join(''); }
+
+    function updateInfoText(type) {
+        const inputEl = (type === 'unten') ? dom.inputs.radiusUnter : dom.inputs.radiusOben;
+        const infoEl = (type === 'unten') ? dom.infos.unten : dom.infos.oben;
+        const val = parseFloat(inputEl.value);
+        infoEl.textContent = isNaN(val) ? '' : (state.inputMode[type] === 'radius' ? `Umfang: ${(val * 2 * Math.PI).toFixed(2)} cm` : `Radius: ${(val / (2 * Math.PI)).toFixed(2)} cm`);
+    }
+
+    function toggleInputMode(type, newMode, convertValue = true) {
+        const oldMode = state.inputMode[type]; if (oldMode === newMode) return;
+        state.inputMode[type] = newMode;
+        if (convertValue) {
+            const inputEl = (type === 'unten') ? dom.inputs.radiusUnter : dom.inputs.radiusOben;
+            let val = parseFloat(inputEl.value);
+            if (!isNaN(val)) inputEl.value = (oldMode === 'radius' && newMode === 'umfang' ? val * 2 * Math.PI : val / (2 * Math.PI)).toFixed(2);
+        }
+        dom.modeSelectors[type].forEach(btn => btn.classList.toggle('active', btn.dataset.mode === newMode));
+        updateInfoText(type); debouncedCalculate();
+    }
+
+    // --- EXPORT PDF & DXF ---
+    function parseColor(input) {
+        if (!input) return [0, 0, 0];
+        if (input.startsWith('#')) {
+            let hex = input.slice(1); if (hex.length === 3) hex = hex.split('').map(c=>c+c).join('');
+            const b = parseInt(hex, 16); return [(b >> 16) & 255, (b >> 8) & 255, b & 255];
+        }
+        const m = input.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/); return m ? [parseInt(m[1]), parseInt(m[2]), parseInt(m[3])] : [0, 0, 0]; 
+    }
+
+    function exportAsVectorPDF() {
+        if (!window.jspdf) return; if (!state.lastCalculation.S1) return; showLoading(true);
+        setTimeout(() => {
+            try {
+                const { jsPDF } = window.jspdf; 
+                // PDF erstellen (Querformat)
+                const pdf = new jsPDF('l', 'mm', 'a4');
+                const C = CONFIG.PDF; 
+                const pageW = pdf.internal.pageSize.getWidth();
+                const pageH = pdf.internal.pageSize.getHeight();
+                
+                // Bereich für Legende rechts definieren
+                const legendX = pageW - C.LEGEND_WIDTH - C.MARGIN;
+                
+                // Zeichnungsbereich links definieren
+                const drawArea = { x: C.MARGIN, y: C.HEADER_HEIGHT, w: legendX - C.MARGIN * 2, h: pageH - C.HEADER_HEIGHT - C.MARGIN };
+                
+                // 1. Bounding Box & Skalierung
+                const bb = getBoundingBox(state.drawingElements);
+                if (!bb || bb.width === 0) throw new Error("Empty BoundingBox");
+                
+                const scale = Math.min(drawArea.w / bb.width, drawArea.h / bb.height) * 0.95;
+                const offsetX = drawArea.x + drawArea.w / 2 - (bb.minX + bb.width / 2) * scale;
+                const offsetY = drawArea.y + drawArea.h / 2 - (bb.minY + bb.height / 2) * scale;
+                const toPdf = p => ({ x: p.x * scale + offsetX, y: p.y * scale + offsetY });
+                
+                // 2. Zeichnungselemente rendern
+                state.drawingElements.allowancePolygons.forEach(p => { const [r,g,b]=parseColor(p.color); pdf.setFillColor(r,g,b).path(p.points.map(toPdf).map((pt, i) => ({ op: i===0?'m':'l', c:[pt.x, pt.y] }))).close().fill('F'); });
+                
+                [...state.drawingElements.mantleLines, ...state.drawingElements.segmentLines, ...state.drawingElements.centerHelperLines, ...state.drawingElements.centerLine].forEach(l => {
+                    const [r,g,b]=parseColor(l.color); pdf.setDrawColor(r,g,b).setLineWidth(l.lineWidth*C.LINE_WIDTH_FACTOR);
+                    if(l.dashed) pdf.setLineDashPattern([2,2],0);
+                    const p1=toPdf({x:l.x1,y:l.y1}), p2=toPdf({x:l.x2,y:l.y2}); pdf.line(p1.x,p1.y,p2.x,p2.y);
+                    if(l.dashed) pdf.setLineDashPattern([],0);
+                });
+                
+                state.drawingElements.arcs.forEach(a => {
+                    const [r,g,b]=parseColor(a.color); pdf.setDrawColor(r,g,b).setLineWidth(a.lineWidth*C.LINE_WIDTH_FACTOR);
+                    const pts=[]; for(let i=0;i<=100;i++) { const ang=a.startAngle+(a.endAngle-a.startAngle)*i/100; pts.push(toPdf({x:a.radius*Math.cos(ang),y:a.radius*Math.sin(ang)})); }
+                    pdf.path(pts.map((pt,i)=>({op:i===0?'m':'l',c:[pt.x,pt.y]}))).stroke();
+                });
+                
+                state.drawingElements.helperPoints.forEach(p => { 
+                    const pt = toPdf(p); const [r,g,b] = parseColor(p.color); 
+                    pdf.setFillColor(r,g,b).circle(pt.x, pt.y, C.HELPER_POINT_RADIUS, 'F'); 
+                });
+
+                // 3. Header Text
+                pdf.setFont('helvetica','bold').setFontSize(16).setTextColor(35,35,35).text("Abwicklung Kegelstumpf", C.MARGIN, C.MARGIN+6);
+                pdf.setFont('helvetica','normal').setFontSize(9).setTextColor(120,120,120).text(`© Kofler e.U. | v${CONFIG.VERSION}`, C.MARGIN, C.MARGIN+11);
+                
+                // 4. Legende (Rechte Spalte)
+                let curY = C.HEADER_HEIGHT;
+                
+                const drawSection = (title, items) => {
+                    // Prüfen ob noch Platz auf Seite für Titel + mind. 1 Item
+                    if (curY > pageH - 20) { pdf.addPage(); curY = C.MARGIN; }
+                    
+                    pdf.setFont('helvetica','bold').setFontSize(10).setTextColor(20,20,20).text(title, legendX, curY); 
+                    curY += 6;
+                    
+                    pdf.setFont('helvetica','normal').setFontSize(8).setTextColor(60,60,60);
+                    items.forEach(i => {
+                         // Seitenumbruch Check innerhalb der Liste
+                         if (curY > pageH - 10) { pdf.addPage(); curY = C.MARGIN; }
+                         
+                         const [r,g,b]=parseColor(i.color); 
+                         pdf.setFillColor(r,g,b).rect(legendX, curY-2.5, 3, 3, 'F');
+                         pdf.text(`${i.label}:`, legendX+5, curY); 
+                         pdf.text(i.value, legendX+C.LEGEND_WIDTH, curY, {align:'right'}); 
+                         curY += 5;
+                    }); 
+                    curY += 4; // Abstand nach Sektion
+                };
+                
+                const ld = getLegendData();
+                drawSection("Geometrie & Radien", ld.geometric);
+                drawSection("Abkantung & Anriss", ld.bending);
+                
+                // 5. Anleitung (Werkstatt)
+                // Check: Passt die Überschrift UND mindestens eine Zeile noch hin? (ca. 20mm Platzbedarf)
+                if (curY > pageH - 30) {
+                    pdf.addPage();
+                    curY = C.MARGIN + 10;
+                } else {
+                    curY += 5; // Abstand nach oben
+                }
+
+                pdf.setFont('helvetica','bold').setFontSize(10).setTextColor(20,20,20).text("Anleitung", legendX, curY); 
+                curY += 6;
+                pdf.setFont('helvetica','normal').setFontSize(8).setTextColor(40,40,40);
+                
+                const steps = getInstructionSteps();
+                steps.forEach((step, i) => {
+                    const text = `${i+1}. ${step}`;
+                    // Textumbruch berechnen
+                    const lines = pdf.splitTextToSize(text, C.LEGEND_WIDTH);
+                    const blockHeight = lines.length * 4; // Höhe dieses Textblocks
+                    
+                    // Passt dieser spezifische Textblock noch auf die Seite?
+                    if (curY + blockHeight > pageH - C.MARGIN) { 
+                        pdf.addPage(); 
+                        curY = C.MARGIN + 10; 
+                        // Auf neuer Seite Überschrift optional wiederholen oder einfach weiterschreiben
+                    }
+                    
+                    pdf.text(lines, legendX, curY); 
+                    curY += blockHeight + 2; // Abstand zum nächsten Schritt
+                });
+
+                const {r1, r2, h} = state.lastCalculation;
+                pdf.save(`kegelstumpf_R${r1.toFixed(0)}-r${r2.toFixed(0)}-H${h.toFixed(0)}.pdf`);
+                showToast("PDF gespeichert.", 'success');
+            } catch(e) { 
+                console.error(e); 
+                showToast('Fehler beim PDF Export.', 'error'); 
+            } finally { 
+                showLoading(false); 
+            }
+        }, 10);
+    }
+
+    function exportAsDXF() {
+        if (!state.lastCalculation.S1) return;
+        try {
+            const d = state.lastCalculation;
+            const els = state.drawingElements;
+            let dxf = "0\nSECTION\n2\nHEADER\n0\nENDSEC\n0\nSECTION\n2\nTABLES\n0\nENDSEC\n0\nSECTION\n2\nBLOCKS\n0\nENDSEC\n0\nSECTION\n2\nENTITIES\n";
+            const addLine = (x1, y1, x2, y2, layer) => {
+                dxf += "0\nLINE\n8\n" + layer + "\n10\n" + x1.toFixed(4) + "\n20\n" + (-y1).toFixed(4) + "\n30\n0.0\n11\n" + x2.toFixed(4) + "\n21\n" + (-y2).toFixed(4) + "\n31\n0.0\n";
+            };
+            const addArc = (r, startRad, endRad, layer) => {
+                let startDeg = (startRad * 180 / Math.PI); let endDeg = (endRad * 180 / Math.PI);
+                let dxfStart = -endDeg; let dxfEnd = -startDeg;
+                dxf += "0\nARC\n8\n" + layer + "\n10\n0.0\n20\n0.0\n30\n0.0\n40\n" + r.toFixed(4) + "\n50\n" + dxfStart.toFixed(4) + "\n51\n" + dxfEnd.toFixed(4) + "\n";
+            };
+            els.arcs.forEach(a => addArc(a.radius, a.startAngle, a.endAngle, "CONTOUR"));
+            els.mantleLines.forEach(l => addLine(l.x1, l.y1, l.x2, l.y2, "CONTOUR"));
+            els.segmentLines.forEach(l => addLine(l.x1, l.y1, l.x2, l.y2, "BEND_LINES"));
+            dxf += "0\nENDSEC\n0\nEOF\n";
+            const blob = new Blob([dxf], { type: 'application/dxf' });
+            const link = document.createElement('a'); link.href = URL.createObjectURL(blob);
+            link.download = `kegelstumpf_CNC.dxf`; link.click();
+            showToast("DXF Datei (CNC) erstellt.", 'success');
+        } catch(e) { console.error(e); showToast("DXF Export fehlgeschlagen."); }
+    }
+
+    function exportAsImage() {
+        if (!state.lastCalculation.S1) return;
+        try { const link = document.createElement('a');
+            link.download = `kegelstumpf.png`;
+            link.href = dom.canvas.toDataURL('image/png'); link.click();
+            showToast("Bild gespeichert.", 'success');
+        } catch (error) { showToast("Fehler beim Bild Export."); }
+    }
+    
+    function updateDrawingColors() {
+        const style = getComputedStyle(document.documentElement);
+        state.drawingColors = {
+            outerArc: style.getPropertyValue('--color-outer-arc').trim(),
+            innerArc: style.getPropertyValue('--color-inner-arc').trim(),
+            mantle: style.getPropertyValue('--color-mantle').trim(),
+            segmentLines: style.getPropertyValue('--color-segment').trim(),
+            allowance: style.getPropertyValue('--color-allowance').trim(),
+            centerHelper: style.getPropertyValue('--color-center-helper').trim(),
+            helper: style.getPropertyValue('--helper-color').trim(),
+            highlightStroke: style.getPropertyValue('--primary-action-color').trim(),
+            centerLine: style.getPropertyValue('--centerline-color').trim(),
+        };
+    }
+
+    function setupStepperButtons() { 
+        document.querySelectorAll('.btn-stepper').forEach(button => { 
+            button.addEventListener('click', () => { 
+                const targetInput = document.getElementById(button.dataset.for); if (!targetInput) return;
+                const step = parseFloat(button.dataset.step) || 1; 
+                let val = parseFloat(targetInput.value) || 0;
+                let newValue = val + step; const min = parseFloat(targetInput.min);
+                if (!isNaN(min) && newValue < min) newValue = min;
+                const stepAttr = targetInput.step.toString(); const dec = (stepAttr.split('.')[1] || []).length;
+                targetInput.value = newValue.toFixed(dec);
+                targetInput.dispatchEvent(new Event('input', { bubbles: true }));
+            });
+        });
+    }
+
+    function setupZoomControls() {
+        if(dom.buttons.zoomIn) dom.buttons.zoomIn.addEventListener('click', () => {
+            const center = { x: dom.canvasContainer.clientWidth / 2, y: dom.canvasContainer.clientHeight / 2 };
+            applyZoom(CONFIG.ZOOM_SENSITIVITY * 1.5, center);
+        });
+        if(dom.buttons.zoomOut) dom.buttons.zoomOut.addEventListener('click', () => {
+            const center = { x: dom.canvasContainer.clientWidth / 2, y: dom.canvasContainer.clientHeight / 2 };
+            applyZoom(1 / (CONFIG.ZOOM_SENSITIVITY * 1.5), center);
+        });
+        if(dom.buttons.zoomFit) dom.buttons.zoomFit.addEventListener('click', resetView);
+    }
+
+    function init() {
+        document.title = `Kegelstumpf Rechner v${CONFIG.VERSION}`;
+        document.querySelector('footer').textContent = `© Kofler e.U | Version ${CONFIG.VERSION}`;
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        
+        loadState(); 
+        updateDrawingColors();
+        
+        Object.values(dom.inputs).forEach(input => {
+            if(input) input.addEventListener('input', () => {
+                const type = input.id.includes('Unter') ? 'unten' : 'oben';
+                if(dom.infos[type]) updateInfoText(type);
+                debouncedCalculate();
+            });
+        });
+        
+        dom.modeSelectors.unten.forEach(btn => btn.addEventListener('click', () => toggleInputMode('unten', btn.dataset.mode)));
+        dom.modeSelectors.oben.forEach(btn => btn.addEventListener('click', () => toggleInputMode('oben', btn.dataset.mode)));
+
+        if(dom.buttons.exportPdf) dom.buttons.exportPdf.addEventListener('click', exportAsVectorPDF);
+        if(dom.buttons.exportDxf) dom.buttons.exportDxf.addEventListener('click', exportAsDXF);
+        if(dom.buttons.exportImage) dom.buttons.exportImage.addEventListener('click', exportAsImage);
+        if(dom.buttons.resetView) dom.buttons.resetView.addEventListener('click', resetView);
+        if(dom.buttons.themeToggle) dom.buttons.themeToggle.addEventListener('click', () => {
+            const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateDrawingColors(); requestRender(); updateLegendUI(); updateInstructionUI(); 
+        });
+        
+        setupStepperButtons();
+        setupZoomControls();
+
+        dom.canvas.addEventListener('mousedown', handlePointerDown); 
+        dom.canvas.addEventListener('mousemove', handlePointerMove);
+        dom.canvas.addEventListener('mouseup', handlePointerUp); 
+        dom.canvas.addEventListener('mouseleave', handlePointerUp);
+        dom.canvas.addEventListener('wheel', handleWheel, { passive: false });
+        dom.canvas.addEventListener('touchstart', handlePointerDown, { passive: false }); 
+        dom.canvas.addEventListener('touchmove', handlePointerMove, { passive: false });
+        dom.canvas.addEventListener('touchend', handlePointerUp); 
+        dom.canvas.addEventListener('touchcancel', handlePointerUp);
+        
+        window.addEventListener('resize', resizeCanvas);
+        window.addEventListener('load', () => {
+            updateInfoText('unten'); updateInfoText('oben');
+            resizeCanvas(); calculateAndPrepareDrawing();
+        });
+    }
+
+    init();
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="de-AT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#8F1D1D" />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./android-chrome-512x512.png" />
+  <title>Turmdecker Tools | Planung, Berechnung & Dokumentation</title>
+  <meta
+    name="description"
+    content="Die Turmdecker Toolseite mit 7 Werkzeugen für Aufmaß, Geometrie, Holzbedarf und Dokumentation im Dach- und Turmbereich."
+  />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <link rel="canonical" href="https://tools.turmdecker.com/" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Turmdecker – Kofler e.U." />
+  <meta property="og:title" content="Turmdecker Tools | Planung, Berechnung & Dokumentation" />
+  <meta property="og:description" content="7 Tools für Aufmaß, Geometrie, Holzbedarf und Restaurierungsdokumentation." />
+  <meta property="og:url" content="https://tools.turmdecker.com/" />
+  <meta property="og:image" content="https://turmdecker.com/hero/hero-03.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Turmdecker Tools" />
+  <meta name="twitter:description" content="Werkzeuge für Planung, Kalkulation und Dokumentation." />
+  <meta name="twitter:image" content="https://turmdecker.com/hero/hero-03.webp" />
+  <style>
+    :root {
+      --primary: #8f1d1d;
+      --primary-dark: #6f1616;
+      --dark-900: #111827;
+      --gray-700: #374151;
+      --gray-600: #4b5563;
+      --gray-200: #e5e7eb;
+      --bg-soft: #f9fafb;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      color: var(--dark-900);
+      background: #fff;
+      line-height: 1.5;
+    }
+
+    .container {
+      width: min(1160px, 92vw);
+      margin: 0 auto;
+    }
+
+    .topbar {
+      background: transparent;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 20;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: nowrap;
+      gap: 12px;
+      padding: 20px 0;
+    }
+
+    .brand {
+      text-decoration: none;
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.98rem;
+      text-transform: none;
+    }
+
+    .brand-logo {
+      width: 46px;
+      height: 46px;
+      display: block;
+    }
+
+    .back-link {
+      text-decoration: none;
+      color: #fff;
+      border: 0;
+      font-weight: 700;
+      padding: 0;
+      transition: all 0.2s ease;
+      letter-spacing: 0.02em;
+    }
+
+    .back-link:hover,
+    .back-link:focus-visible {
+      color: #f4d5d5;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      outline: none;
+    }
+
+    .hero {
+      min-height: 75vh;
+      color: #fff;
+      background:
+        linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+        url("https://turmdecker.com/hero/hero-03.webp") 70% center/cover no-repeat;
+      border-bottom: 1px solid var(--gray-200);
+      display: grid;
+      align-items: center;
+    }
+
+    .hero-inner {
+      max-width: 720px;
+      padding: 132px 0 78px;
+    }
+
+    .hero-kicker {
+      margin: 0 0 10px;
+      letter-spacing: 0.02em;
+      font-size: clamp(0.95rem, 2vw, 1.1rem);
+      font-weight: 700;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(2rem, 4.3vw, 3rem);
+      line-height: 1.2;
+      margin-bottom: 14px;
+    }
+
+    h1 .accent { color: var(--primary); }
+
+    .hero-text {
+      margin: 0;
+      font-size: clamp(1rem, 2vw, 1.08rem);
+      color: rgba(255, 255, 255, 0.9);
+      max-width: 740px;
+      line-height: 1.55;
+    }
+
+    .hero-actions {
+      margin-top: 26px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .btn {
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      font-weight: 700;
+      padding: 10px 15px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn-primary:hover,
+    .btn-primary:focus-visible {
+      background: var(--primary-dark);
+      outline: none;
+    }
+
+    .btn-ghost {
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.62);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .btn-ghost:hover,
+    .btn-ghost:focus-visible {
+      background: rgba(255, 255, 255, 0.17);
+      outline: none;
+    }
+
+    .section-white {
+      padding: 56px 0;
+      background: #fff;
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .separator {
+      position: relative;
+      height: 40px;
+      margin-bottom: 24px;
+    }
+
+    .separator::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background: rgba(143, 29, 29, 0.8);
+      transform: translateY(-50%);
+    }
+
+    .separator::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      background: var(--primary);
+      transform: translate(-50%, -50%) rotate(45deg);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 42px;
+    }
+
+    .section-title {
+      margin: 0 0 12px;
+      font-size: 1.65rem;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .section-copy {
+      color: var(--gray-700);
+      margin: 0;
+    }
+
+    .list {
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 11px;
+      color: var(--gray-700);
+    }
+
+    .list li {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+    }
+
+    .list li::before {
+      content: "";
+      margin-top: 8px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--primary);
+      flex: 0 0 6px;
+    }
+
+    .tools-section {
+      padding: 56px 0;
+      background: var(--bg-soft);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .tools-head {
+      margin-bottom: 18px;
+    }
+
+    .tools-head h2 {
+      margin: 0;
+      font-size: 2rem;
+      text-transform: uppercase;
+    }
+
+    .tools-head p {
+      margin: 10px 0 0;
+      color: var(--gray-600);
+      max-width: 780px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      background: #fff;
+      border: 1px solid var(--gray-200);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      min-height: 212px;
+      box-shadow: 0 8px 22px rgba(17, 24, 39, 0.06);
+    }
+
+    .card h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      line-height: 1.28;
+    }
+
+    .card p {
+      margin: 10px 0 0;
+      color: var(--gray-700);
+      flex: 1;
+    }
+
+    .tag {
+      margin-top: 12px;
+      display: inline-flex;
+      width: fit-content;
+      color: var(--primary);
+      background: #f8ecec;
+      border: 1px solid #ecd3d3;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: 700;
+      padding: 5px 10px;
+    }
+
+    .tool-btn {
+      margin-top: 15px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      width: fit-content;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-weight: 700;
+      transition: background 0.2s ease, transform 0.15s ease;
+    }
+
+    .tool-btn:hover,
+    .tool-btn:focus-visible {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+      outline: none;
+    }
+
+    .tool-btn svg {
+      width: 17px;
+      height: 17px;
+      flex: 0 0 17px;
+    }
+
+    .btn-holz-main { background: #7a3e1f; }
+    .btn-holz-main:hover, .btn-holz-main:focus-visible { background: #5f2f18; }
+    .btn-geo-cut { background: #145a75; }
+    .btn-geo-cut:hover, .btn-geo-cut:focus-visible { background: #10465c; }
+    .btn-holz-shingle { background: #6b4d1b; }
+    .btn-holz-shingle:hover, .btn-holz-shingle:focus-visible { background: #553d15; }
+    .btn-geo-cone { background: #4a3f73; }
+    .btn-geo-cone:hover, .btn-geo-cone:focus-visible { background: #39315a; }
+    .btn-measure { background: #8f1b3a; }
+    .btn-measure:hover, .btn-measure:focus-visible { background: #6f152e; }
+    .btn-restauration { background: #1f6a52; }
+    .btn-restauration:hover, .btn-restauration:focus-visible { background: #18513f; }
+    .btn-sparren { background: #23527d; }
+    .btn-sparren:hover, .btn-sparren:focus-visible { background: #1b4061; }
+
+    .cta {
+      padding: 72px 0;
+      background: var(--primary);
+      color: #fff;
+      text-align: center;
+    }
+
+    .cta h2 {
+      margin: 0;
+      font-size: clamp(1.7rem, 4vw, 2.45rem);
+    }
+
+    .cta p {
+      margin: 10px auto 0;
+      max-width: 760px;
+      color: rgba(255, 255, 255, 0.9);
+    }
+
+    .cta .btn {
+      margin-top: 22px;
+      background: #fff;
+      color: var(--primary);
+      border: 1px solid #fff;
+    }
+
+    .cta .btn:hover,
+    .cta .btn:focus-visible {
+      background: #111827;
+      border-color: #111827;
+      color: #fff;
+      outline: none;
+    }
+
+    .site-footer {
+      background: #111827;
+      color: #e5e7eb;
+      padding: 44px 0 18px;
+    }
+
+    .footer-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr 1fr;
+      gap: 26px;
+    }
+
+    .footer-brand {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .footer-copy {
+      margin: 10px 0 0;
+      color: #cbd5e1;
+      max-width: 420px;
+      font-size: 0.95rem;
+    }
+
+    .footer-title {
+      margin: 0 0 10px;
+      font-size: 0.86rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #f9fafb;
+      font-weight: 800;
+    }
+
+    .footer-links {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    .footer-links a {
+      color: #cbd5e1;
+      text-decoration: none;
+      font-size: 0.95rem;
+    }
+
+    .footer-links a:hover,
+    .footer-links a:focus-visible {
+      color: #ffffff;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+      outline: none;
+    }
+
+    .footer-bottom {
+      margin-top: 22px;
+      padding-top: 14px;
+      border-top: 1px solid #374151;
+      font-size: 0.88rem;
+      color: #9ca3af;
+    }
+
+    @media (max-width: 980px) {
+      .split { grid-template-columns: 1fr; gap: 24px; }
+      .grid { grid-template-columns: 1fr; }
+      .hero { min-height: 65vh; background-position: center; }
+      .hero-inner { padding: 106px 0 66px; }
+      .brand span { display: none; }
+      .footer-grid { grid-template-columns: 1fr; gap: 18px; }
+    }
+  </style>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "name": "Turmdecker Toolseite",
+    "url": "https://tools.turmdecker.com/",
+    "description": "Werkzeugzentrale für Aufmaß, Geometrie, Holzbedarf und Restaurierungsdokumentation.",
+    "about": ["Dachbau", "Kirchturmdecken", "Spenglerei", "Bestandsdokumentation"],
+    "isPartOf": {
+      "@type": "WebSite",
+      "name": "Turmdecker – Kofler e.U.",
+      "url": "https://turmdecker.com/"
+    },
+    "inLanguage": "de-AT"
+  }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <a class="brand" href="https://turmdecker.com/" rel="noopener">
+        <img class="brand-logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" decoding="async" />
+        <span>Turmdecker | Kofler e.U.</span>
+      </a>
+      <a class="back-link" href="https://turmdecker.com/" rel="noopener">Zur Startseite</a>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="container hero-inner">
+      <p class="hero-kicker">Digitale Werkzeuge für Planung und Ausführung</p>
+      <h1>TOOLS FÜR BAUPRAXIS,<br /><span class="accent">AUFMASS UND KALKULATION.</span></h1>
+      <p class="hero-text">
+        Diese Toolseite bündelt alle verfügbaren Rechner und Praxis-Tools von Turmdecker.
+        Die Werkzeuge unterstützen Sie bei Vorbereitung, Materialplanung, geometrischen Berechnungen
+        und nachvollziehbarer Projektdokumentation.
+      </p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="#tools">Tools ansehen</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="section-white">
+    <div class="container">
+      <div class="separator" aria-hidden="true"></div>
+      <div class="split">
+        <div>
+          <h2 class="section-title">Was Sie auf der Toolseite finden</h2>
+          <p class="section-copy">
+            Alle Werkzeuge sind direkt erreichbar und ohne Umwege nutzbar. Jede Funktion ist auf
+            typische Aufgaben aus Dach, Turm und Bestand abgestimmt.
+          </p>
+          <ul class="list">
+            <li>Rechner für Geometrie, Längen und Materialbedarf</li>
+            <li>Werkzeuge für strukturierte Projektvorbereitung</li>
+            <li>Schneller Zugriff auf alle 7 aktuellen Tools</li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="section-title">Für wen diese Tools gedacht sind</h2>
+          <p class="section-copy">
+            Die Toolseite richtet sich an Planer, Handwerker, Gemeinden und Bauverantwortliche,
+            die im Bestand zügig belastbare Werte benötigen.
+          </p>
+          <ul class="list">
+            <li>Vor-Ort-Aufmaß und Arbeitsvorbereitung</li>
+            <li>Kalkulation und Angebotsvorbereitung</li>
+            <li>Dokumentation von Restaurierungs- und Sanierungsarbeiten</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tools" class="tools-section">
+    <div class="container">
+      <div class="tools-head">
+        <h2>Alle Tools im Überblick</h2>
+        <p>Direkt starten per Klick. Jedes Tool öffnet in einem neuen Tab.</p>
+      </div>
+      <section class="grid" aria-label="Tool-Übersicht">
+        <article class="card">
+          <h3>Holz-Tools (All-in-One)</h3>
+          <p>Festmeter-Rechner und Balken-Stamm Pro in einer kombinierten Anwendung für die Holzplanung.</p>
+          <span class="tag">Holz</span>
+          <a class="tool-btn btn-holz-main" href="./Holz-Tools.html" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="12" r="4.2"></circle><circle cx="16" cy="12" r="4.2"></circle></svg>
+            Tool öffnen
+          </a>
+        </article>
+
+        <article class="card">
+          <h3>Abwicklung &amp; Verschnittoptimierung</h3>
+          <p>Hilft bei Abwicklungen und materialeffizienter Zuschnittplanung für saubere Kalkulationen.</p>
+          <span class="tag">Geometrie</span>
+          <a class="tool-btn btn-geo-cut" href="./abwicklung-verschnittoptimierung.html" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18h16"></path><path d="M6 18 12 6l6 12"></path></svg>
+            Tool öffnen
+          </a>
+        </article>
+
+        <article class="card">
+          <h3>Bedarfsermittlung Holzschindel</h3>
+          <p>Ermittelt Mengen und Bedarf für Holzschindel-Projekte schnell und nachvollziehbar.</p>
+          <span class="tag">Holz</span>
+          <a class="tool-btn btn-holz-shingle" href="./bedarfsermittlung-holzschindel.html" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 16h12"></path><path d="M7 12h10"></path><path d="M8 8h8"></path></svg>
+            Tool öffnen
+          </a>
+        </article>
+
+        <article class="card">
+          <h3>Kegelstumpf-Rechner</h3>
+          <p>Geometrische Berechnungen für Kegelstumpf-Elemente mit praxisnahen Eingabewerten.</p>
+          <span class="tag">Geometrie</span>
+          <a class="tool-btn btn-geo-cone" href="./kegelstumpf-rechner.html" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 8h10"></path><path d="M4 18h16"></path><path d="M7 8 4 18"></path><path d="M17 8 20 18"></path></svg>
+            Tool öffnen
+          </a>
+        </article>
+
+        <article class="card">
+          <h3>Laser-Entfernungsmesser-Tool</h3>
+          <p>Strukturierte Erfassung von Messwerten als Grundlage für Planung und Ausführung.</p>
+          <span class="tag">Messung</span>
+          <a class="tool-btn btn-measure" href="./laser-entfernungsmesser-tool.html" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="2.8"></circle><path d="M12 3v4"></path><path d="M12 17v4"></path><path d="M3 12h4"></path><path d="M17 12h4"></path></svg>
+            Tool öffnen
+          </a>
+        </article>
+
+        <article class="card">
+          <h3>RestauroMap Professional</h3>
+          <p>Dokumentationswerkzeug für Befund, Bestand und Maßnahmen im Restaurierungsumfeld.</p>
+          <span class="tag">Restaurierung</span>
+          <a class="tool-btn btn-restauration" href="./restauromap-professional.html" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"></path><circle cx="12" cy="11" r="2.2"></circle></svg>
+            Tool öffnen
+          </a>
+        </article>
+
+        <article class="card">
+          <h3>Sparrenlängen-Rechner</h3>
+          <p>Berechnet Sparrenlängen für die Dachkonstruktion präzise und zeitsparend.</p>
+          <span class="tag">Holz</span>
+          <a class="tool-btn btn-sparren" href="./sparrenlaengen-rechner.html" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 16h18"></path><path d="M6 16 12 8l6 8"></path></svg>
+            Tool öffnen
+          </a>
+        </article>
+      </section>
+    </div>
+  </section>
+
+  <section class="cta">
+    <div class="container">
+      <h2>Brauchen Sie ein zusätzliches Tool?</h2>
+      <p>Wenn für Ihr Projekt eine spezielle Berechnung fehlt, entwickeln wir eine passende Lösung für den praktischen Einsatz.</p>
+      <a class="btn" href="https://turmdecker.com/kontakt/" rel="noopener">Kontakt aufnehmen</a>
+    </div>
+  </section>
+
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <p class="footer-brand">Turmdecker – Kofler e.U.</p>
+          <p class="footer-copy">Gerüstfreies Kirchturmdecken, Spezialarbeiten am Seil und digitale Werkzeuge für die Praxis.</p>
+        </div>
+        <div>
+          <p class="footer-title">Leistungen</p>
+          <ul class="footer-links">
+            <li><a href="https://turmdecker.com/eindeckungen/" rel="noopener">Eindeckungen</a></li>
+            <li><a href="https://turmdecker.com/spezialarbeiten/" rel="noopener">Spezialarbeiten</a></li>
+            <li><a href="https://turmdecker.com/restaurierung/" rel="noopener">Restaurierung</a></li>
+            <li><a href="https://turmdecker.com/laerchenschindel/" rel="noopener">Lärchenschindel</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer-title">Weitere Seiten</p>
+          <ul class="footer-links">
+            <li><a href="https://turmdecker.com/arbeiten-mit-blei/" rel="noopener">Arbeiten mit Blei</a></li>
+            <li><a href="https://turmdecker.com/blei-brunnenwanne/" rel="noopener">Blei-Brunnenwanne</a></li>
+            <li><a href="https://turmdecker.com/photogrammetrie-digitaler-zwilling/" rel="noopener">Photogrammetrie & Digitaler Zwilling</a></li>
+            <li><a href="https://turmdecker.com/kontakt/" rel="noopener">Kontakt</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">© Kofler e.U. | Turmdecker Toolseite</div>
+    </div>
+  </footer>
+</body>
+</html>
