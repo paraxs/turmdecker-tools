@@ -13,11 +13,12 @@
   /><meta property="og:type" content="website" />
   <meta property="og:site_name" content="Turmdecker – Kofler e.U." />
   <meta property="og:title" content="Turmdecker Tools | Planung, Berechnung & Dokumentation" />
-  <meta property="og:description" content="7 Tools für Aufmaß, Geometrie, Holzbedarf und Restaurierungsdokumentation." /><meta property="og:image" content="https://turmdecker.com/hero/hero-03.webp" />
+  <meta property="og:description" content="7 Tools für Aufmaß, Geometrie, Holzbedarf und Restaurierungsdokumentation." />
+  <meta property="og:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Turmdecker Tools" />
   <meta name="twitter:description" content="Werkzeuge für Planung, Kalkulation und Dokumentation." />
-  <meta name="twitter:image" content="https://turmdecker.com/hero/hero-03.webp" />
+  <meta name="twitter:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
   <style>
     :root {
       --primary: #8f1d1d;
@@ -99,15 +100,34 @@
     }
 
     .hero {
-      min-height: 75vh;
-      color: #fff;
-      background:
-        linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
-        url("https://turmdecker.com/hero/hero-03.webp") 70% center/cover no-repeat;
-      border-bottom: 1px solid var(--gray-200);
-      display: grid;
-      align-items: center;
-    }
+  min-height: 75vh;
+  color: #fff;
+  border-bottom: 1px solid var(--gray-200);
+  display: grid;
+  align-items: center;
+
+  /* Fallback */
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+    url("./hero-tools-1200.webp") 70% center/cover no-repeat;
+
+  /* HiDPI (Safari) */
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+    -webkit-image-set(
+      url("./hero-tools-1200.webp") 1x,
+      url("./hero-tools-2400.webp") 2x
+    ) 70% center/cover no-repeat;
+
+  /* HiDPI (Standard) */
+  background:
+    linear-gradient(rgba(0, 0, 0, 0.35), rgba(0, 0, 0, 0.35)),
+    image-set(
+      url("./hero-tools-1200.webp") 1x,
+      url("./hero-tools-2400.webp") 2x
+    ) 70% center/cover no-repeat;
+}
+
 
     .hero-inner {
       max-width: 720px;
