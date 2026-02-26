@@ -383,6 +383,16 @@
   <link rel="stylesheet" href="./td-shell.css" />
   <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
   <meta name="theme-color" content="#8F1D1D" />
+  <meta name="description" content="Digitale Dokumentation fuer Restaurierungs- und Bestandsprojekte mit Flaechen, Befunden, Fotos und PDF-Export." />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Turmdecker - Kofler e.U." />
+  <meta property="og:title" content="RestauroMap Professional | Turmdecker Tools" />
+  <meta property="og:description" content="Digitale Dokumentation fuer Restaurierungs- und Bestandsprojekte mit Flaechen, Befunden, Fotos und PDF-Export." />
+  <meta property="og:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="RestauroMap Professional | Turmdecker Tools" />
+  <meta name="twitter:description" content="Digitale Dokumentation fuer Restaurierungs- und Bestandsprojekte mit Flaechen, Befunden, Fotos und PDF-Export." />
+  <meta name="twitter:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
   <link rel="canonical" href="https://tools.turmdecker.com/restauromap-professional.html" />
   <meta property="og:url" content="https://tools.turmdecker.com/restauromap-professional.html" />
   <meta name="robots" content="index,follow,max-image-preview:large" />
@@ -1504,7 +1514,7 @@ ui.showPage = pageId => {
                 return Math.hypot(p.x - projx, p.y - projy);
               }
               function hitTest(shape, p, margin=10){
-                const m = Math.max(margin, (shape.width || 8, 16) * 0.8);
+                const m = Math.max(margin, (shape.width || 16) * 0.8);
                 if (shape.type === 'line'){
                   return distPointToSeg(p, {x:shape.x1,y:shape.y1}, {x:shape.x2,y:shape.y2}) <= m;
                 } else if (shape.type === 'ellipse'){
@@ -1709,3 +1719,4 @@ return distToPerimeter <= Math.max(m, thickness) || (inside && distToPerimeter <
     </div>
 </body>
 </html>
+
