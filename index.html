@@ -342,6 +342,65 @@
       max-width: 780px;
     }
 
+    .tools-controls {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .tools-search {
+      width: 100%;
+      border: 1px solid var(--gray-200);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font: inherit;
+      color: var(--dark-900);
+      background: #fff;
+    }
+
+    .tools-search:focus {
+      outline: 2px solid rgba(143, 29, 29, 0.25);
+      border-color: var(--primary);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border: 1px solid #e7d0d0;
+      background: #fff;
+      color: #6f1616;
+      border-radius: 999px;
+      padding: 7px 11px;
+      font-size: 0.86rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .chip:hover,
+    .chip:focus-visible {
+      background: #f8ecec;
+      border-color: #d9b6b6;
+      outline: none;
+    }
+
+    .chip.is-active {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .tools-count {
+      margin: 0;
+      color: var(--gray-600);
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -369,6 +428,30 @@
       margin: 10px 0 0;
       color: var(--gray-700);
       flex: 1;
+    }
+
+    .card-mini {
+      margin-top: 10px;
+      color: #6b7280;
+      font-size: 0.89rem;
+      line-height: 1.35;
+      flex: 0 0 auto;
+    }
+
+    .card.is-hidden {
+      display: none;
+    }
+
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      border: 0;
+      white-space: nowrap;
     }
 
     .tag {
@@ -621,11 +704,26 @@
       <div class="tools-head">
         <h2>Alle Tools im Überblick</h2>
         <p>Direkt starten per Klick. Jedes Tool öffnet in einem neuen Tab.</p>
+        <div class="tools-controls" aria-label="Tool-Filter und Suche">
+          <label>
+            <span class="sr-only">Tool suchen</span>
+            <input id="toolSearch" class="tools-search" type="search" placeholder="Tool suchen, z. B. Holz, Kegelstumpf, Dokumentation" />
+          </label>
+          <div class="chips" role="tablist" aria-label="Tool-Kategorien">
+            <button class="chip is-active" type="button" data-filter="alle">Alle</button>
+            <button class="chip" type="button" data-filter="holz">Holz</button>
+            <button class="chip" type="button" data-filter="bandblech">Bandblech</button>
+            <button class="chip" type="button" data-filter="messung">Messung</button>
+            <button class="chip" type="button" data-filter="dokumentation">Dokumentation</button>
+          </div>
+          <p class="tools-count" id="toolsCount">7 Tools sichtbar</p>
+        </div>
       </div>
       <section class="grid" aria-label="Tool-Übersicht">
-        <article class="card">
+        <article class="card" data-category="holz" data-keywords="holz festmeter balken stamm bedarf">
           <h3>Holz-Tools (All-in-One)</h3>
           <p>Festmeter-Rechner und Balken-Stamm Pro in einer kombinierten Anwendung für die Holzplanung.</p>
+          <p class="card-mini">Ideal für schnellen Mengencheck in der Vorplanung.</p>
           <span class="tag">Holz</span>
           <a class="tool-btn btn-holz-main" href="./Holz-Tools.html" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="8" cy="12" r="4.2"></circle><circle cx="16" cy="12" r="4.2"></circle></svg>
@@ -633,9 +731,10 @@
           </a>
         </article>
 
-        <article class="card">
+        <article class="card" data-category="bandblech" data-keywords="abwicklung verschnitt bandblech zuschnitt">
           <h3>Abwicklung &amp; Verschnittoptimierung</h3>
           <p>Hilft bei Abwicklungen und materialeffizienter Zuschnittplanung für saubere Kalkulationen.</p>
+          <p class="card-mini">Ideal für saubere Zuschnittplanung mit weniger Materialverlust.</p>
           <span class="tag">Bandblech</span>
           <a class="tool-btn btn-geo-cut" href="./abwicklung-verschnittoptimierung.html" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18h16"></path><path d="M6 18 12 6l6 12"></path></svg>
@@ -643,9 +742,10 @@
           </a>
         </article>
 
-        <article class="card">
+        <article class="card" data-category="holz" data-keywords="bedarf holzschindel schindel dach">
           <h3>Bedarfsermittlung Holzschindel</h3>
           <p>Ermittelt Mengen und Bedarf für Holzschindel-Projekte schnell und nachvollziehbar.</p>
+          <p class="card-mini">Ideal für belastbare Vorabschätzung in Minuten.</p>
           <span class="tag">Holz</span>
           <a class="tool-btn btn-holz-shingle" href="./bedarfsermittlung-holzschindel.html" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 16h12"></path><path d="M7 12h10"></path><path d="M8 8h8"></path></svg>
@@ -653,9 +753,10 @@
           </a>
         </article>
 
-        <article class="card">
+        <article class="card" data-category="bandblech" data-keywords="kegelstumpf geometrie abwicklung radius">
           <h3>Kegelstumpf-Rechner</h3>
           <p>Geometrische Berechnungen für Kegelstumpf-Elemente mit praxisnahen Eingabewerten.</p>
+          <p class="card-mini">Ideal für präzise Werkstattwerte und schnelle Kontrolle.</p>
           <span class="tag">Bandblech</span>
           <a class="tool-btn btn-geo-cone" href="./kegelstumpf-rechner.html" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M7 8h10"></path><path d="M4 18h16"></path><path d="M7 8 4 18"></path><path d="M17 8 20 18"></path></svg>
@@ -663,9 +764,10 @@
           </a>
         </article>
 
-        <article class="card">
+        <article class="card" data-category="messung" data-keywords="laser messung aufmass volumen flaeche">
           <h3>Laser-Entfernungsmesser-Tool</h3>
           <p>Strukturierte Erfassung von Messwerten als Grundlage für Planung und Ausführung.</p>
+          <p class="card-mini">Ideal für schnelles Aufmaß mit direkter Auswertung.</p>
           <span class="tag">Messung</span>
           <a class="tool-btn btn-measure" href="./laser-entfernungsmesser-tool.html" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="2.8"></circle><path d="M12 3v4"></path><path d="M12 17v4"></path><path d="M3 12h4"></path><path d="M17 12h4"></path></svg>
@@ -673,9 +775,10 @@
           </a>
         </article>
 
-        <article class="card">
+        <article class="card" data-category="dokumentation" data-keywords="restauromap dokumentation befund bestand restaurierung">
           <h3>RestauroMap Professional</h3>
           <p>Dokumentationswerkzeug für Befund, Bestand und Maßnahmen im Restaurierungsumfeld.</p>
+          <p class="card-mini">Ideal für nachvollziehbare Projekt- und Befunddokumentation.</p>
           <span class="tag">Dokumentation</span>
           <a class="tool-btn btn-restauration" href="./restauromap-professional.html" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M12 21s6-5.2 6-10a6 6 0 1 0-12 0c0 4.8 6 10 6 10z"></path><circle cx="12" cy="11" r="2.2"></circle></svg>
@@ -683,9 +786,10 @@
           </a>
         </article>
 
-        <article class="card">
+        <article class="card" data-category="holz" data-keywords="sparren dach laenge geometrie holz">
           <h3>Sparrenlängen-Rechner</h3>
           <p>Berechnet Sparrenlängen für die Dachkonstruktion präzise und zeitsparend.</p>
+          <p class="card-mini">Ideal für Planung und Plausibilitätscheck auf der Baustelle.</p>
           <span class="tag">Holz</span>
           <a class="tool-btn btn-sparren" href="./sparrenlaengen-rechner.html" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M3 16h18"></path><path d="M6 16 12 8l6 8"></path></svg>
@@ -733,5 +837,53 @@
       <div class="footer-bottom">© Kofler e.U. | Turmdecker Toolseite</div>
     </div>
   </footer>
+  <script>
+    (function () {
+      const search = document.getElementById("toolSearch");
+      const chips = Array.from(document.querySelectorAll(".chip[data-filter]"));
+      const cards = Array.from(document.querySelectorAll(".grid .card[data-category]"));
+      const count = document.getElementById("toolsCount");
+
+      if (!search || chips.length === 0 || cards.length === 0 || !count) return;
+
+      let activeFilter = "alle";
+
+      function normalize(text) {
+        return (text || "")
+          .toLowerCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+      }
+
+      function applyFilters() {
+        const q = normalize(search.value.trim());
+        let visible = 0;
+
+        cards.forEach((card) => {
+          const category = card.dataset.category || "";
+          const haystack = normalize((card.textContent || "") + " " + (card.dataset.keywords || ""));
+          const matchCategory = activeFilter === "alle" || category === activeFilter;
+          const matchText = q.length === 0 || haystack.includes(q);
+          const show = matchCategory && matchText;
+
+          card.classList.toggle("is-hidden", !show);
+          if (show) visible += 1;
+        });
+
+        count.textContent = visible === 1 ? "1 Tool sichtbar" : visible + " Tools sichtbar";
+      }
+
+      chips.forEach((chip) => {
+        chip.addEventListener("click", () => {
+          activeFilter = chip.dataset.filter || "alle";
+          chips.forEach((c) => c.classList.toggle("is-active", c === chip));
+          applyFilters();
+        });
+      });
+
+      search.addEventListener("input", applyFilters);
+      applyFilters();
+    })();
+  </script>
 </body>
 </html>
