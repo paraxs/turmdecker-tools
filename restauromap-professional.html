@@ -1502,6 +1502,8 @@ ui.showToast("Daten erfolgreich importiert.", "success");
                     doc.text('RestauroMap Professional – Projektdokumentation', margin, 11.5);
                     doc.setTextColor(...colorText);
 
+                    let titleLogoBottom = 22;
+                    let titleTextMaxWidth = contentWidth;
                     if (company && company.logoDataUrl) {
                         try {
                             const normalizedLogo = await actions.ensureImageDataUrlForPDF(company.logoDataUrl);
@@ -1513,15 +1515,29 @@ ui.showToast("Daten erfolgreich importiert.", "success");
                                 const h = props.height * scale;
                                 const x = pageWidth - margin - w;
                                 doc.addImage(normalizedLogo, normalizedLogo.includes('image/png') ? 'PNG' : 'JPEG', x, 22, w, h);
+                                titleLogoBottom = 22 + h;
+                                titleTextMaxWidth = Math.max(80, x - margin - 6);
                             }
                         } catch (_) {}
                     }
 
+                    const projectTitle = sanitizeForPDF(project.name || 'Projekt');
                     doc.setFont('helvetica', 'bold').setFontSize(24).setTextColor(...colorBrand);
-                    doc.text(sanitizeForPDF(project.name || 'Projekt'), margin, 42);
+                    const projectTitleLines = doc.splitTextToSize(projectTitle, titleTextMaxWidth);
+                    doc.text(projectTitleLines, margin, 42);
+                    let titleBottom = 42;
+                    try {
+                        titleBottom = 42 + doc.getTextDimensions(projectTitleLines).h;
+                    } catch (_) {
+                        titleBottom = 42 + projectTitleLines.length * 8;
+                    }
+
                     doc.setFont('helvetica', 'normal').setFontSize(12).setTextColor(...colorText);
-                    doc.text(`Ort: ${sanitizeForPDF(project.ort || '-')}`, margin, 52);
-                    doc.text(`Erstellt am: ${new Date().toLocaleString('de-DE')}`, margin, 59);
+                    const ortY = titleBottom + 7;
+                    const createdY = ortY + 7;
+                    doc.text(`Ort: ${sanitizeForPDF(project.ort || '-')}`, margin, ortY, { maxWidth: titleTextMaxWidth });
+                    doc.text(`Erstellt am: ${new Date().toLocaleString('de-DE')}`, margin, createdY, { maxWidth: titleTextMaxWidth });
+                    y = Math.max(contentTop, createdY + 8, titleLogoBottom + 6);
 
                     drawMetaCard([
                         { label: 'Bereiche', value: String(areas.length) },
