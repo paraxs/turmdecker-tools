@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Laser Entfernungsmesser App – V18.5.2 (Final)</title>
-  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
   <style>
     :root {
       --primary-color: #007aff; --primary-color-hover: #005bb5;
@@ -84,41 +84,213 @@
     }
   </style>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="./td-shell.css" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <meta name="theme-color" content="#8F1D1D" />
-  <meta name="description" content="Messwerte strukturiert erfassen und Flaechen, Volumen sowie Laengen berechnen - ideal fuer Aufmass und Dokumentation." />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Turmdecker - Kofler e.U." />
-  <meta property="og:title" content="Laser-Entfernungsmesser-Tool | Turmdecker Tools" />
-  <meta property="og:description" content="Messwerte strukturiert erfassen und Flaechen, Volumen sowie Laengen berechnen - ideal fuer Aufmass und Dokumentation." />
-  <meta property="og:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="Laser-Entfernungsmesser-Tool | Turmdecker Tools" />
-  <meta name="twitter:description" content="Messwerte strukturiert erfassen und Flaechen, Volumen sowie Laengen berechnen - ideal fuer Aufmass und Dokumentation." />
-  <meta name="twitter:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
-  <link rel="canonical" href="https://tools.turmdecker.com/laser-entfernungsmesser-tool.html" />
-  <meta property="og:url" content="https://tools.turmdecker.com/laser-entfernungsmesser-tool.html" />
-  <meta name="robots" content="index,follow,max-image-preview:large" />
-</head>
-<body>
-<div class="td-shell" role="banner">
-  <div class="td-shell__inner">
-    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
-      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
-      <div class="td-shell__text">
-        <strong>TURMDECKER</strong>
-        <span>Tools & Rechner</span>
-      </div>
-    </a>
-    <div class="td-shell__nav" aria-label="Navigation">
-      <a class="td-btn" href="./index.html">↩ Übersicht</a>
-      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
-      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
-    </div>
-  </div>
-</div>
+  <style id="turmdecker-unified-inline">
+/* Turmdecker Unified Tool Theme */
+:root {
+  --td-primary: #8f1d1d;
+  --td-primary-dark: #6f1616;
+  --td-ink: #111827;
+  --td-ink-soft: #374151;
+  --td-muted: #4b5563;
+  --td-line: #e5e7eb;
+  --td-bg: #f9fafb;
+  --td-card: #ffffff;
+  --td-radius: 10px;
+  --td-shadow: 0 8px 22px rgba(17, 24, 39, 0.06);
+}
 
+html, body.td-unified {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body.td-unified {
+  color: var(--td-ink);
+  background: linear-gradient(180deg, #ffffff 0%, var(--td-bg) 100%);
+}
+
+body.td-unified::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--td-primary);
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+body.td-unified h1,
+body.td-unified h2,
+body.td-unified h3,
+body.td-unified h4 {
+  color: var(--td-ink);
+  letter-spacing: 0.01em;
+}
+
+body.td-unified .container,
+body.td-unified .card,
+body.td-unified fieldset,
+body.td-unified form,
+body.td-unified .modal-content,
+body.td-unified .info-container,
+body.td-unified .panel {
+  border-radius: var(--td-radius);
+}
+
+body.td-unified .card,
+body.td-unified fieldset,
+body.td-unified .info-container,
+body.td-unified .modal-content,
+body.td-unified .panel {
+  border: 1px solid var(--td-line);
+  background: var(--td-card);
+  box-shadow: var(--td-shadow);
+}
+
+body.td-unified table {
+  border-color: var(--td-line);
+}
+
+body.td-unified th {
+  background: #f9fafb;
+  color: var(--td-ink);
+  border-color: var(--td-line);
+}
+
+body.td-unified td {
+  border-color: var(--td-line);
+}
+
+body.td-unified input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+body.td-unified select,
+body.td-unified textarea {
+  border: 1px solid var(--td-line);
+  border-radius: 8px;
+  color: var(--td-ink);
+  background: #ffffff;
+}
+
+body.td-unified input:focus,
+body.td-unified select:focus,
+body.td-unified textarea:focus {
+  border-color: rgba(143, 29, 29, 0.55);
+  box-shadow: 0 0 0 2px rgba(143, 29, 29, 0.18);
+  outline: none;
+}
+
+body.td-unified button,
+body.td-unified .button,
+body.td-unified .btn,
+body.td-unified input[type="button"],
+body.td-unified input[type="submit"],
+body.td-unified input[type="reset"] {
+  background: var(--td-primary);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, transform 0.12s ease;
+}
+
+body.td-unified button:hover,
+body.td-unified .button:hover,
+body.td-unified .btn:hover,
+body.td-unified input[type="button"]:hover,
+body.td-unified input[type="submit"]:hover,
+body.td-unified input[type="reset"]:hover {
+  background: var(--td-primary-dark);
+}
+
+body.td-unified button:active,
+body.td-unified .button:active,
+body.td-unified .btn:active {
+  transform: translateY(1px);
+}
+
+body.td-unified .button-secondary,
+body.td-unified .btn-secondary,
+body.td-unified button.secondary,
+body.td-unified .chip,
+body.td-unified .btn-ghost {
+  background: #ffffff;
+  color: var(--td-ink-soft);
+  border: 1px solid var(--td-line);
+}
+
+body.td-unified .button-secondary:hover,
+body.td-unified .btn-secondary:hover,
+body.td-unified button.secondary:hover,
+body.td-unified .chip:hover,
+body.td-unified .btn-ghost:hover {
+  background: #f3f4f6;
+}
+
+body.td-unified .button-destructive,
+body.td-unified .btn-danger,
+body.td-unified button.btn-danger,
+body.td-unified button[class*="danger"],
+body.td-unified button[class*="delete"],
+body.td-unified .delete-button {
+  background: #b91c1c;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+body.td-unified .button-destructive:hover,
+body.td-unified .btn-danger:hover,
+body.td-unified button.btn-danger:hover,
+body.td-unified button[class*="danger"]:hover,
+body.td-unified button[class*="delete"]:hover,
+body.td-unified .delete-button:hover {
+  background: #991b1b;
+}
+
+body.td-unified .button-icon,
+body.td-unified .sa-color-swatch,
+body.td-unified button[aria-label="Theme umschalten"],
+body.td-unified #theme-toggle {
+  border-radius: 8px;
+}
+
+body.td-unified footer,
+body.td-unified .app-footer,
+body.td-unified .site-footer {
+  background: var(--td-ink);
+  color: #e5e7eb;
+}
+
+html[data-theme="dark"] body.td-unified {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+html[data-theme="dark"] body.td-unified .card,
+html[data-theme="dark"] body.td-unified fieldset,
+html[data-theme="dark"] body.td-unified .info-container,
+html[data-theme="dark"] body.td-unified .modal-content,
+html[data-theme="dark"] body.td-unified .panel {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] body.td-unified input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+html[data-theme="dark"] body.td-unified select,
+html[data-theme="dark"] body.td-unified textarea {
+  background: #111827;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+@media print {
+  body.td-unified::before {
+    display: none;
+  }
+}
+
+</style>
+</head>
+<body class="td-unified">
     <div class="container">
         <h1>Laser Entfernungsmesser</h1>
         <div class="controls">
@@ -282,7 +454,77 @@ $('#measurementTable').addEventListener('change', e => { if (e.target.matches('[
 $('#measurementTable').addEventListener('keydown', e => { if (!e.target.matches('input, select')) return; if (e.key !== 'Enter' && e.key !== 'Tab') return; const activeElement = e.target; const tr = activeElement.closest('tr'); if (!tr) return; const focusOrder = ['form', 'l', 'b', 'h', 'name']; const visibleFields = focusOrder.map(field => tr.querySelector(`[data-field="${field}"]`)).filter(el => el && el.closest('td').style.display !== 'none'); const currentIndex = visibleFields.indexOf(activeElement); if (e.key === 'Tab' || (e.key === 'Enter' && currentIndex < visibleFields.length - 1)) { e.preventDefault(); const nextIndex = (currentIndex + 1) % visibleFields.length; visibleFields[nextIndex].focus(); } else if (e.key === 'Enter' && currentIndex === visibleFields.length - 1) { e.preventDefault(); const editButton = tr.querySelector('.editButton'); if (editButton.innerHTML === '💾') { editButton.click(); } } });
 
 // 8. Export & Storage
-function exportToExcel(){ if (typeof XLSX === 'undefined') { showMessage('Export-Funktion konnte nicht geladen werden. Prüfen Sie Ihre Internetverbindung.', 'error'); return; } const data = [ ['Länge/Radius', 'Breite', 'Höhe', 'Form', 'Bezeichnung', 'Ergebnis', 'Einheit'] ]; $$('#measurementTable tbody tr').forEach(tr => { const form = tr.querySelector('[data-field="form"]').value; const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value); data.push([l, b, h, form, tr.querySelector('[data-field="name"]').value, calculateGeometry(form, l, b, h), getUnitSuffix(form)]); }); const ws = XLSX.utils.aoa_to_sheet(data); const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, 'Messungen'); XLSX.writeFile(wb, `${$('#projectName').value || 'Messungen'}.xlsx`); showMessage('Daten erfolgreich nach Excel exportiert', 'success'); }
+function tdShowExportFallback(url, fileName, blob){
+  const old = document.getElementById('td-export-fallback');
+  if (old) old.remove();
+  const bar = document.createElement('div');
+  bar.id = 'td-export-fallback';
+  bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:12px;z-index:2147483647;background:#111827;color:#fff;padding:10px 12px;border-radius:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;box-shadow:0 10px 24px rgba(0,0,0,.35);font-size:13px;';
+  const msg = document.createElement('span');
+  msg.textContent = "Download blockiert? Bitte 'Datei herunterladen' antippen.";
+  msg.style.flex = '1 1 220px';
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = fileName;
+  link.textContent = 'Datei herunterladen';
+  link.style.cssText = 'padding:8px 10px;border-radius:8px;background:#8f1d1d;color:#fff;text-decoration:none;font-weight:600;';
+  bar.appendChild(msg);
+  bar.appendChild(link);
+  if (blob && navigator.share) {
+    const share = document.createElement('button');
+    share.type = 'button';
+    share.textContent = 'Teilen';
+    share.style.cssText = 'padding:8px 10px;border-radius:8px;border:1px solid #4b5563;background:#1f2937;color:#fff;font-weight:600;cursor:pointer;';
+    share.addEventListener('click', async () => {
+      try {
+        const file = new File([blob], fileName, { type: blob.type || 'application/octet-stream' });
+        if (navigator.canShare && !navigator.canShare({ files: [file] })) return;
+        await navigator.share({ title: fileName, files: [file] });
+      } catch (_) {}
+    });
+    bar.appendChild(share);
+  }
+  const close = document.createElement('button');
+  close.type = 'button';
+  close.textContent = 'Schließen';
+  close.style.cssText = 'padding:8px 10px;border-radius:8px;border:1px solid #4b5563;background:transparent;color:#fff;cursor:pointer;';
+  close.addEventListener('click', () => bar.remove());
+  bar.appendChild(close);
+  document.body.appendChild(bar);
+}
+function exportToExcel(){
+  if (typeof XLSX === 'undefined') { showMessage('Export-Funktion konnte nicht geladen werden. Prüfen Sie Ihre Internetverbindung.', 'error'); return; }
+  const data = [ ['Länge/Radius', 'Breite', 'Höhe', 'Form', 'Bezeichnung', 'Ergebnis', 'Einheit'] ];
+  $$('#measurementTable tbody tr').forEach(tr => {
+    const form = tr.querySelector('[data-field="form"]').value;
+    const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value);
+    data.push([l, b, h, form, tr.querySelector('[data-field="name"]').value, calculateGeometry(form, l, b, h), getUnitSuffix(form)]);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Messungen');
+
+  const fileName = `${$('#projectName').value || 'Messungen'}.xlsx`;
+  const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fileName;
+  a.style.display = 'none';
+  document.body.appendChild(a);
+  try { a.click(); } catch (_) {}
+  a.remove();
+
+  const restrictedScheme = /^(file|content):$/i.test(location.protocol);
+  if (restrictedScheme) {
+    tdShowExportFallback(url, fileName, blob);
+    showMessage('Excel vorbereitet. Falls Download blockiert ist, Link im Balken nutzen.', 'success');
+  } else {
+    showMessage('Daten erfolgreich nach Excel exportiert', 'success');
+    setTimeout(() => URL.revokeObjectURL(url), 120000);
+  }
+}
 $('#exportExcelButton').addEventListener('click', exportToExcel);
 function saveToLocalStorage(){ try {const data = {theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',projectName: $('#projectName').value, unit: UNIT,measurements: $$('#measurementTable tbody tr').map(tr => ({l: tr.querySelector('[data-field="l"]').value, b: tr.querySelector('[data-field="b"]').value, h: tr.querySelector('[data-field="h"]').value,form: tr.querySelector('[data-field="form"]').value, name: tr.querySelector('[data-field="name"]').value})).reverse()};localStorage.setItem(LS_KEY, JSON.stringify(data));} catch (e) { console.warn("LocalStorage nicht verfügbar:", e); showMessage('Speichern fehlgeschlagen', 'error'); }}
 function loadFromLocalStorage(){ try {const saved = localStorage.getItem(LS_KEY); if (!saved) return; const data = JSON.parse(saved); if (data.theme === 'dark') { document.body.classList.add('dark-mode'); $('#themeSwitcher').textContent = '🌙'; } if (data.projectName) $('#projectName').value = data.projectName; if (data.unit && conv[data.unit]) { $('#unitSelector').value = data.unit; UNIT = data.unit; } if (data.measurements && data.measurements.length > 0) { data.measurements.forEach(m => createRow(m, false)); } updateTotals();} catch (error) { console.warn('Fehler beim Laden aus dem LocalStorage:', error); localStorage.removeItem(LS_KEY); }}
@@ -298,3 +540,4 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
 </script>
 </body>
 </html>
+

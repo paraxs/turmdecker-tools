@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes, viewport-fit=cover">
-    <title>RestauroMap Professional v9.4 (Apple Design)</title>
+    <title>RestauroMap Professional v9.7 (Apple Design)</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
         /* Apple-inspired Design System */
@@ -97,6 +97,8 @@
             display: none;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
+            min-height: 100svh;
             width: 100vw;
             overflow: hidden;
             position: absolute;
@@ -356,6 +358,34 @@
   z-index: 90; /* below action bars, above content */
   pointer-events: none;
 }
+/* Ensure project cards are never hidden behind footer/FAB on phones */
+#project-list-container {
+  padding-bottom: max(190px, calc(24vh + var(--safe-area-bottom)));
+  scroll-padding-bottom: max(190px, calc(24vh + var(--safe-area-bottom)));
+}
+#page-projects .fab {
+  bottom: calc(88px + var(--safe-area-bottom));
+  right: calc(18px + var(--safe-area-right));
+}
+@media (max-width: 480px) {
+  #project-list-container {
+    padding-bottom: max(240px, calc(30vh + var(--safe-area-bottom)));
+    scroll-padding-bottom: max(240px, calc(30vh + var(--safe-area-bottom)));
+  }
+  #page-projects .fab {
+    bottom: calc(108px + var(--safe-area-bottom));
+    right: calc(14px + var(--safe-area-right));
+    width: 54px;
+    height: 54px;
+  }
+  .app-footer {
+    font-size: 11px;
+    line-height: 1.2;
+    padding: 3px 6px;
+    border-radius: 8px;
+    background: rgba(17, 24, 39, 0.85);
+  }
+}
 /* --- Enhanced icon buttons & labels (mobile friendly) --- */
 .button-icon {
   background: var(--bg-tertiary);
@@ -380,41 +410,216 @@
   .action-bar .button { max-width: none; flex: 1 1 auto; }
 }
 </style>
-  <link rel="stylesheet" href="./td-shell.css" />
-  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-  <meta name="theme-color" content="#8F1D1D" />
-  <meta name="description" content="Digitale Dokumentation fuer Restaurierungs- und Bestandsprojekte mit Flaechen, Befunden, Fotos und PDF-Export." />
-  <meta property="og:type" content="website" />
-  <meta property="og:site_name" content="Turmdecker - Kofler e.U." />
-  <meta property="og:title" content="RestauroMap Professional | Turmdecker Tools" />
-  <meta property="og:description" content="Digitale Dokumentation fuer Restaurierungs- und Bestandsprojekte mit Flaechen, Befunden, Fotos und PDF-Export." />
-  <meta property="og:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
-  <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="RestauroMap Professional | Turmdecker Tools" />
-  <meta name="twitter:description" content="Digitale Dokumentation fuer Restaurierungs- und Bestandsprojekte mit Flaechen, Befunden, Fotos und PDF-Export." />
-  <meta name="twitter:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
-  <link rel="canonical" href="https://tools.turmdecker.com/restauromap-professional.html" />
-  <meta property="og:url" content="https://tools.turmdecker.com/restauromap-professional.html" />
-  <meta name="robots" content="index,follow,max-image-preview:large" />
-</head>
-<body>
-<div class="td-shell" role="banner">
-  <div class="td-shell__inner">
-    <a class="td-shell__brand" href="./index.html" aria-label="Zur Tool-Übersicht">
-      <img class="td-shell__logo" src="./favicon.svg" alt="Turmdecker Logo" loading="eager" />
-      <div class="td-shell__text">
-        <strong>TURMDECKER</strong>
-        <span>Tools & Rechner</span>
-      </div>
-    </a>
-    <div class="td-shell__nav" aria-label="Navigation">
-      <a class="td-btn" href="./index.html">↩ Übersicht</a>
-      <a class="td-btn" href="https://turmdecker.com/" rel="noopener">🏠 Homepage</a>
-      <a class="td-btn td-btn--primary" href="https://turmdecker.com/kontakt/" rel="noopener">📞 Kontakt</a>
-    </div>
-  </div>
-</div>
+  <style id="turmdecker-unified-inline">
+/* Turmdecker Unified Tool Theme */
+:root {
+  --td-primary: #8f1d1d;
+  --td-primary-dark: #6f1616;
+  --td-ink: #111827;
+  --td-ink-soft: #374151;
+  --td-muted: #4b5563;
+  --td-line: #e5e7eb;
+  --td-bg: #f9fafb;
+  --td-card: #ffffff;
+  --td-radius: 10px;
+  --td-shadow: 0 8px 22px rgba(17, 24, 39, 0.06);
+}
 
+html, body.td-unified {
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body.td-unified {
+  color: var(--td-ink);
+  background: linear-gradient(180deg, #ffffff 0%, var(--td-bg) 100%);
+}
+
+body.td-unified::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: var(--td-primary);
+  z-index: 2147483647;
+  pointer-events: none;
+}
+
+body.td-unified h1,
+body.td-unified h2,
+body.td-unified h3,
+body.td-unified h4 {
+  color: var(--td-ink);
+  letter-spacing: 0.01em;
+}
+
+body.td-unified .container,
+body.td-unified .card,
+body.td-unified fieldset,
+body.td-unified form,
+body.td-unified .modal-content,
+body.td-unified .info-container,
+body.td-unified .panel {
+  border-radius: var(--td-radius);
+}
+
+body.td-unified .card,
+body.td-unified fieldset,
+body.td-unified .info-container,
+body.td-unified .modal-content,
+body.td-unified .panel {
+  border: 1px solid var(--td-line);
+  background: var(--td-card);
+  box-shadow: var(--td-shadow);
+}
+
+body.td-unified table {
+  border-color: var(--td-line);
+}
+
+body.td-unified th {
+  background: #f9fafb;
+  color: var(--td-ink);
+  border-color: var(--td-line);
+}
+
+body.td-unified td {
+  border-color: var(--td-line);
+}
+
+body.td-unified input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+body.td-unified select,
+body.td-unified textarea {
+  border: 1px solid var(--td-line);
+  border-radius: 8px;
+  color: var(--td-ink);
+  background: #ffffff;
+}
+
+body.td-unified input:focus,
+body.td-unified select:focus,
+body.td-unified textarea:focus {
+  border-color: rgba(143, 29, 29, 0.55);
+  box-shadow: 0 0 0 2px rgba(143, 29, 29, 0.18);
+  outline: none;
+}
+
+body.td-unified button,
+body.td-unified .button,
+body.td-unified .btn,
+body.td-unified input[type="button"],
+body.td-unified input[type="submit"],
+body.td-unified input[type="reset"] {
+  background: var(--td-primary);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  transition: background-color 0.2s ease, transform 0.12s ease;
+}
+
+body.td-unified button:hover,
+body.td-unified .button:hover,
+body.td-unified .btn:hover,
+body.td-unified input[type="button"]:hover,
+body.td-unified input[type="submit"]:hover,
+body.td-unified input[type="reset"]:hover {
+  background: var(--td-primary-dark);
+}
+
+body.td-unified button:active,
+body.td-unified .button:active,
+body.td-unified .btn:active {
+  transform: translateY(1px);
+}
+
+body.td-unified .button-secondary,
+body.td-unified .btn-secondary,
+body.td-unified button.secondary,
+body.td-unified .chip,
+body.td-unified .btn-ghost {
+  background: #ffffff;
+  color: var(--td-ink-soft);
+  border: 1px solid var(--td-line);
+}
+
+body.td-unified .button-secondary:hover,
+body.td-unified .btn-secondary:hover,
+body.td-unified button.secondary:hover,
+body.td-unified .chip:hover,
+body.td-unified .btn-ghost:hover {
+  background: #f3f4f6;
+}
+
+body.td-unified .button-destructive,
+body.td-unified .btn-danger,
+body.td-unified button.btn-danger,
+body.td-unified button[class*="danger"],
+body.td-unified button[class*="delete"],
+body.td-unified .delete-button {
+  background: #b91c1c;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+body.td-unified .button-destructive:hover,
+body.td-unified .btn-danger:hover,
+body.td-unified button.btn-danger:hover,
+body.td-unified button[class*="danger"]:hover,
+body.td-unified button[class*="delete"]:hover,
+body.td-unified .delete-button:hover {
+  background: #991b1b;
+}
+
+body.td-unified .button-icon,
+body.td-unified .sa-color-swatch,
+body.td-unified button[aria-label="Theme umschalten"],
+body.td-unified #theme-toggle {
+  border-radius: 8px;
+}
+
+body.td-unified footer,
+body.td-unified .site-footer {
+  background: var(--td-ink);
+  color: #e5e7eb;
+}
+body.td-unified .app-footer {
+  background: transparent;
+  color: var(--text-tertiary);
+}
+
+html[data-theme="dark"] body.td-unified {
+  background: #111827;
+  color: #e5e7eb;
+}
+
+html[data-theme="dark"] body.td-unified .card,
+html[data-theme="dark"] body.td-unified fieldset,
+html[data-theme="dark"] body.td-unified .info-container,
+html[data-theme="dark"] body.td-unified .modal-content,
+html[data-theme="dark"] body.td-unified .panel {
+  background: #1f2937;
+  border-color: #374151;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] body.td-unified input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+html[data-theme="dark"] body.td-unified select,
+html[data-theme="dark"] body.td-unified textarea {
+  background: #111827;
+  color: #f3f4f6;
+  border-color: #4b5563;
+}
+
+@media print {
+  body.td-unified::before {
+    display: none;
+  }
+}
+
+</style>
+</head>
+<body class="td-unified">
     <div id="loader-overlay" class="loader-overlay"><div class="loader"></div></div>
     <div id="toast-container"></div>
     <!-- Projects Page -->
@@ -548,18 +753,30 @@
         </div>
       </div>
 </div>
+    <div id="export-ready-modal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true">
+      <div class="modal-content">
+        <h3 style="margin-top:0;font-size:20px;font-weight:600;">Backup bereit</h3>
+        <p id="export-ready-info" style="margin:0 0 12px 0;color:var(--text-secondary);">Datei wurde vorbereitet.</p>
+        <div class="modal-actions" style="justify-content:flex-start;flex-wrap:wrap;">
+          <a id="export-ready-link" class="button" href="#" download>Datei herunterladen</a>
+          <button id="btn-share-backup" type="button" class="button button-secondary">Teilen</button>
+          <button id="btn-close-export-ready" type="button" class="button button-secondary">Schließen</button>
+        </div>
+      </div>
+    </div>
     <!-- === Simple Annotator UI === -->
     <style>
       #sa-modal.overlay {position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center; z-index:9999;}
       #sa-modal .panel {background:var(--bg-elevated, #fff); color:var(--text-primary,#111); width:min(1000px,95vw); height:min(90vh,95vh); border-radius:12px; box-shadow:0 10px 30px rgba(0,0,0,.2); display:flex; flex-direction:column; padding:12px;}
       #sa-toolbar {display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:8px;}
       #sa-toolbar .seg {display:inline-flex; border:1px solid var(--gray-4,#ddd); border-radius:8px; overflow:hidden;}
-      #sa-toolbar .seg button {border:0; padding:8px 12px; background:var(--bg-tertiary,#f7f7f7); cursor:pointer}
+      #sa-toolbar .seg button {border:0; padding:8px 12px; background:var(--bg-tertiary,#f7f7f7); color:var(--text-primary,#111); cursor:pointer; font-weight:600;}
+      #sa-toolbar .seg button:hover {background:var(--gray-6,#efefef); color:var(--text-primary,#111);}
       #sa-toolbar .seg button.active {background:var(--blue-primary); color: white;}
       #sa-canvas-wrap {flex:1; position:relative; border:1px solid var(--gray-4,#ddd); border-radius:10px; overflow:hidden; background:var(--bg-secondary,#fafafa); display:flex; align-items:center; justify-content:center;}
       #sa-canvas {max-width:100%; max-height:100%; width:auto; height:auto; display:block; background:#fff; touch-action:none;}
       #sa-actions {display:flex; gap:8px; margin-top:8px; justify-content:flex-end;}
-      .sa-btn {padding:8px 12px; border-radius:8px; border:1px solid var(--gray-4,#ddd); background:var(--bg-tertiary,#f7f7f7); cursor:pointer}
+      .sa-btn {padding:8px 12px; border-radius:8px; border:1px solid var(--gray-4,#ddd); background:var(--bg-tertiary,#f7f7f7); color:var(--text-primary,#111); cursor:pointer}
       .sa-btn.primary {background:var(--blue-primary,#007aff); color:#fff; border-color:transparent;}
       #sa-palette .sa-color-swatch {
         width: 28px; height: 28px; border-radius: 50%; border: none; cursor: pointer;
@@ -626,6 +843,7 @@
                 currentAreaId: null, isDrawing: false, drawingPoints: [],
                 newEntryData: {}, activeImage: null, allProjectAreas: [],
                 hoveredAreaId: null, transform: new DOMMatrix(),
+                exportBackupUrl: null, exportBackupBlob: null, exportBackupFilename: '',
                 pointer: {
                     isDown: false, mode: 'none', startDist: 0,
                     startClient: {x: 0, y: 0}, lastClient: {x:0, y:0},
@@ -947,19 +1165,122 @@ actions.confirmNewEntry = async e => {
     ui.showToast("Eintrag gespeichert.", "success");
     await navigation.to('page-details', state.currentAreaId);
 };
+            const formatBytes = bytes => {
+                if (!Number.isFinite(bytes) || bytes < 0) return '-';
+                if (bytes < 1024) return `${bytes} B`;
+                const kb = bytes / 1024;
+                if (kb < 1024) return `${kb.toFixed(1)} KB`;
+                const mb = kb / 1024;
+                if (mb < 1024) return `${mb.toFixed(1)} MB`;
+                return `${(mb / 1024).toFixed(2)} GB`;
+            };
+            actions.exportStoreAsJsonBlob = storeName => new Promise((resolve, reject) => {
+                try {
+                    const tx = state.db.transaction([storeName], 'readonly');
+                    const store = tx.objectStore(storeName);
+                    const chunks = ['['];
+                    let first = true;
+                    const req = store.openCursor();
+
+                    req.onsuccess = e => {
+                        const cursor = e.target.result;
+                        if (!cursor) {
+                            chunks.push(']');
+                            return;
+                        }
+                        if (!first) chunks.push(',');
+                        chunks.push(JSON.stringify(cursor.value));
+                        first = false;
+                        cursor.continue();
+                    };
+                    req.onerror = () => reject(req.error || new Error(`Store ${storeName} konnte nicht gelesen werden.`));
+                    tx.oncomplete = () => resolve(new Blob(chunks, { type: 'application/json' }));
+                    tx.onerror = () => reject(tx.error || new Error(`Transaktion für ${storeName} fehlgeschlagen.`));
+                    tx.onabort = () => reject(tx.error || new Error(`Transaktion für ${storeName} wurde abgebrochen.`));
+                } catch (err) {
+                    reject(err);
+                }
+            });
+            actions.sharePreparedBackup = async () => {
+                try {
+                    if (!state.exportBackupBlob || !state.exportBackupFilename) {
+                        ui.showToast('Kein vorbereitetes Backup vorhanden.', 'error');
+                        return;
+                    }
+                    const file = new File([state.exportBackupBlob], state.exportBackupFilename, { type: 'application/json' });
+                    if (!navigator.share) {
+                        ui.showToast('Teilen auf diesem Gerät/Browser nicht verfügbar.', 'info');
+                        return;
+                    }
+                    if (navigator.canShare && !navigator.canShare({ files: [file] })) {
+                        ui.showToast('Teilen auf diesem Gerät/Browser nicht verfügbar.', 'info');
+                        return;
+                    }
+                    await navigator.share({
+                        title: 'RestauroMap Backup',
+                        text: 'Backup-Datei',
+                        files: [file]
+                    });
+                } catch (err) {
+                    if (err && err.name === 'AbortError') return;
+                    const unsupported = err && (err.name === 'NotAllowedError' || err.name === 'NotSupportedError' || err.name === 'TypeError');
+                    ui.showToast(unsupported ? 'Teilen auf diesem Gerät/Browser nicht verfügbar.' : 'Teilen fehlgeschlagen.', unsupported ? 'info' : 'error');
+                }
+            };
             actions.exportBackup = async () => {
                 ui.showLoader();
                 try {
-                    const data = {
-                        projekte: await actions.getAll('projekte'), areas: await actions.getAll('areas'),
-                        eintraege: await actions.getAll('eintraege'), firmendaten: await actions.getAll('firmendaten')
-                    };
-                    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+                    // Build JSON in store-sized chunks to avoid memory spikes on mobile.
+                    const projekteBlob = await actions.exportStoreAsJsonBlob('projekte');
+                    const areasBlob = await actions.exportStoreAsJsonBlob('areas');
+                    const eintraegeBlob = await actions.exportStoreAsJsonBlob('eintraege');
+                    const firmendatenBlob = await actions.exportStoreAsJsonBlob('firmendaten');
+                    const blob = new Blob([
+                        '{"projekte":', projekteBlob,
+                        ',"areas":', areasBlob,
+                        ',"eintraege":', eintraegeBlob,
+                        ',"firmendaten":', firmendatenBlob,
+                        '}'
+                    ], { type: "application/json" });
+                    const fileName = `restauromap-backup-${new Date().toISOString().split('T')[0]}.json`;
+                    const url = URL.createObjectURL(blob);
+
+                    if (state.exportBackupUrl) {
+                        try { URL.revokeObjectURL(state.exportBackupUrl); } catch (_) {}
+                    }
+                    state.exportBackupUrl = url;
+                    state.exportBackupBlob = blob;
+                    state.exportBackupFilename = fileName;
+
+                    const infoText = `Datei bereit (${formatBytes(blob.size)}). Falls der Auto-Download blockiert wird, tippen Sie auf „Datei herunterladen“ oder „Teilen“.`;
+                    const info = document.getElementById('export-ready-info');
+                    const link = document.getElementById('export-ready-link');
+                    if (info) info.textContent = infoText;
+                    if (link) {
+                        link.href = url;
+                        link.download = fileName;
+                    }
+
                     const a = document.createElement('a');
-                    a.href = URL.createObjectURL(blob);
-                    a.download = `restauromap-backup-${new Date().toISOString().split('T')[0]}.json`;
-                    a.click(); URL.revokeObjectURL(a.href);
-                    ui.showToast("Backup erfolgreich heruntergeladen.", "success");
+                    a.href = url;
+                    a.download = fileName;
+                    a.style.display = 'none';
+                    document.body.appendChild(a);
+
+                    // Attempt auto-download first (works on desktop and many mobile browsers).
+                    try { a.click(); } catch (_) {}
+                    a.remove();
+
+                    // On file/content schemes (typical when opening copied files on phone),
+                    // browsers often block automatic downloads after heavy async work.
+                    const restrictedScheme = /^(file|content):$/i.test(location.protocol);
+                    const largeBackup = blob.size > 8 * 1024 * 1024;
+                    if (restrictedScheme || largeBackup) {
+                        ui.showModal('export-ready-modal');
+                        ui.showToast("Backup erstellt. Bitte ggf. manuell herunterladen/teilen.", "info");
+                    } else {
+                        ui.showToast("Backup erfolgreich heruntergeladen.", "success");
+                    }
                 } catch (err) { ui.showToast("Export fehlgeschlagen.", "error"); }
                 finally { ui.hideLoader(); }
             };
@@ -997,97 +1318,316 @@ ui.showToast("Daten erfolgreich importiert.", "success");
                 reader.readAsText(file);
             };
             actions.exportPDF = async () => {
-                ui.showToast("PDF-Bericht wird erstellt...", "info"); ui.showLoader();
+                ui.showToast("PDF-Bericht wird erstellt...", "info");
+                ui.showLoader();
                 try {
-                    const { jsPDF } = window.jspdf; const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'p', unit: 'mm', format: 'a4' });
                     const project = await actions.getById('projekte', state.currentProjectId);
-                    const areas = await actions.getIndexAll('areas', 'projekt_id_idx', state.currentProjectId);
+                    if (!project) throw new Error("Projekt nicht gefunden.");
+
                     const company = await actions.loadCompany();
-                    const margin = 15, pageWidth = doc.internal.pageSize.getWidth(), pageHeight = doc.internal.pageSize.getHeight();
-                    // --- PDF Helper Functions ---
-                    const drawHeader = (title, subtitle = "") => {
-                        doc.setFontSize(16).setTextColor(0, 122, 255).text(title, margin, 25);
-                        if (subtitle) doc.setFontSize(12).setTextColor(100).text(subtitle, pageWidth - margin - doc.getTextWidth(subtitle), 25);
-                        doc.setDrawColor(0, 122, 255).setLineWidth(0.5).line(margin, 28, pageWidth - margin, 28); doc.setTextColor(0);
+                    const areas = (await actions.getIndexAll('areas', 'projekt_id_idx', state.currentProjectId))
+                        .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+
+                    const margin = 14;
+                    const pageWidth = doc.internal.pageSize.getWidth();
+                    const pageHeight = doc.internal.pageSize.getHeight();
+                    const contentTop = 34;
+                    const contentBottom = pageHeight - 16;
+                    const contentWidth = pageWidth - margin * 2;
+
+                    const colorBrand = [143, 29, 29];
+                    const colorText = [17, 24, 39];
+                    const colorMuted = [75, 85, 99];
+                    const colorLine = [229, 231, 235];
+                    const colorCard = [248, 249, 251];
+
+                    const wichtigkeitLabel = w => ({ high: 'Hoch', medium: 'Mittel', low: 'Niedrig' }[w] || 'Unbekannt');
+                    const sourceLabel = s => ({ camera: 'Kamera', gallery: 'Galerie', annotated: 'Annotiert' }[s] || 'Unbekannt');
+                    const fmtDate = d => d ? new Date(d).toLocaleString('de-DE') : '-';
+
+                    const entriesByArea = new Map();
+                    let totalEntries = 0, totalPhotos = 0, totalNotes = 0;
+                    for (const area of areas) {
+                        const entries = (await actions.getIndexAll('eintraege', 'area_id_idx', area.id))
+                            .sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+                        entriesByArea.set(area.id, entries);
+                        totalEntries += entries.length;
+                        totalPhotos += entries.filter(e => e.typ === 'foto').length;
+                        totalNotes += entries.filter(e => e.typ === 'notiz').length;
+                    }
+
+                    let y = contentTop;
+                    let headerCtx = { title: '', subtitle: '' };
+
+                    const drawHeader = (title, subtitle = '') => {
+                        headerCtx = { title, subtitle };
+                        doc.setTextColor(...colorBrand).setFont('helvetica', 'bold').setFontSize(16);
+                        doc.text(sanitizeForPDF(title), margin, 22);
+                        if (subtitle) {
+                            doc.setTextColor(...colorMuted).setFont('helvetica', 'normal').setFontSize(10);
+                            const s = sanitizeForPDF(subtitle);
+                            doc.text(s, pageWidth - margin - doc.getTextWidth(s), 22);
+                        }
+                        doc.setDrawColor(...colorLine).setLineWidth(0.6).line(margin, 26, pageWidth - margin, 26);
+                        doc.setTextColor(...colorText);
                     };
+
+                    const startNewPage = (title, subtitle = '') => {
+                        doc.addPage();
+                        drawHeader(title, subtitle);
+                        y = contentTop;
+                    };
+
+                    const ensureSpace = (neededHeight) => {
+                        if (y + neededHeight <= contentBottom) return;
+                        const continuedTitle = headerCtx.title.includes('(Fortsetzung)')
+                            ? headerCtx.title
+                            : `${headerCtx.title} (Fortsetzung)`;
+                        startNewPage(continuedTitle, headerCtx.subtitle);
+                    };
+
+                    const drawMetaCard = (rows) => {
+                        const rowHeight = 6;
+                        const h = 10 + rows.length * rowHeight;
+                        ensureSpace(h + 4);
+                        doc.setFillColor(...colorCard).setDrawColor(...colorLine).roundedRect(margin, y, contentWidth, h, 2, 2, 'FD');
+                        let yy = y + 7;
+                        for (const row of rows) {
+                            doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(...colorMuted);
+                            doc.text(`${sanitizeForPDF(row.label)}:`, margin + 4, yy);
+                            doc.setFont('helvetica', 'normal').setTextColor(...colorText);
+                            doc.text(sanitizeForPDF(row.value || '-'), margin + 34, yy);
+                            yy += rowHeight;
+                        }
+                        y += h + 4;
+                    };
+
+                    const drawNoteBlock = (title, timestamp, textLines) => {
+                        const lineHeight = 4.8;
+                        const textHeight = Math.max(lineHeight * textLines.length, 6);
+                        const blockH = 12 + textHeight + 4;
+                        ensureSpace(blockH + 4);
+
+                        doc.setFillColor(255, 255, 255).setDrawColor(...colorLine).roundedRect(margin, y, contentWidth, blockH, 2, 2, 'FD');
+                        doc.setFillColor(...colorBrand).rect(margin, y, 2, blockH, 'F');
+                        doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(...colorText);
+                        doc.text(sanitizeForPDF(title), margin + 5, y + 6);
+
+                        const dateText = sanitizeForPDF(timestamp);
+                        doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(...colorMuted);
+                        doc.text(dateText, pageWidth - margin - doc.getTextWidth(dateText), y + 6);
+
+                        doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(...colorText);
+                        let yy = y + 12;
+                        for (const line of textLines) {
+                            doc.text(sanitizeForPDF(line), margin + 5, yy);
+                            yy += lineHeight;
+                        }
+                        y += blockH + 4;
+                    };
+
+                    const drawPhotoBlock = async (title, timestamp, source, imageDataUrl) => {
+                        let normalized = null;
+                        try { normalized = await actions.ensureImageDataUrlForPDF(imageDataUrl) || imageDataUrl; } catch (_) { normalized = null; }
+
+                        if (!normalized) {
+                            ensureSpace(26);
+                            doc.setFillColor(255, 255, 255).setDrawColor(...colorLine).roundedRect(margin, y, contentWidth, 22, 2, 2, 'FD');
+                            doc.setFillColor(...colorBrand).rect(margin, y, 2, 22, 'F');
+                            doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(...colorText).text(sanitizeForPDF(title), margin + 5, y + 6);
+                            doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(...colorMuted).text(sanitizeForPDF(timestamp), pageWidth - margin - doc.getTextWidth(sanitizeForPDF(timestamp)), y + 6);
+                            doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(160).text('(Bild konnte nicht geladen werden)', margin + 5, y + 14);
+                            y += 26;
+                            return;
+                        }
+
+                        let props, imgW = 120, imgH = 80;
+                        try {
+                            props = doc.getImageProperties(normalized);
+                            const maxW = contentWidth - 10;
+                            const maxH = 95;
+                            const scale = Math.min(maxW / props.width, maxH / props.height);
+                            imgW = props.width * scale;
+                            imgH = props.height * scale;
+                        } catch (_) {
+                            ensureSpace(26);
+                            doc.setFillColor(255, 255, 255).setDrawColor(...colorLine).roundedRect(margin, y, contentWidth, 22, 2, 2, 'FD');
+                            doc.setFillColor(...colorBrand).rect(margin, y, 2, 22, 'F');
+                            doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(...colorText).text(sanitizeForPDF(title), margin + 5, y + 6);
+                            doc.setFont('helvetica', 'normal').setFontSize(10).setTextColor(160).text('(Bilddaten ungültig)', margin + 5, y + 14);
+                            y += 26;
+                            return;
+                        }
+
+                        const blockH = 15 + imgH + 9;
+                        ensureSpace(blockH + 4);
+
+                        doc.setFillColor(255, 255, 255).setDrawColor(...colorLine).roundedRect(margin, y, contentWidth, blockH, 2, 2, 'FD');
+                        doc.setFillColor(...colorBrand).rect(margin, y, 2, blockH, 'F');
+                        doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(...colorText).text(sanitizeForPDF(title), margin + 5, y + 6);
+
+                        const dateText = sanitizeForPDF(timestamp);
+                        doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(...colorMuted);
+                        doc.text(dateText, pageWidth - margin - doc.getTextWidth(dateText), y + 6);
+
+                        const imgX = margin + (contentWidth - imgW) / 2;
+                        const imgY = y + 10;
+                        const fmt = normalized.includes('image/png') ? 'PNG' : 'JPEG';
+                        doc.addImage(normalized, fmt, imgX, imgY, imgW, imgH);
+
+                        doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(...colorMuted);
+                        const caption = `Quelle: ${sourceLabel(source)}`;
+                        doc.text(sanitizeForPDF(caption), margin + 5, y + blockH - 3);
+                        y += blockH + 4;
+                    };
+
                     const addFooter = () => {
-                        for (let i = 1; i <= doc.internal.getNumberOfPages(); i++) {
-                            doc.setPage(i); doc.setFontSize(9).setTextColor(120);
-                            doc.text(`${sanitizeForPDF(project.name)} | Seite ${i}`, margin, pageHeight - 10);
-                            const brand = (company && company.name) ? `(c) ${sanitizeForPDF(company.name)}` : "(c) RestauroMap";
-                            doc.text(brand, pageWidth - margin - doc.getTextWidth(brand), pageHeight - 10);
+                        const total = doc.internal.getNumberOfPages();
+                        const brandLabel = (company && company.name) ? sanitizeForPDF(company.name) : 'RestauroMap Professional';
+                        for (let i = 1; i <= total; i++) {
+                            doc.setPage(i);
+                            doc.setDrawColor(...colorLine).setLineWidth(0.3).line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+                            doc.setFont('helvetica', 'normal').setFontSize(8).setTextColor(...colorMuted);
+                            doc.text(`${sanitizeForPDF(project.name)} | Seite ${i} von ${total}`, margin, pageHeight - 7.5);
+                            const right = sanitizeForPDF(brandLabel);
+                            doc.text(right, pageWidth - margin - doc.getTextWidth(right), pageHeight - 7.5);
                         }
                     };
-                    const wichtigkeitLabel = w => ({ high: 'Hoch', medium: 'Mittel', low: 'Niedrig' }[w] || 'Unbekannt');
-                    // --- Title Page ---
-if (company && company.logoDataUrl) {
-  try {
-    // Normalize to PNG/JPEG to avoid jsPDF incompatibilities (e.g., SVG/WebP).
-    const normalizedLogo = await actions.ensureImageDataUrlForPDF(company.logoDataUrl);
-    if (normalizedLogo) {
-      const props = doc.getImageProperties(normalizedLogo);
-      const maxWmm = 78, maxHmm = 39;
-      const scale = Math.min(maxWmm / props.width, maxHmm / props.height);
-      const w = props.width * scale, h = props.height * scale;
-      const x = pageWidth - margin - w, y = 15;
-      const fmt = normalizedLogo.includes('image/png') ? 'PNG' : 'JPEG';
-      doc.addImage(normalizedLogo, fmt, x, y, w, h);
-    } else {
-      console.warn('Logo: keine gültigen Bilddaten.');
-    }
-  } catch (e) { console.warn('Logo konnte nicht gerendert werden:', e); }
-}
-                    doc.setFontSize(28).setTextColor(0, 122, 255).text(sanitizeForPDF(project.name), margin, 40);
-                    doc.setFontSize(16).setTextColor(60).text(`Ort: ${sanitizeForPDF(project.ort)}`, margin, 55);
-                    const dt = new Date(); doc.text(`Dokumentation: ${dt.toLocaleDateString('de-DE')} ${dt.toLocaleTimeString('de-DE')}`, margin, 65);
-                    if(company) { let y=80; doc.setFontSize(12).setTextColor(0); if(company.name) doc.text(`Firma: ${sanitizeForPDF(company.name)}`, margin, y+=8); if(company.email) doc.text(`Mail: ${sanitizeForPDF(company.email)}`, margin, y+=6); if(company.phone) doc.text(`Tel: ${sanitizeForPDF(company.phone)}`, margin, y+=6); if(company.website) doc.text(`${sanitizeForPDF(company.website)}`, margin, y+=6); }
-                    // --- Overview Page ---
-                    doc.addPage(); drawHeader("Übersicht mit markierten Bereichen");
-                    const overviewCanvas = await ui.generateOverviewCanvas(project, areas);
-                    const imgData = overviewCanvas.toDataURL('image/jpeg', 0.95);
-                    const imgProps = doc.getImageProperties(imgData);
-                    const maxW = pageWidth - margin * 2;
-const maxH = pageHeight - 80; // ← deutlich mehr Platz (80 mm für Header/Footer)
-const scale = Math.min(maxW / imgProps.width, maxH / imgProps.height);
-                    doc.addImage(imgData, 'JPEG', margin, 35, imgProps.width * scale, imgProps.height * scale);
-                    // --- Detail Pages ---
-                    for (const [index, area] of areas.entries()) {
-                        const areaNum = index + 1; doc.addPage();
-                        drawHeader(`Bereich ${areaNum}`, `${sanitizeForPDF(area.name)}`);
-                        let yPos = 40;
-                        doc.setFillColor(248, 249, 250).roundedRect(margin, yPos, pageWidth - margin * 2, 25, 3, 3, 'F');
-                        doc.setFontSize(16).setTextColor(0).text(`${areaNum}. ${sanitizeForPDF(area.name)}`, margin + 5, yPos+=8);
-                        doc.setFontSize(12).setTextColor(100).text(`Wichtigkeit: ${wichtigkeitLabel(area.wichtigkeit)}`, margin + 5, yPos+=8);
-                        doc.text(`Erstellt: ${new Date(area.created_at).toLocaleDateString('de-DE')}`, margin + 80, yPos);
-                        yPos += 15;
-                        const eintraege = (await actions.getIndexAll('eintraege', 'area_id_idx', area.id)).sort((a,b) => new Date(a.created_at) - new Date(b.created_at));
-                        if (eintraege.length === 0) { doc.setFontSize(11).setTextColor(150).text("> Keine Einträge vorhanden", margin, yPos); continue; }
-                        for (const [eIndex, entry] of eintraege.entries()) {
-                            if (yPos > pageHeight - 60) { doc.addPage(); drawHeader(`Bereich ${areaNum} (Forts.)`, `${sanitizeForPDF(area.name)}`); yPos = 40; }
-                            const title = `${entry.typ==='foto'?'[F]':'[N]'} ${entry.typ==='foto'?'Foto':'Notiz'} #${eIndex+1}`;
-                            doc.setFontSize(12).setTextColor(0).text(title, margin, yPos);
-                            const dateStr = new Date(entry.created_at).toLocaleString('de-DE'), dateW = doc.getTextWidth(dateStr);
-                            doc.setFontSize(9).setTextColor(120).text(dateStr, pageWidth - margin - dateW, yPos); yPos += 6;
-                            if (entry.typ === 'notiz') {
-                                doc.setFontSize(10).setTextColor(60);
-                                const lines = doc.splitTextToSize(sanitizeForPDF(entry.inhalt), pageWidth-margin*2-10);
-                                lines.forEach(line => { if (yPos>pageHeight-30){ doc.addPage(); drawHeader(`Bereich ${areaNum} (Forts.)`, `${sanitizeForPDF(area.name)}`); yPos = 40; } doc.text(line, margin+5, yPos); yPos += 5; });
-                            } else if (entry.typ === 'foto') {
-                                try {
-                                    const pProps = doc.getImageProperties(entry.inhalt);
-                                    const maxPW = 100, pH = (pProps.height * maxPW) / pProps.width;
-                                    if(yPos+pH > pageHeight-30) { doc.addPage(); drawHeader(`Bereich ${areaNum} (Forts.)`, `${sanitizeForPDF(area.name)}`); yPos = 40; }
-                                    doc.addImage(entry.inhalt, 'JPEG', margin+5, yPos, maxPW, pH); yPos += pH + 5;
-                                } catch (_err) { doc.setFontSize(9).setTextColor(150).text("(Bild defekt)", margin+5, yPos); yPos += 8; }
+
+                    // --- Titelseite ---
+                    doc.setFillColor(...colorBrand).rect(0, 0, pageWidth, 18, 'F');
+                    doc.setFont('helvetica', 'bold').setFontSize(12).setTextColor(255, 255, 255);
+                    doc.text('RestauroMap Professional – Projektdokumentation', margin, 11.5);
+                    doc.setTextColor(...colorText);
+
+                    if (company && company.logoDataUrl) {
+                        try {
+                            const normalizedLogo = await actions.ensureImageDataUrlForPDF(company.logoDataUrl);
+                            if (normalizedLogo) {
+                                const props = doc.getImageProperties(normalizedLogo);
+                                const maxW = 58, maxH = 28;
+                                const scale = Math.min(maxW / props.width, maxH / props.height);
+                                const w = props.width * scale;
+                                const h = props.height * scale;
+                                const x = pageWidth - margin - w;
+                                doc.addImage(normalizedLogo, normalizedLogo.includes('image/png') ? 'PNG' : 'JPEG', x, 22, w, h);
                             }
-                            yPos += 8;
+                        } catch (_) {}
+                    }
+
+                    doc.setFont('helvetica', 'bold').setFontSize(24).setTextColor(...colorBrand);
+                    doc.text(sanitizeForPDF(project.name || 'Projekt'), margin, 42);
+                    doc.setFont('helvetica', 'normal').setFontSize(12).setTextColor(...colorText);
+                    doc.text(`Ort: ${sanitizeForPDF(project.ort || '-')}`, margin, 52);
+                    doc.text(`Erstellt am: ${new Date().toLocaleString('de-DE')}`, margin, 59);
+
+                    drawMetaCard([
+                        { label: 'Bereiche', value: String(areas.length) },
+                        { label: 'Einträge gesamt', value: String(totalEntries) },
+                        { label: 'Fotos', value: String(totalPhotos) },
+                        { label: 'Notizen', value: String(totalNotes) }
+                    ]);
+
+                    if (company) {
+                        const companyLines = [
+                            company.name ? `Firma: ${company.name}` : null,
+                            company.email ? `E-Mail: ${company.email}` : null,
+                            company.phone ? `Telefon: ${company.phone}` : null,
+                            company.website ? `Website: ${company.website}` : null
+                        ].filter(Boolean).map(sanitizeForPDF);
+
+                        if (companyLines.length > 0) {
+                            const h = 10 + companyLines.length * 6;
+                            ensureSpace(h + 4);
+                            doc.setFillColor(...colorCard).setDrawColor(...colorLine).roundedRect(margin, y, contentWidth, h, 2, 2, 'FD');
+                            doc.setFont('helvetica', 'bold').setFontSize(10).setTextColor(...colorMuted);
+                            doc.text('Firmenangaben', margin + 4, y + 7);
+                            doc.setFont('helvetica', 'normal').setTextColor(...colorText);
+                            let yy = y + 13;
+                            for (const line of companyLines) {
+                                doc.text(line, margin + 4, yy);
+                                yy += 6;
+                            }
+                            y += h + 4;
                         }
                     }
+
+                    // --- Übersichtsseite ---
+                    startNewPage('Projektübersicht', sanitizeForPDF(project.name || ''));
+                    try {
+                        const overviewCanvas = await ui.generateOverviewCanvas(project, areas);
+                        const overviewData = overviewCanvas.toDataURL('image/jpeg', 0.95);
+                        const props = doc.getImageProperties(overviewData);
+                        const maxW = contentWidth;
+                        const maxH = contentBottom - y - 14;
+                        const scale = Math.min(maxW / props.width, maxH / props.height);
+                        const w = props.width * scale;
+                        const h = props.height * scale;
+                        const x = margin + (contentWidth - w) / 2;
+                        doc.addImage(overviewData, 'JPEG', x, y, w, h);
+                        y += h + 8;
+                        doc.setFont('helvetica', 'normal').setFontSize(9).setTextColor(...colorMuted);
+                        doc.text('Nummern in der Übersicht entsprechen den Bereichsseiten.', margin, y);
+                    } catch (_) {
+                        doc.setFont('helvetica', 'normal').setFontSize(11).setTextColor(...colorMuted);
+                        doc.text('Übersichtsbild konnte nicht erstellt werden.', margin, y + 4);
+                    }
+
+                    // --- Bereichsseiten ---
+                    for (let areaIndex = 0; areaIndex < areas.length; areaIndex++) {
+                        const area = areas[areaIndex];
+                        const entries = entriesByArea.get(area.id) || [];
+                        startNewPage(`Bereich ${areaIndex + 1}`, sanitizeForPDF(area.name || `Bereich ${areaIndex + 1}`));
+
+                        drawMetaCard([
+                            { label: 'Bereichsname', value: area.name || '-' },
+                            { label: 'Wichtigkeit', value: wichtigkeitLabel(area.wichtigkeit) },
+                            { label: 'Erstellt', value: fmtDate(area.created_at) },
+                            { label: 'Einträge', value: String(entries.length) }
+                        ]);
+
+                        if (entries.length === 0) {
+                            ensureSpace(14);
+                            doc.setFont('helvetica', 'italic').setFontSize(11).setTextColor(...colorMuted);
+                            doc.text('Keine Einträge in diesem Bereich vorhanden.', margin, y + 6);
+                            y += 14;
+                            continue;
+                        }
+
+                        let noteNo = 0;
+                        let photoNo = 0;
+                        for (const entry of entries) {
+                            if (entry.typ === 'notiz') {
+                                noteNo += 1;
+                                const allLines = doc.splitTextToSize(sanitizeForPDF(entry.inhalt || ''), contentWidth - 10);
+                                const maxLinesPerPart = 30;
+                                let part = 1;
+                                for (let i = 0; i < allLines.length || i === 0; i += maxLinesPerPart) {
+                                    const chunk = allLines.slice(i, i + maxLinesPerPart);
+                                    const hasMore = i + maxLinesPerPart < allLines.length;
+                                    const title = `Notiz ${noteNo}${part > 1 ? ` (Teil ${part})` : ''}`;
+                                    drawNoteBlock(title, fmtDate(entry.created_at), chunk.length ? chunk : ['']);
+                                    part += 1;
+                                    if (!hasMore) break;
+                                }
+                            } else if (entry.typ === 'foto') {
+                                photoNo += 1;
+                                await drawPhotoBlock(`Foto ${photoNo}`, fmtDate(entry.created_at), entry.source, entry.inhalt);
+                            }
+                        }
+                    }
+
                     addFooter();
-                    doc.save(`${project.name.replace(/[^a-z0-9]/gi, '_')}_Doku.pdf`);
+                    doc.save(`${(project.name || 'Projekt').replace(/[^a-z0-9]/gi, '_')}_Dokumentation.pdf`);
                     ui.showToast("PDF-Bericht erfolgreich erstellt.", "success");
-                } catch (err) { ui.showToast("PDF-Export fehlgeschlagen.", "error"); console.error("PDF Export Error:", err); }
-                finally { ui.hideLoader(); }
+                } catch (err) {
+                    ui.showToast("PDF-Export fehlgeschlagen.", "error");
+                    console.error("PDF Export Error:", err);
+                } finally {
+                    ui.hideLoader();
+                }
             };
             actions.loadCompany = () => actions.getById('firmendaten', 'company').catch(() => null);
             actions.saveCompany = async payload => {
@@ -1222,6 +1762,18 @@ ui.showPage = pageId => {
             });
             ui.showModal = id => { const m = document.getElementById(id); m.style.display = 'flex'; setTimeout(() => m.querySelector('input, textarea')?.focus(), 100); };
             ui.hideModal = id => { const m = document.getElementById(id); m.style.display = 'none'; m.querySelector('form')?.reset(); };
+            ui.hideExportReadyModal = () => {
+                const m = document.getElementById('export-ready-modal');
+                if (m) m.style.display = 'none';
+                const link = document.getElementById('export-ready-link');
+                if (link) { link.removeAttribute('href'); link.removeAttribute('download'); }
+                if (state.exportBackupUrl) {
+                    try { URL.revokeObjectURL(state.exportBackupUrl); } catch (_) {}
+                }
+                state.exportBackupUrl = null;
+                state.exportBackupBlob = null;
+                state.exportBackupFilename = '';
+            };
             ui.confirmDanger = msg => new Promise(resolve => {
                 const m = document.getElementById('confirm-modal'), p = document.getElementById('confirm-message'), ok = document.getElementById('confirm-ok'), cancel = document.getElementById('confirm-cancel');
                 p.textContent = msg || 'Wirklich löschen?'; m.style.display = 'flex';
@@ -1250,7 +1802,7 @@ ui.showPage = pageId => {
             };
             ui.hideAreaListModal = () => { document.getElementById('area-list-modal').style.display = 'none'; };
             ui.hideNewEintragModal = () => ui.hideModal('new-eintrag-modal');
-            ui.showCompanyModal = async () => { const d=await actions.loadCompany()||{}; document.getElementById('company-name').value=d.name||''; document.getElementById('company-email').value=d.email||''; document.getElementById('company-phone').value=d.phone||''; document.getElementById('company-website').value=d.website||''; const p=document.getElementById('company-logo-preview'); if(d.logoDataUrl){p.src=d.logoDataUrl;p.style.display='block';}else{p.removeAttribute('src');p.style.display='none';} ui.showModal('company-modal'); };
+            ui.showCompanyModal = async () => { const d=await actions.loadCompany()||{}; document.getElementById('company-name').value=d.name||''; document.getElementById('company-email').value=d.email||''; document.getElementById('company-phone').value=d.phone||''; document.getElementById('company-website').value=d.website||''; const p=document.getElementById('company-logo-preview'); if(typeof d.logoDataUrl === 'string' && d.logoDataUrl.startsWith('data:image/')){p.src=d.logoDataUrl;p.style.display='block';}else{p.removeAttribute('src');p.style.display='none';} ui.showModal('company-modal'); };
             ui.hideCompanyModal = () => ui.hideModal('company-modal');
             ui.showToast = (message, type = 'info', duration = 3500) => {
                 const c = document.getElementById('toast-container'), t = document.createElement('div');
@@ -1467,6 +2019,8 @@ ui.showPage = pageId => {
                 editor.canvas.addEventListener('pointercancel', editor.handlePointerUp);
                 document.getElementById('btn-company').addEventListener('click', ui.showCompanyModal);
                 document.getElementById('btn-cancel-company').addEventListener('click', ui.hideCompanyModal);
+                document.getElementById('btn-close-export-ready').addEventListener('click', ui.hideExportReadyModal);
+                document.getElementById('btn-share-backup').addEventListener('click', actions.sharePreparedBackup);
                 document.getElementById('company-logo-file').addEventListener('change', async e => {
     if (!e.target.files?.[0]) return;
     try {
@@ -1477,7 +2031,7 @@ ui.showPage = pageId => {
         p.style.display = 'block';
     } catch (err) { ui.showToast('Logo konnte nicht geladen werden','error'); }
 });
-                document.getElementById('company-form').addEventListener('submit', async e => { e.preventDefault(); await actions.saveCompany({ name:document.getElementById('company-name').value.trim(), email:document.getElementById('company-email').value.trim(), phone:document.getElementById('company-phone').value.trim(), website:document.getElementById('company-website').value.trim(), logoDataUrl:document.getElementById('company-logo-preview').src }); ui.hideCompanyModal(); });
+                document.getElementById('company-form').addEventListener('submit', async e => { e.preventDefault(); const preview=document.getElementById('company-logo-preview'); const rawLogo=preview.getAttribute('src')||''; const payload={ name:document.getElementById('company-name').value.trim(), email:document.getElementById('company-email').value.trim(), phone:document.getElementById('company-phone').value.trim(), website:document.getElementById('company-website').value.trim() }; if(rawLogo.startsWith('data:image/')) payload.logoDataUrl = rawLogo; await actions.saveCompany(payload); ui.hideCompanyModal(); });
                 new ResizeObserver(() => state.currentPageId === 'page-cockpit' && state.activeImage && editor.setupCanvas()).observe(document.querySelector('.cockpit-content'));
             };
             // --- App Init ---
@@ -1514,7 +2068,7 @@ ui.showPage = pageId => {
                 return Math.hypot(p.x - projx, p.y - projy);
               }
               function hitTest(shape, p, margin=10){
-                const m = Math.max(margin, (shape.width || 16) * 0.8);
+                const m = Math.max(margin, (shape.width || 8, 16) * 0.8);
                 if (shape.type === 'line'){
                   return distPointToSeg(p, {x:shape.x1,y:shape.y1}, {x:shape.x2,y:shape.y2}) <= m;
                 } else if (shape.type === 'ellipse'){
@@ -1719,4 +2273,5 @@ return distToPerimeter <= Math.max(m, thickness) || (inside && distToPerimeter <
     </div>
 </body>
 </html>
+
 
