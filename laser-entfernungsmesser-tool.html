@@ -50,6 +50,11 @@
     .quick-capture-input { border: 2px solid color-mix(in srgb, var(--primary-color) 40%, var(--border-color)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 10%, transparent); }
     .quick-capture-status { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
     .quick-capture-help { margin: 0; color: var(--secondary-color); font-size: 13px; }
+    .quick-capture-meta { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .quick-capture-panel.flash,
+    .quick-capture-input.flash { animation: quickCapturePulse 0.45s ease; }
+    .quick-capture-toggle { min-width: 180px; }
+    .next-name-badge { background: color-mix(in srgb, #0f766e 10%, var(--content-bg-color)); border-color: color-mix(in srgb, #0f766e 24%, var(--border-color)); }
     .quick-capture-table { margin-top: 14px; }
     .quick-capture-table table { font-size: 15px; }
     .quick-capture-table td,
@@ -59,6 +64,14 @@
     .quick-capture-table .capture-value { font-weight: 700; color: var(--primary-color); }
     .capture-active { color: #0f766e; border-color: color-mix(in srgb, #0f766e 35%, var(--border-color)); background: color-mix(in srgb, #0f766e 10%, var(--content-bg-color)); }
     .capture-inactive { color: var(--secondary-color); }
+    body.wdm-list-mode .project-scene-panel,
+    body.wdm-list-mode .cards-panel,
+    body.wdm-list-mode .desktop-table-panel { display: none; }
+    @keyframes quickCapturePulse {
+      0% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.42); transform: translateY(0); }
+      40% { box-shadow: 0 0 0 8px rgba(15, 118, 110, 0.08); transform: translateY(-1px); }
+      100% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0); transform: translateY(0); }
+    }
     .project-scene-panel, .cards-panel, .desktop-table-panel { margin-top: 26px; padding: 18px; background: var(--content-bg-color); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); }
     .project-scene-canvas { display: block; width: 100%; min-height: 260px; border-radius: 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--content-bg-color) 92%, #dde7f5) 0%, color-mix(in srgb, var(--content-bg-color) 97%, transparent) 100%); border: 1px solid var(--border-color); }
     .scene-footer { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
@@ -403,6 +416,11 @@ html[data-theme="dark"] body.td-unified textarea {
           </div>
           <div class="quick-capture-status">
             <p id="quickCaptureHelp" class="quick-capture-help">Empfehlung: Serienmodus einschalten, Laser koppeln, dann bleiben Fokus und Enter-Workflow auf dem Eingabefeld.</p>
+            <div class="quick-capture-meta">
+              <div id="quickCapturePreviewBadge" class="selection-badge next-name-badge">Nächster Eintrag: Sparre 1</div>
+              <button id="toggleQuickCaptureToneButton" type="button" class="secondary-button quick-capture-toggle">🔔 Feedback an</button>
+              <button id="toggleQuickListModeButton" type="button" class="secondary-button quick-capture-toggle">📋 Listenmodus aus</button>
+            </div>
           </div>
           <div class="table-container quick-capture-table">
             <table aria-label="Serienerfasste Längen">
@@ -831,6 +849,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   const sceneBadge = document.getElementById('sceneSelectionBadge');
   const cardCounter = document.getElementById('cardCounter');
   const quickCapture = {
+    panel: document.querySelector('.quick-capture-panel'),
     form: document.getElementById('quickCaptureForm'),
     prefix: document.getElementById('quickCaptureNamePrefix'),
     input: document.getElementById('laserCaptureInput'),
@@ -838,10 +857,16 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     focus: document.getElementById('focusLaserCaptureButton'),
     help: document.getElementById('quickCaptureHelp'),
     badge: document.getElementById('quickCaptureStatusBadge'),
+    preview: document.getElementById('quickCapturePreviewBadge'),
+    tone: document.getElementById('toggleQuickCaptureToneButton'),
+    listMode: document.getElementById('toggleQuickListModeButton'),
     tableBody: document.getElementById('quickCaptureTableBody')
   };
   let quickCaptureEnabled = false;
   let quickCaptureFocusTimer = null;
+  let quickCaptureToneEnabled = true;
+  let quickCaptureListMode = false;
+  let quickCaptureAudioContext = null;
 
   function hexToRgb(hex) {
     const normalized = (hex || '#007aff').replace('#', '').trim();
@@ -948,9 +973,43 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   }
 
   function getNextQuickCaptureName() {
-    const prefix = quickCapture.prefix.value.trim() || 'Länge';
+    const prefix = quickCapture.prefix.value.trim() || 'Sparre';
     const count = getQuickCaptureMeasurements().length + 1;
     return `${prefix} ${count}`;
+  }
+
+  function flashQuickCaptureFeedback() {
+    quickCapture.panel.classList.remove('flash');
+    quickCapture.input.classList.remove('flash');
+    void quickCapture.panel.offsetWidth;
+    quickCapture.panel.classList.add('flash');
+    quickCapture.input.classList.add('flash');
+    setTimeout(() => {
+      quickCapture.panel.classList.remove('flash');
+      quickCapture.input.classList.remove('flash');
+    }, 480);
+  }
+
+  function playQuickCaptureTone() {
+    if (!quickCaptureToneEnabled) return;
+    const AudioCtor = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtor) return;
+    try {
+      if (!quickCaptureAudioContext) quickCaptureAudioContext = new AudioCtor();
+      const ctx = quickCaptureAudioContext;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 988;
+      gain.gain.value = 0.0001;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const now = ctx.currentTime;
+      gain.gain.exponentialRampToValueAtTime(0.06, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.16);
+      osc.start(now);
+      osc.stop(now + 0.18);
+    } catch (_) {}
   }
 
   function focusQuickCaptureInput(force = false) {
@@ -967,10 +1026,14 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     const form = quickCapture.form.value;
     const supported = form === 'Länge';
     const lengths = getQuickCaptureMeasurements();
+    document.body.classList.toggle('wdm-list-mode', quickCaptureListMode);
     quickCapture.toggle.textContent = quickCaptureEnabled ? '🛑 Serienmodus beenden' : '📡 Serienmodus aktivieren';
     quickCapture.badge.textContent = quickCaptureEnabled ? `Serienmodus aktiv • ${form}` : 'Serienmodus aus';
     quickCapture.badge.classList.toggle('capture-active', quickCaptureEnabled);
     quickCapture.badge.classList.toggle('capture-inactive', !quickCaptureEnabled);
+    quickCapture.preview.textContent = `Nächster Eintrag: ${getNextQuickCaptureName()}`;
+    quickCapture.tone.textContent = quickCaptureToneEnabled ? '🔔 Feedback an' : '🔕 Feedback aus';
+    quickCapture.listMode.textContent = quickCaptureListMode ? '📋 Listenmodus an' : '📋 Listenmodus aus';
     quickCapture.input.disabled = !supported;
     quickCapture.input.placeholder = supported ? 'Wert empfangen und Enter senden' : 'Serienmodus ist aktuell nur für Länge optimiert';
     quickCapture.help.textContent = supported
@@ -1013,6 +1076,8 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     selectedMeasurementId = row.dataset.id;
     quickCapture.input.value = '';
     rerenderDashboard();
+    flashQuickCaptureFeedback();
+    playQuickCaptureTone();
     showMessage('Länge übernommen', 'success', 1800);
     focusQuickCaptureInput();
   }
@@ -1344,6 +1409,8 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
         quickCaptureEnabled,
         quickCaptureForm: quickCapture.form.value,
         quickCapturePrefix: quickCapture.prefix.value,
+        quickCaptureToneEnabled,
+        quickCaptureListMode,
         measurements: getAllMeasurements().slice().reverse().map(({ id, color, form, name, l, b, h }) => ({ id, color, form, name, l, b, h }))
       };
       localStorage.setItem(LS_KEY, JSON.stringify(payload));
@@ -1536,6 +1603,8 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
       quickCaptureEnabled = !!stored.quickCaptureEnabled;
       quickCapture.form.value = stored.quickCaptureForm || 'Länge';
       quickCapture.prefix.value = stored.quickCapturePrefix || '';
+      quickCaptureToneEnabled = stored.quickCaptureToneEnabled !== false;
+      quickCaptureListMode = !!stored.quickCaptureListMode;
     } catch (_) {
       selectedMeasurementId = document.querySelector('#measurementTable tbody tr')?.dataset.id || null;
     }
@@ -1565,7 +1634,20 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     window.saveToLocalStorage();
     if (quickCaptureEnabled) focusQuickCaptureInput(true);
   });
-  quickCapture.prefix.addEventListener('input', () => window.saveToLocalStorage());
+  quickCapture.prefix.addEventListener('input', () => {
+    updateQuickCaptureUI();
+    window.saveToLocalStorage();
+  });
+  quickCapture.tone.addEventListener('click', () => {
+    quickCaptureToneEnabled = !quickCaptureToneEnabled;
+    updateQuickCaptureUI();
+    window.saveToLocalStorage();
+  });
+  quickCapture.listMode.addEventListener('click', () => {
+    quickCaptureListMode = !quickCaptureListMode;
+    updateQuickCaptureUI();
+    window.saveToLocalStorage();
+  });
   quickCapture.input.addEventListener('keydown', event => {
     if (event.key !== 'Enter') return;
     event.preventDefault();
