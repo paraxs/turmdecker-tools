@@ -36,6 +36,37 @@
     #clearDataButton:hover { background-color: var(--danger-color-hover); }
     .secondary-button { background-color: var(--secondary-color); }
     .secondary-button:hover { background-color: var(--secondary-color-hover); }
+    .danger-secondary { background-color: var(--danger-color); }
+    .danger-secondary:hover { background-color: var(--danger-color-hover); }
+    .section-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin: 24px 0 14px; }
+    .section-head h2 { margin: 0 0 4px; font-size: 1.2rem; }
+    .section-head p { margin: 0; color: var(--secondary-color); font-size: 14px; }
+    .selection-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; background: color-mix(in srgb, var(--primary-color) 12%, var(--content-bg-color)); color: var(--text-color); font-size: 14px; font-weight: 600; border: 1px solid color-mix(in srgb, var(--primary-color) 22%, var(--border-color)); white-space: nowrap; }
+    .project-scene-panel, .cards-panel, .desktop-table-panel { margin-top: 26px; padding: 18px; background: var(--content-bg-color); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); }
+    .project-scene-canvas { display: block; width: 100%; min-height: 260px; border-radius: 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--content-bg-color) 92%, #dde7f5) 0%, color-mix(in srgb, var(--content-bg-color) 97%, transparent) 100%); border: 1px solid var(--border-color); }
+    .scene-footer { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
+    .scene-hint { margin: 0; color: var(--secondary-color); font-size: 13px; }
+    .scene-legend { display: flex; flex-wrap: wrap; gap: 10px; }
+    .legend-item { display: inline-flex; align-items: center; gap: 8px; color: var(--secondary-color); font-size: 13px; }
+    .legend-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
+    .measurement-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+    .measurement-card { position: relative; padding: 16px; border-radius: 16px; border: 1px solid var(--border-color); background: linear-gradient(180deg, color-mix(in srgb, var(--content-bg-color) 98%, #fff) 0%, color-mix(in srgb, var(--content-bg-color) 92%, #eef2f7) 100%); box-shadow: 0 10px 24px var(--shadow-color); transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease; }
+    .measurement-card:hover { transform: translateY(-2px); box-shadow: 0 14px 30px var(--shadow-color); }
+    .measurement-card.selected { border-color: var(--accent-color, var(--primary-color)); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color, var(--primary-color)) 35%, transparent), 0 14px 30px var(--shadow-color); }
+    .measurement-card-header { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
+    .measurement-card-title { display: flex; gap: 10px; align-items: center; min-width: 0; }
+    .measurement-card-title strong { display: block; font-size: 16px; color: var(--text-color); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .measurement-card-title span { display: block; color: var(--secondary-color); font-size: 13px; }
+    .measurement-card-dot { width: 14px; height: 14px; border-radius: 50%; margin-top: 3px; flex: 0 0 auto; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6), 0 1px 3px rgba(0,0,0,0.18); }
+    .measurement-card-result { text-align: right; font-size: 14px; color: var(--secondary-color); }
+    .measurement-card-result strong { display: block; color: var(--primary-color); font-size: 18px; }
+    .measurement-card-canvas { display: block; width: 100%; height: 140px; border-radius: 14px; background: color-mix(in srgb, var(--border-color) 22%, transparent); border: 1px solid color-mix(in srgb, var(--border-color) 60%, transparent); margin-bottom: 12px; }
+    .measurement-card-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 12px; margin-bottom: 12px; }
+    .measurement-card-meta div { padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--content-bg-color) 84%, var(--border-color)); font-size: 13px; }
+    .measurement-card-meta strong { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--secondary-color); margin-bottom: 4px; }
+    .measurement-card-actions { display: flex; gap: 10px; }
+    .measurement-card-actions button { flex: 1; padding: 10px 12px; font-size: 14px; }
+    tbody tr.selected-row { box-shadow: 0 0 0 2px var(--accent-color, var(--primary-color)) inset; }
     .table-container { overflow-x: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 16px; }
     th, td { padding: 16px; border-bottom: 1px solid var(--border-color); text-align: center; vertical-align: middle; }
@@ -66,9 +97,35 @@
     footer { margin-top: 40px; text-align: center; color: var(--secondary-color); padding: 20px; font-size: 14px; }
     .theme-switcher { background: var(--content-bg-color); border: 1px solid var(--border-color); border-radius: 50%; width: 44px; height: 44px; font-size: 24px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; margin-left: 15px; transition: all 0.2s; }
     .theme-switcher:hover { transform: rotate(15deg); }
+    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.42); display: none; align-items: flex-end; justify-content: center; padding: 20px; z-index: 1002; }
+    .sheet-overlay.open { display: flex; }
+    .measurement-sheet { width: min(720px, 100%); background: var(--content-bg-color); border-radius: 22px 22px 0 0; box-shadow: 0 -12px 32px rgba(0,0,0,0.24); border: 1px solid var(--border-color); padding: 14px 18px 18px; max-height: min(88vh, 760px); overflow: auto; }
+    .sheet-grabber { width: 58px; height: 5px; border-radius: 999px; background: var(--border-color); margin: 0 auto 12px; }
+    .sheet-header { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; margin-bottom: 14px; }
+    .sheet-header h3 { margin: 0 0 4px; font-size: 1.15rem; }
+    .sheet-header p { margin: 0; color: var(--secondary-color); font-size: 14px; }
+    .sheet-close { width: 42px; height: 42px; font-size: 22px; line-height: 1; padding: 0; border-radius: 50%; }
+    .sheet-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .sheet-field { display: flex; flex-direction: column; gap: 6px; }
+    .sheet-field label, .sheet-field > span { font-size: 13px; font-weight: 600; color: var(--secondary-color); }
+    .sheet-field.full { grid-column: 1 / -1; }
+    .sheet-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
+    .sheet-actions button { min-width: 120px; }
     @media (max-width: 768px) {
       h1 { font-size: 1.6rem; }
+      .container { margin: 12px auto 24px; padding: 14px; }
       .controls { grid-template-columns: 1fr; }
+      .project-scene-panel, .cards-panel, .desktop-table-panel { padding: 14px; margin-top: 18px; }
+      .section-head { flex-direction: column; align-items: stretch; }
+      .selection-badge { white-space: normal; }
+      .measurement-cards { grid-template-columns: 1fr; }
+      .measurement-card-meta { grid-template-columns: 1fr 1fr; }
+      .desktop-table-panel { display: none; }
+      .sheet-overlay { padding: 0; }
+      .measurement-sheet { width: 100%; border-radius: 20px 20px 0 0; padding-bottom: calc(18px + env(safe-area-inset-bottom)); }
+      .sheet-grid { grid-template-columns: 1fr; }
+      .sheet-actions { flex-direction: column-reverse; }
+      .sheet-actions button { width: 100%; }
       table { border: 0; } thead { display: none; }
       tr { display: block; margin-bottom: 20px; border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); border: 1px solid var(--border-color); background-color: var(--content-bg-color); overflow: hidden; }
       td { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; text-align: right; border-bottom: 1px solid var(--border-color); }
@@ -298,9 +355,88 @@ html[data-theme="dark"] body.td-unified textarea {
           <div class="control-group"><label for="projectName">Projektname</label><input id="projectName" type="text" placeholder="z.B. Wohnzimmer Renovierung"></div>
           <button id="addRowButton">➕ Neue Messung</button><button id="exportExcelButton" class="exportButton">📈 Excel Export</button><button id="collapseAllButton" class="secondary-button">⬇️ Alle einklappen</button><button id="expandAllButton" class="secondary-button">⬆️ Alle ausklappen</button><button id="clearDataButton">🗑️ Alles löschen</button>
         </div>
-        <div class="table-container"><table id="measurementTable" aria-label="Messdaten Tabelle"><thead><tr><th>Länge / Radius</th><th>Breite</th><th>Höhe</th><th>Form</th><th>Bezeichnung</th><th>Ergebnis & Visualisierung</th><th>Aktionen</th></tr></thead><tbody></tbody></table></div>
+        <section class="project-scene-panel" aria-labelledby="projectSceneHeading">
+          <div class="section-head">
+            <div>
+              <h2 id="projectSceneHeading">Projektansicht</h2>
+              <p>Alle Messobjekte auf einen Blick. Antippen oder anklicken markiert das Objekt und springt zur passenden Messung.</p>
+            </div>
+            <div id="sceneSelectionBadge" class="selection-badge">Keine Messung ausgewählt</div>
+          </div>
+          <canvas id="projectSceneCanvas" class="project-scene-canvas" aria-label="Projektansicht aller Messobjekte"></canvas>
+          <div class="scene-footer">
+            <div id="sceneLegend" class="scene-legend"></div>
+            <p class="scene-hint">Die Projektansicht ordnet Objekte automatisch in Kacheln an. So bleibt das Tool auch am Smartphone präzise bedienbar.</p>
+          </div>
+        </section>
+        <section class="cards-panel" aria-labelledby="measurementCardsHeading">
+          <div class="section-head">
+            <div>
+              <h2 id="measurementCardsHeading">Messobjekte</h2>
+              <p>Touch-freundliche Kartenansicht mit Vorschau, Ergebnis und direktem Bearbeiten.</p>
+            </div>
+            <div id="cardCounter" class="selection-badge">0 Objekte</div>
+          </div>
+          <div id="measurementCards" class="measurement-cards"></div>
+        </section>
+        <section class="desktop-table-panel" aria-labelledby="measurementTableHeading">
+          <div class="section-head">
+            <div>
+              <h2 id="measurementTableHeading">Tabellenansicht</h2>
+              <p>Detailwerte und Exportbasis. Auf dem Smartphone bleibt die Kartenansicht der primäre Workflow.</p>
+            </div>
+          </div>
+          <div class="table-container"><table id="measurementTable" aria-label="Messdaten Tabelle"><thead><tr><th>Länge / Radius</th><th>Breite</th><th>Höhe</th><th>Form</th><th>Bezeichnung</th><th>Ergebnis & Visualisierung</th><th>Aktionen</th></tr></thead><tbody></tbody></table></div>
+        </section>
         <div class="stats-grid"><div class="stat-card"><div id="totalAreaValue" class="stat-value">0</div><div class="stat-label">Gesamtfläche</div></div><div class="stat-card"><div id="totalLengthValue" class="stat-value">0</div><div class="stat-label">Gesamtlänge</div></div><div class="stat-card"><div id="totalVolumeValue" class="stat-value">0</div><div class="stat-label">Gesamtvolumen</div></div><div class="stat-card"><div id="measurementCountValue" class="stat-value">0</div><div class="stat-label">Messungen</div></div></div>
         <div id="toast" class="toast-message"></div>
+        <div id="measurementEditorOverlay" class="sheet-overlay" aria-hidden="true">
+          <div class="measurement-sheet" role="dialog" aria-modal="true" aria-labelledby="measurementEditorTitle">
+            <div class="sheet-grabber" aria-hidden="true"></div>
+            <div class="sheet-header">
+              <div>
+                <h3 id="measurementEditorTitle">Messung bearbeiten</h3>
+                <p id="measurementEditorSubtitle">Form, Maße, Name und Farbe können hier zentral gepflegt werden.</p>
+              </div>
+              <button id="closeEditorButton" class="secondary-button sheet-close" type="button" aria-label="Bearbeitung schließen">✕</button>
+            </div>
+            <div class="sheet-grid">
+              <div class="sheet-field full">
+                <span>Form</span>
+                <select id="editorForm" aria-label="Form der Messung"></select>
+              </div>
+              <div class="sheet-field full">
+                <span>Bezeichnung</span>
+                <input id="editorName" type="text" placeholder="z.B. Fenster Ost" aria-label="Bezeichnung der Messung">
+              </div>
+              <div class="sheet-field">
+                <span>Farbe</span>
+                <input id="editorColor" type="color" aria-label="Farbe der Messung" value="#007aff">
+              </div>
+              <div class="sheet-field">
+                <span id="editorUnitHint">Einheit</span>
+                <input id="editorUnitDisplay" type="text" readonly aria-label="Aktuelle Maßeinheit">
+              </div>
+              <div class="sheet-field" id="editorFieldLWrap">
+                <span id="editorLabelL">Länge</span>
+                <input id="editorValueL" type="number" step="0.01" min="0" placeholder="0.00" aria-label="Wert L">
+              </div>
+              <div class="sheet-field" id="editorFieldBWrap">
+                <span id="editorLabelB">Breite</span>
+                <input id="editorValueB" type="number" step="0.01" min="0" placeholder="0.00" aria-label="Wert B">
+              </div>
+              <div class="sheet-field" id="editorFieldHWrap">
+                <span id="editorLabelH">Höhe</span>
+                <input id="editorValueH" type="number" step="0.01" min="0" placeholder="0.00" aria-label="Wert H">
+              </div>
+            </div>
+            <div class="sheet-actions">
+              <button id="deleteEditorButton" class="danger-secondary" type="button">Löschen</button>
+              <button id="cancelEditorButton" class="secondary-button" type="button">Abbrechen</button>
+              <button id="saveEditorButton" type="button">Speichern</button>
+            </div>
+          </div>
+        </div>
       </div>
       <footer><span>© 2026 Kofler e.U. • Laser Entfernungsmesser • Version 18.5.2</span><button id="themeSwitcher" class="theme-switcher" title="Design wechseln">☀️</button></footer>
 <script>
@@ -537,6 +673,646 @@ $('#themeSwitcher').addEventListener('click', toggleTheme);
 let resizeTimeout;
 window.addEventListener('resize', () => { clearTimeout(resizeTimeout); resizeTimeout = setTimeout(redrawAllVisualizations, 150); });
 document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); console.log('Laser Entfernungsmesser App V18.5.2 geladen.'); });
+</script>
+<script>
+(() => {
+  const colorPalette = ['#8f1d1d', '#0a84ff', '#34c759', '#ff9500', '#5e5ce6', '#ff2d55', '#00a3a3', '#8e8e93', '#c56b00', '#2c6e49'];
+  const baseCreateRow = window.createRow;
+  const baseUpdateTotals = window.updateTotals;
+  let selectedMeasurementId = null;
+  let sceneHitAreas = [];
+  let resizeTimer = null;
+  let editorState = { rowId: null, isNew: false };
+
+  const editor = {
+    overlay: document.getElementById('measurementEditorOverlay'),
+    form: document.getElementById('editorForm'),
+    name: document.getElementById('editorName'),
+    color: document.getElementById('editorColor'),
+    l: document.getElementById('editorValueL'),
+    b: document.getElementById('editorValueB'),
+    h: document.getElementById('editorValueH'),
+    unit: document.getElementById('editorUnitDisplay'),
+    labelL: document.getElementById('editorLabelL'),
+    labelB: document.getElementById('editorLabelB'),
+    labelH: document.getElementById('editorLabelH'),
+    wrapL: document.getElementById('editorFieldLWrap'),
+    wrapB: document.getElementById('editorFieldBWrap'),
+    wrapH: document.getElementById('editorFieldHWrap'),
+    title: document.getElementById('measurementEditorTitle'),
+    subtitle: document.getElementById('measurementEditorSubtitle'),
+    deleteBtn: document.getElementById('deleteEditorButton')
+  };
+
+  const sceneCanvas = document.getElementById('projectSceneCanvas');
+  const cardsContainer = document.getElementById('measurementCards');
+  const sceneLegend = document.getElementById('sceneLegend');
+  const sceneBadge = document.getElementById('sceneSelectionBadge');
+  const cardCounter = document.getElementById('cardCounter');
+
+  function hexToRgb(hex) {
+    const normalized = (hex || '#007aff').replace('#', '').trim();
+    const value = normalized.length === 3 ? normalized.split('').map(ch => ch + ch).join('') : normalized;
+    const int = parseInt(value, 16);
+    return { r: (int >> 16) & 255, g: (int >> 8) & 255, b: int & 255 };
+  }
+
+  function mixHex(baseHex, targetHex, ratio) {
+    const base = hexToRgb(baseHex);
+    const target = hexToRgb(targetHex);
+    const mix = channel => Math.round(base[channel] + ((target[channel] - base[channel]) * ratio));
+    return `rgb(${mix('r')}, ${mix('g')}, ${mix('b')})`;
+  }
+
+  function rgba(hex, alpha) {
+    const { r, g, b } = hexToRgb(hex);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function getPalette(color) {
+    return {
+      base: mixHex(color, '#ffffff', 0.12),
+      light: mixHex(color, '#ffffff', 0.42),
+      dark: mixHex(color, '#111827', 0.24),
+      stroke: mixHex(color, '#111827', 0.48),
+      highlight: 'rgba(255,255,255,0.62)',
+      fill2d: rgba(color, 0.26)
+    };
+  }
+
+  function nextColor(index = document.querySelectorAll('#measurementTable tbody tr').length) {
+    return colorPalette[index % colorPalette.length];
+  }
+
+  function uid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return `m-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  }
+
+  function roundRect(ctx, x, y, width, height, radius) {
+    const r = Math.min(radius, width / 2, height / 2);
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.arcTo(x + width, y, x + width, y + height, r);
+    ctx.arcTo(x + width, y + height, x, y + height, r);
+    ctx.arcTo(x, y + height, x, y, r);
+    ctx.arcTo(x, y, x + width, y, r);
+    ctx.closePath();
+  }
+
+  function prepareCanvas(canvas, cssWidth, cssHeight) {
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = Math.max(1, Math.round(cssWidth * dpr));
+    canvas.height = Math.max(1, Math.round(cssHeight * dpr));
+    canvas.style.width = `${cssWidth}px`;
+    canvas.style.height = `${cssHeight}px`;
+    const ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, cssWidth, cssHeight);
+    return ctx;
+  }
+
+  function ensureRowMeta(tr, data = {}) {
+    if (!tr.dataset.id) tr.dataset.id = data.id || uid();
+    if (!tr.dataset.color) tr.dataset.color = data.color || nextColor();
+    tr.style.setProperty('--accent-color', tr.dataset.color);
+  }
+
+  function getRowData(tr) {
+    ensureRowMeta(tr);
+    const form = tr.querySelector('[data-field="form"]').value;
+    const l = num(tr.querySelector('[data-field="l"]').value);
+    const b = num(tr.querySelector('[data-field="b"]').value);
+    const h = num(tr.querySelector('[data-field="h"]').value);
+    const config = getDimensionConfig(form);
+    const hasAllValues = (!config.includes('L') || l) && (!config.includes('B') || b) && (!config.includes('H') || h);
+    const value = form ? calculateGeometry(form, l, b, h) : 0;
+    const unitSuffix = getUnitSuffix(form);
+    return {
+      id: tr.dataset.id,
+      color: tr.dataset.color,
+      form,
+      baseForm: form ? form.split(' (')[0] : '',
+      name: tr.querySelector('[data-field="name"]').value.trim(),
+      l, b, h,
+      unitSuffix,
+      value,
+      hasAllValues,
+      valid: !!form && hasAllValues && value > 0,
+      type: unitSuffix.includes('³') ? 'Volumen' : unitSuffix.includes('²') ? 'Fläche' : 'Länge'
+    };
+  }
+
+  function getAllMeasurements() {
+    return Array.from(document.querySelectorAll('#measurementTable tbody tr')).map(getRowData);
+  }
+
+  function formatMeasurementValue(measurement) {
+    return measurement.valid ? `${fx(measurement.value)} ${measurement.unitSuffix}` : 'Werte eingeben...';
+  }
+
+  function formatDimensionSummary(measurement) {
+    if (!measurement.form) return 'Noch keine Form gewählt';
+    const labels = labelCfg[measurement.form] || {};
+    const defaults = { l: 'L', b: 'B', h: 'H' };
+    const config = getDimensionConfig(measurement.form);
+    const parts = [];
+    if (config.includes('L')) parts.push(`${labels.l || defaults.l}: ${measurement.l ? fx(measurement.l) : '—'} ${UNIT}`);
+    if (config.includes('B')) parts.push(`${labels.b || defaults.b}: ${measurement.b ? fx(measurement.b) : '—'} ${UNIT}`);
+    if (config.includes('H')) parts.push(`${labels.h || defaults.h}: ${measurement.h ? fx(measurement.h) : '—'} ${UNIT}`);
+    return parts.join(' • ');
+  }
+
+  function renderShape(ctx, measurement, box) {
+    if (!measurement.form || (!measurement.l && !measurement.b && !measurement.h)) return;
+    const palette = getPalette(measurement.color);
+    const centerX = box.x + (box.w / 2);
+    const centerY = box.y + (box.h / 2);
+    const maxDim = Math.max(measurement.l, measurement.b, measurement.h, 1);
+    const scale = Math.min(box.w * 0.72, box.h * 0.72) / maxDim;
+    const drawPoly = (points, fill) => {
+      if (!points || points.length < 3) return;
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+      ctx.closePath();
+      ctx.fill();
+    };
+    const strokePoly = points => {
+      if (!points || points.length < 2) return;
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+      for (let i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+      if (points.length > 2) ctx.closePath();
+      ctx.stroke();
+    };
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = palette.stroke;
+
+    const shapes = {
+      'Länge': () => {
+        const x1 = centerX - ((measurement.l * scale) / 2);
+        const x2 = centerX + ((measurement.l * scale) / 2);
+        strokePoly([{ x: x1, y: centerY }, { x: x2, y: centerY }]);
+        ctx.fillStyle = palette.stroke;
+        ctx.beginPath(); ctx.arc(x1, centerY, 3, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(x2, centerY, 3, 0, Math.PI * 2); ctx.fill();
+      },
+      'Rechteck': () => {
+        const sw = measurement.l * scale, sh = measurement.b * scale;
+        ctx.fillStyle = palette.fill2d;
+        roundRect(ctx, centerX - sw / 2, centerY - sh / 2, sw, sh, 10);
+        ctx.fill(); ctx.stroke();
+      },
+      'Dreieck': () => {
+        const points = [{ x: centerX - measurement.l * scale / 2, y: centerY + measurement.h * scale / 2 }, { x: centerX + measurement.l * scale / 2, y: centerY + measurement.h * scale / 2 }, { x: centerX, y: centerY - measurement.h * scale / 2 }];
+        drawPoly(points, palette.fill2d); strokePoly(points);
+      },
+      'Trapez': () => {
+        const sw1 = measurement.l * scale, sw2 = measurement.b * scale, sh = measurement.h * scale;
+        const points = [{ x: centerX - sw1 / 2, y: centerY + sh / 2 }, { x: centerX + sw1 / 2, y: centerY + sh / 2 }, { x: centerX + sw2 / 2, y: centerY - sh / 2 }, { x: centerX - sw2 / 2, y: centerY - sh / 2 }];
+        drawPoly(points, palette.fill2d); strokePoly(points);
+      },
+      'Parallelogramm': () => {
+        const sw = measurement.l * scale, sh = measurement.h * scale, skew = sw * 0.25;
+        const points = [{ x: centerX - sw / 2, y: centerY + sh / 2 }, { x: centerX + sw / 2, y: centerY + sh / 2 }, { x: centerX + sw / 2 - skew, y: centerY - sh / 2 }, { x: centerX - sw / 2 - skew, y: centerY - sh / 2 }];
+        drawPoly(points, palette.fill2d); strokePoly(points);
+      },
+      'Kreisfläche': () => {
+        const r = (measurement.l * scale) / 2;
+        ctx.fillStyle = palette.fill2d;
+        ctx.beginPath(); ctx.arc(centerX, centerY, r, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      },
+      'Ellipse': () => {
+        const rx = (measurement.l * scale) / 2, ry = (measurement.b * scale) / 2;
+        ctx.fillStyle = palette.fill2d;
+        ctx.beginPath(); ctx.ellipse(centerX, centerY, rx, ry, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      },
+      'Kugel': () => {
+        const r = (measurement.l * scale) / 2;
+        const grad = ctx.createRadialGradient(centerX - r / 2, centerY - r / 2, r / 10, centerX, centerY, r);
+        grad.addColorStop(0, palette.light); grad.addColorStop(1, palette.dark);
+        ctx.fillStyle = grad;
+        ctx.beginPath(); ctx.arc(centerX, centerY, r, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = palette.highlight;
+        ctx.beginPath(); ctx.arc(centerX - r / 3, centerY - r / 3, r / 5, 0, Math.PI * 2); ctx.fill();
+      },
+      'Quader': () => {
+        const sw = measurement.l * scale, sh = measurement.h * scale, sd = measurement.b * scale * 0.5, offX = sd * 0.707, offY = sd * 0.4;
+        const p = [
+          { x: centerX - sw / 2, y: centerY + sh / 2 }, { x: centerX + sw / 2, y: centerY + sh / 2 },
+          { x: centerX + sw / 2, y: centerY - sh / 2 }, { x: centerX - sw / 2, y: centerY - sh / 2 },
+          { x: centerX - sw / 2 + offX, y: centerY + sh / 2 - offY }, { x: centerX + sw / 2 + offX, y: centerY + sh / 2 - offY },
+          { x: centerX + sw / 2 + offX, y: centerY - sh / 2 - offY }, { x: centerX - sw / 2 + offX, y: centerY - sh / 2 - offY }
+        ];
+        drawPoly([p[0], p[1], p[5], p[4]], palette.base);
+        drawPoly([p[4], p[5], p[6], p[7]], palette.light);
+        drawPoly([p[1], p[2], p[6], p[5]], palette.base);
+        drawPoly([p[0], p[3], p[7], p[4]], palette.dark);
+        drawPoly([p[3], p[2], p[6], p[7]], palette.light);
+        drawPoly([p[0], p[1], p[2], p[3]], palette.base);
+        strokePoly([p[0], p[1], p[2], p[3], p[0]]);
+        strokePoly([p[4], p[5], p[6], p[7], p[4]]);
+        strokePoly([p[0], p[4]]); strokePoly([p[1], p[5]]); strokePoly([p[2], p[6]]); strokePoly([p[3], p[7]]);
+      },
+      'Zylinder': () => {
+        const r = (measurement.l * scale) / 2, sh = measurement.h * scale, ellipseH = Math.max(r * 0.3, 2.5);
+        const grad = ctx.createLinearGradient(centerX - r, centerY, centerX + r, centerY);
+        grad.addColorStop(0, palette.dark); grad.addColorStop(0.5, palette.light); grad.addColorStop(1, palette.dark);
+        ctx.fillStyle = palette.dark;
+        ctx.beginPath(); ctx.ellipse(centerX, centerY + sh / 2 - ellipseH, r, ellipseH, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = grad;
+        ctx.fillRect(centerX - r, centerY - sh / 2 + ellipseH, r * 2, sh - ellipseH * 2);
+        strokePoly([{ x: centerX - r, y: centerY - sh / 2 + ellipseH }, { x: centerX - r, y: centerY + sh / 2 - ellipseH }]);
+        strokePoly([{ x: centerX + r, y: centerY - sh / 2 + ellipseH }, { x: centerX + r, y: centerY + sh / 2 - ellipseH }]);
+        ctx.fillStyle = palette.light;
+        ctx.beginPath(); ctx.ellipse(centerX, centerY - sh / 2 + ellipseH, r, ellipseH, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+      },
+      'Pyramide': () => {
+        const sw = measurement.l * scale, sd = measurement.b * scale * 0.5, sh = measurement.h * scale, offX = sd * 0.707, offY = sd * 0.4;
+        const apex = { x: centerX + offX / 2, y: centerY - sh / 2 };
+        const base = [
+          { x: centerX - sw / 2, y: centerY + sh / 2 }, { x: centerX + sw / 2, y: centerY + sh / 2 },
+          { x: centerX + sw / 2 + offX, y: centerY + sh / 2 - offY }, { x: centerX - sw / 2 + offX, y: centerY + sh / 2 - offY }
+        ];
+        drawPoly([apex, base[3], base[0]], palette.dark);
+        drawPoly([apex, base[0], base[1]], palette.base);
+        drawPoly([apex, base[1], base[2]], palette.light);
+        strokePoly([apex, base[0]]); strokePoly([apex, base[1]]); strokePoly([apex, base[2]]);
+        strokePoly([base[0], base[1], base[2], base[3], base[0]]);
+      },
+      'Kegel': () => {
+        const r = (measurement.l * scale) / 2, sh = measurement.h * scale, ellipseH = Math.max(r * 0.3, 2.5);
+        const apex = { x: centerX, y: centerY - sh / 2 + ellipseH };
+        const grad = ctx.createLinearGradient(centerX - r, centerY, centerX + r, centerY);
+        grad.addColorStop(0, palette.dark); grad.addColorStop(0.5, palette.light); grad.addColorStop(1, palette.dark);
+        ctx.fillStyle = palette.dark;
+        ctx.beginPath(); ctx.ellipse(centerX, centerY + sh / 2 - ellipseH, r, ellipseH, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        drawPoly([apex, { x: centerX - r, y: centerY + sh / 2 - ellipseH }, { x: centerX + r, y: centerY + sh / 2 - ellipseH }], grad);
+        strokePoly([apex, { x: centerX - r, y: centerY + sh / 2 - ellipseH }]);
+        strokePoly([apex, { x: centerX + r, y: centerY + sh / 2 - ellipseH }]);
+      }
+    };
+    const baseForm = measurement.baseForm;
+    if (shapes[baseForm]) shapes[baseForm]();
+  }
+
+  function renderPreviewCanvas(canvas, measurement, height = 136) {
+    const width = Math.max(120, Math.round(canvas.getBoundingClientRect().width || 150));
+    const ctx = prepareCanvas(canvas, width, height);
+    if (!measurement.form) return;
+    ctx.fillStyle = rgba(measurement.color, 0.06);
+    roundRect(ctx, 0.5, 0.5, width - 1, height - 1, 16);
+    ctx.fill();
+    ctx.strokeStyle = rgba(measurement.color, 0.18);
+    ctx.stroke();
+    renderShape(ctx, measurement, { x: 10, y: 10, w: width - 20, h: height - 20 });
+  }
+
+  const originalDrawVisualization = window.drawVisualization;
+  window.drawVisualization = function(tr, form, l, b, h) {
+    const measurement = getRowData(tr);
+    const canvas = tr.querySelector('.visualization-canvas');
+    if (!canvas) return originalDrawVisualization(tr, form, l, b, h);
+    renderPreviewCanvas(canvas, measurement, 112);
+  };
+
+  window.createRow = function(data = {}, prepend = false) {
+    const tr = baseCreateRow(data, prepend);
+    ensureRowMeta(tr, data);
+    window.drawVisualization(tr);
+    return tr;
+  };
+
+  function syncRowSelection() {
+    document.querySelectorAll('#measurementTable tbody tr').forEach(tr => tr.classList.toggle('selected-row', tr.dataset.id === selectedMeasurementId));
+  }
+
+  function renderCards() {
+    const measurements = getAllMeasurements();
+    cardCounter.textContent = `${measurements.length} ${measurements.length === 1 ? 'Objekt' : 'Objekte'}`;
+    if (!measurements.length) {
+      cardsContainer.innerHTML = `<article class="measurement-card"><div class="measurement-card-header"><div class="measurement-card-title"><div class="measurement-card-dot" style="background:#d1d5db"></div><div><strong>Noch keine Messungen</strong><span>Erstellen Sie eine Messung, um die Projektansicht zu füllen.</span></div></div></div></article>`;
+      return;
+    }
+    cardsContainer.innerHTML = measurements.map(m => `
+      <article class="measurement-card${m.id === selectedMeasurementId ? ' selected' : ''}" data-id="${m.id}" style="--accent-color:${m.color};">
+        <div class="measurement-card-header">
+          <div class="measurement-card-title">
+            <div class="measurement-card-dot" style="background:${m.color}"></div>
+            <div><strong>${m.name || 'Unbenannte Messung'}</strong><span>${m.form || 'Form wählen'}</span></div>
+          </div>
+          <div class="measurement-card-result"><strong>${formatMeasurementValue(m)}</strong>${m.type}</div>
+        </div>
+        <canvas class="measurement-card-canvas"></canvas>
+        <div class="measurement-card-meta">
+          <div><strong>Maße</strong><span>${formatDimensionSummary(m)}</span></div>
+          <div><strong>Ergebnis</strong><span>${formatMeasurementValue(m)}</span></div>
+        </div>
+        <div class="measurement-card-actions">
+          <button type="button" class="secondary-button" data-action="select">Auswählen</button>
+          <button type="button" data-action="edit">Bearbeiten</button>
+          <button type="button" class="danger-secondary" data-action="delete">Löschen</button>
+        </div>
+      </article>`).join('');
+    cardsContainer.querySelectorAll('.measurement-card').forEach(card => {
+      const measurement = measurements.find(item => item.id === card.dataset.id);
+      renderPreviewCanvas(card.querySelector('canvas'), measurement, 140);
+      card.addEventListener('click', event => {
+        const actionButton = event.target.closest('button');
+        if (!actionButton) return selectMeasurement(card.dataset.id, false);
+        const action = actionButton.dataset.action;
+        if (action === 'select') selectMeasurement(card.dataset.id);
+        if (action === 'edit') openEditor(card.dataset.id);
+        if (action === 'delete') deleteMeasurement(card.dataset.id);
+      });
+    });
+  }
+
+  function renderScene() {
+    const measurements = getAllMeasurements();
+    const width = Math.max(320, Math.round(sceneCanvas.getBoundingClientRect().width || sceneCanvas.parentElement.clientWidth || 600));
+    let cols = width < 560 ? 1 : width < 920 ? 2 : width < 1260 ? 3 : 4;
+    cols = Math.max(1, Math.min(cols, measurements.length || 1));
+    const gap = 14;
+    const padding = 16;
+    const tileHeight = width < 560 ? 174 : 184;
+    const rows = Math.max(1, Math.ceil((measurements.length || 1) / cols));
+    const tileWidth = ((width - (padding * 2)) - ((cols - 1) * gap)) / cols;
+    const height = Math.max(250, Math.round((rows * tileHeight) + ((rows - 1) * gap) + (padding * 2)));
+    const ctx = prepareCanvas(sceneCanvas, width, height);
+    sceneHitAreas = [];
+
+    const counts = { Länge: 0, Fläche: 0, Volumen: 0 };
+    measurements.forEach(item => { counts[item.type] += 1; });
+    sceneLegend.innerHTML = [
+      { label: `Längen: ${counts.Länge}`, color: '#2563eb' },
+      { label: `Flächen: ${counts.Fläche}`, color: '#16a34a' },
+      { label: `Volumen: ${counts.Volumen}`, color: '#c2410c' }
+    ].map(item => `<span class="legend-item"><span class="legend-dot" style="background:${item.color}"></span>${item.label}</span>`).join('');
+
+    const selected = measurements.find(item => item.id === selectedMeasurementId);
+    sceneBadge.textContent = selected ? `${selected.name || 'Unbenannte Messung'} • ${formatMeasurementValue(selected)}` : 'Keine Messung ausgewählt';
+
+    if (!measurements.length) {
+      ctx.fillStyle = 'rgba(17,24,39,0.06)';
+      roundRect(ctx, 24, 24, width - 48, height - 48, 24);
+      ctx.fill();
+      ctx.fillStyle = '#6b7280';
+      ctx.textAlign = 'center';
+      ctx.font = '600 18px "Segoe UI", sans-serif';
+      ctx.fillText('Noch keine Messobjekte vorhanden', width / 2, height / 2 - 10);
+      ctx.font = '14px "Segoe UI", sans-serif';
+      ctx.fillText('Über "Neue Messung" starten.', width / 2, height / 2 + 18);
+      return;
+    }
+
+    measurements.forEach((m, index) => {
+      const col = index % cols;
+      const row = Math.floor(index / cols);
+      const x = padding + col * (tileWidth + gap);
+      const y = padding + row * (tileHeight + gap);
+      const isSelected = m.id === selectedMeasurementId;
+      sceneHitAreas.push({ id: m.id, x, y, w: tileWidth, h: tileHeight });
+      ctx.fillStyle = isSelected ? rgba(m.color, 0.16) : 'rgba(255,255,255,0.86)';
+      ctx.strokeStyle = isSelected ? rgba(m.color, 0.9) : 'rgba(17,24,39,0.08)';
+      ctx.lineWidth = isSelected ? 2.4 : 1.2;
+      roundRect(ctx, x, y, tileWidth, tileHeight, 20);
+      ctx.fill(); ctx.stroke();
+      ctx.fillStyle = m.color;
+      roundRect(ctx, x + 12, y + 12, tileWidth - 24, 8, 999);
+      ctx.fill();
+      ctx.fillStyle = '#111827';
+      ctx.textAlign = 'left';
+      ctx.font = '600 15px "Segoe UI", sans-serif';
+      ctx.fillText(m.name || 'Unbenannte Messung', x + 16, y + 38);
+      ctx.font = '13px "Segoe UI", sans-serif';
+      ctx.fillStyle = '#6b7280';
+      ctx.fillText(m.form || 'Form wählen', x + 16, y + 58);
+      renderShape(ctx, m, { x: x + 14, y: y + 64, w: tileWidth - 28, h: 72 });
+      ctx.fillStyle = '#111827';
+      ctx.font = '600 14px "Segoe UI", sans-serif';
+      ctx.fillText(formatMeasurementValue(m), x + 16, y + tileHeight - 22);
+      ctx.textAlign = 'right';
+      ctx.fillStyle = '#6b7280';
+      ctx.font = '12px "Segoe UI", sans-serif';
+      ctx.fillText(m.type, x + tileWidth - 16, y + tileHeight - 22);
+    });
+  }
+
+  function rerenderDashboard() {
+    if (!selectedMeasurementId) selectedMeasurementId = document.querySelector('#measurementTable tbody tr')?.dataset.id || null;
+    syncRowSelection();
+    renderCards();
+    renderScene();
+  }
+
+  window.updateTotals = function() {
+    baseUpdateTotals();
+    rerenderDashboard();
+  };
+
+  window.saveToLocalStorage = function() {
+    try {
+      const payload = {
+        theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',
+        projectName: document.getElementById('projectName').value,
+        unit: UNIT,
+        selectedMeasurementId,
+        measurements: getAllMeasurements().slice().reverse().map(({ id, color, form, name, l, b, h }) => ({ id, color, form, name, l, b, h }))
+      };
+      localStorage.setItem(LS_KEY, JSON.stringify(payload));
+    } catch (error) {
+      console.warn('LocalStorage nicht verfügbar:', error);
+    }
+  };
+
+  window.redrawAllVisualizations = function() {
+    document.querySelectorAll('#measurementTable tbody tr').forEach(tr => window.drawVisualization(tr));
+    rerenderDashboard();
+  };
+
+  function selectMeasurement(id, scroll = true) {
+    selectedMeasurementId = id || null;
+    rerenderDashboard();
+    if (!scroll || !id) return;
+    const mobile = window.matchMedia('(max-width: 768px)').matches;
+    const target = mobile ? document.querySelector(`.measurement-card[data-id="${id}"]`) : document.querySelector(`#measurementTable tbody tr[data-id="${id}"]`);
+    target?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function getDimensionConfig(form) {
+    return (formCfg[form] || '').replace(/R/g, 'L').replace(/-/g, '');
+  }
+
+  function syncEditorLabels(form) {
+    const labels = labelCfg[form] || {};
+    const defaults = { l: 'Länge', b: 'Breite', h: 'Höhe' };
+    const config = getDimensionConfig(form);
+    editor.labelL.textContent = labels.l || defaults.l;
+    editor.labelB.textContent = labels.b || defaults.b;
+    editor.labelH.textContent = labels.h || defaults.h;
+    editor.l.placeholder = labels.l || defaults.l;
+    editor.b.placeholder = labels.b || defaults.b;
+    editor.h.placeholder = labels.h || defaults.h;
+    editor.wrapL.style.display = config.includes('L') ? '' : 'none';
+    editor.wrapB.style.display = config.includes('B') ? '' : 'none';
+    editor.wrapH.style.display = config.includes('H') ? '' : 'none';
+    editor.unit.value = UNIT.toUpperCase();
+  }
+
+  function openEditor(id = null) {
+    editorState = { rowId: id, isNew: !id };
+    const measurement = id ? getRowData(document.querySelector(`#measurementTable tbody tr[data-id="${id}"]`)) : { color: nextColor(), form: '', name: '', l: '', b: '', h: '' };
+    editor.title.textContent = id ? 'Messung bearbeiten' : 'Neue Messung';
+    editor.subtitle.textContent = id ? 'Maße, Form und Farbe zentral ändern.' : 'Neue Messung anlegen. Erst Speichern übernimmt die Werte.';
+    editor.form.innerHTML = Object.keys(formCfg).map(key => `<option value="${key}"${key === (measurement.form || '') ? ' selected' : ''}>${key || 'Form wählen...'}</option>`).join('');
+    editor.form.value = measurement.form || '';
+    editor.name.value = measurement.name || '';
+    editor.color.value = measurement.color || nextColor();
+    editor.l.value = measurement.l || '';
+    editor.b.value = measurement.b || '';
+    editor.h.value = measurement.h || '';
+    editor.deleteBtn.style.display = id ? '' : 'none';
+    syncEditorLabels(measurement.form || '');
+    editor.overlay.classList.add('open');
+    editor.overlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function closeEditor() {
+    editor.overlay.classList.remove('open');
+    editor.overlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function saveEditor() {
+    const form = editor.form.value;
+    const config = getDimensionConfig(form);
+    const wasNew = editorState.isNew;
+    if (!form) return showMessage('Bitte zuerst eine Form wählen.', 'error');
+    if (config.includes('L') && !num(editor.l.value)) return showMessage(`Bitte ${editor.labelL.textContent} eingeben.`, 'error');
+    if (config.includes('B') && !num(editor.b.value)) return showMessage(`Bitte ${editor.labelB.textContent} eingeben.`, 'error');
+    if (config.includes('H') && !num(editor.h.value)) return showMessage(`Bitte ${editor.labelH.textContent} eingeben.`, 'error');
+    let row = editorState.rowId ? document.querySelector(`#measurementTable tbody tr[data-id="${editorState.rowId}"]`) : null;
+    if (!row) row = window.createRow({}, true);
+    ensureRowMeta(row, { color: editor.color.value });
+    row.dataset.color = editor.color.value;
+    row.querySelector('[data-field="form"]').value = form;
+    row.querySelector('[data-field="name"]').value = editor.name.value.trim();
+    row.querySelector('[data-field="l"]').value = editor.l.value;
+    row.querySelector('[data-field="b"]').value = editor.b.value;
+    row.querySelector('[data-field="h"]').value = editor.h.value;
+    updateRowUI(row);
+    updateRow(row);
+    editorState.rowId = row.dataset.id;
+    editorState.isNew = false;
+    selectedMeasurementId = row.dataset.id;
+    rerenderDashboard();
+    showMessage(wasNew ? 'Neue Messung gespeichert' : 'Messung aktualisiert', 'success');
+    closeEditor();
+  }
+
+  function deleteMeasurement(id) {
+    const row = document.querySelector(`#measurementTable tbody tr[data-id="${id}"]`);
+    if (!row || !confirm('Diese Messung wirklich löschen?')) return;
+    row.remove();
+    if (selectedMeasurementId === id) selectedMeasurementId = document.querySelector('#measurementTable tbody tr')?.dataset.id || null;
+    window.updateTotals();
+    window.saveToLocalStorage();
+    closeEditor();
+    rerenderDashboard();
+    showMessage('Messung gelöscht', 'success');
+  }
+
+  function cloneWithListeners(selector, binder) {
+    const oldNode = document.querySelector(selector);
+    if (!oldNode) return null;
+    const clone = oldNode.cloneNode(true);
+    oldNode.replaceWith(clone);
+    binder(clone);
+    return clone;
+  }
+
+  function bindControls() {
+    cloneWithListeners('#addRowButton', btn => btn.addEventListener('click', () => openEditor()));
+    cloneWithListeners('#projectName', input => input.addEventListener('input', () => window.saveToLocalStorage()));
+    cloneWithListeners('#unitSelector', select => select.addEventListener('change', event => {
+      const newUnit = event.target.value;
+      const factor = conv[newUnit] / conv[UNIT];
+      document.querySelectorAll('#measurementTable input[type="number"]').forEach(input => {
+        if (input.value) input.value = parseFloat((num(input.value) * factor).toPrecision(15));
+      });
+      UNIT = newUnit;
+      document.querySelectorAll('#measurementTable tbody tr').forEach(updateRow);
+      syncEditorLabels(editor.form.value || '');
+      showMessage(`Einheit auf ${newUnit.toUpperCase()} geändert`, 'success');
+    }));
+    cloneWithListeners('#themeSwitcher', btn => btn.addEventListener('click', () => {
+      document.body.classList.toggle('dark-mode');
+      btn.textContent = document.body.classList.contains('dark-mode') ? '🌙' : '☀️';
+      window.redrawAllVisualizations();
+      window.saveToLocalStorage();
+    }));
+    cloneWithListeners('#clearDataButton', btn => btn.addEventListener('click', () => {
+      if (!confirm('Wirklich alle Daten löschen? Dies kann nicht rückgängig gemacht werden.')) return;
+      document.querySelector('#measurementTable tbody').innerHTML = '';
+      selectedMeasurementId = null;
+      rerenderDashboard();
+      localStorage.removeItem(LS_KEY);
+      document.getElementById('projectName').value = '';
+      showMessage('Alle Daten gelöscht', 'error');
+    }));
+    cloneWithListeners('#collapseAllButton', btn => btn.addEventListener('click', () => document.querySelectorAll('#measurementTable tbody tr').forEach(tr => { tr.classList.add('collapsed'); tr.querySelector('.collapseButton').textContent = '⬆️'; })));
+    cloneWithListeners('#expandAllButton', btn => btn.addEventListener('click', () => document.querySelectorAll('#measurementTable tbody tr').forEach(tr => { tr.classList.remove('collapsed'); tr.querySelector('.collapseButton').textContent = '⬇️'; })));
+    cloneWithListeners('#measurementTable', table => table.addEventListener('click', event => {
+      const button = event.target.closest('button');
+      const row = event.target.closest('tr');
+      if (!row) return;
+      if (!button) return selectMeasurement(row.dataset.id, false);
+      if (button.classList.contains('editButton')) return openEditor(row.dataset.id);
+      if (button.classList.contains('deleteButton')) return deleteMeasurement(row.dataset.id);
+      if (button.classList.contains('collapseButton')) {
+        row.classList.toggle('collapsed');
+        button.textContent = row.classList.contains('collapsed') ? '⬆️' : '⬇️';
+      }
+    }));
+  }
+
+  function restoreStoredMeta() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return;
+      const stored = JSON.parse(raw);
+      const rows = Array.from(document.querySelectorAll('#measurementTable tbody tr'));
+      (stored.measurements || []).forEach((item, index) => rows[index] && ensureRowMeta(rows[index], item));
+      selectedMeasurementId = stored.selectedMeasurementId || rows[0]?.dataset.id || null;
+    } catch (_) {
+      selectedMeasurementId = document.querySelector('#measurementTable tbody tr')?.dataset.id || null;
+    }
+  }
+
+  sceneCanvas.addEventListener('click', event => {
+    const rect = sceneCanvas.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    const hit = sceneHitAreas.find(area => x >= area.x && x <= area.x + area.w && y >= area.y && y <= area.y + area.h);
+    if (hit) selectMeasurement(hit.id);
+  });
+  editor.form.addEventListener('change', event => syncEditorLabels(event.target.value));
+  document.getElementById('closeEditorButton').addEventListener('click', closeEditor);
+  document.getElementById('cancelEditorButton').addEventListener('click', closeEditor);
+  document.getElementById('saveEditorButton').addEventListener('click', saveEditor);
+  document.getElementById('deleteEditorButton').addEventListener('click', () => editorState.rowId && deleteMeasurement(editorState.rowId));
+  editor.overlay.addEventListener('click', event => event.target === editor.overlay && closeEditor());
+  window.addEventListener('keydown', event => event.key === 'Escape' && editor.overlay.classList.contains('open') && closeEditor());
+  window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => window.redrawAllVisualizations(), 150); });
+
+  bindControls();
+  restoreStoredMeta();
+  window.redrawAllVisualizations();
+})();
 </script>
 </body>
 </html>
