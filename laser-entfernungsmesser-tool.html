@@ -397,7 +397,7 @@ html[data-theme="dark"] body.td-unified textarea {
         <div class="controls">
           <div class="control-group"><label for="unitSelector">Maßeinheit</label><select id="unitSelector"><option value="m" selected>Meter (m)</option><option value="cm">Zentimeter (cm)</option><option value="mm">Millimeter (mm)</option></select></div>
           <div class="control-group"><label for="projectName">Projektname</label><input id="projectName" type="text" placeholder="z.B. Wohnzimmer Renovierung"></div>
-          <button id="addRowButton">➕ Neue Messung</button><button id="exportExcelButton" class="exportButton">📈 Excel Export</button><button id="collapseAllButton" class="secondary-button">⬇️ Alle einklappen</button><button id="expandAllButton" class="secondary-button">⬆️ Alle ausklappen</button><button id="clearDataButton">🗑️ Alles löschen</button>
+          <button id="addRowButton">➕ Neue Messung</button><button id="exportExcelButton" class="exportButton">📈 Alle Formen Excel</button><button id="collapseAllButton" class="secondary-button">⬇️ Alle einklappen</button><button id="expandAllButton" class="secondary-button">⬆️ Alle ausklappen</button><button id="clearDataButton">🗑️ Alles löschen</button>
         </div>
         <section class="quick-capture-panel" aria-labelledby="quickCaptureHeading">
           <div class="section-head">
@@ -436,8 +436,8 @@ html[data-theme="dark"] body.td-unified textarea {
               <button id="toggleProjectSceneButton" type="button" class="secondary-button quick-capture-toggle">🗂 Projektansicht aus</button>
             </div>
             <div class="quick-capture-exports">
-              <button id="quickCaptureCsvExportButton" type="button" class="secondary-button quick-capture-toggle">📄 Längenserie CSV</button>
-              <button id="quickCaptureExcelExportButton" type="button" class="exportButton quick-capture-toggle">📊 Längenserie Excel</button>
+              <button id="quickCaptureCsvExportButton" type="button" class="secondary-button quick-capture-toggle">📄 Nur Längenserie CSV</button>
+              <button id="quickCaptureExcelExportButton" type="button" class="exportButton quick-capture-toggle">📊 Nur Längenserie Excel</button>
             </div>
           </div>
           <div class="table-container quick-capture-table">
@@ -781,6 +781,7 @@ function tdShowExportFallback(url, fileName, blob){
 function exportToExcel(){
   if (typeof XLSX === 'undefined') { showMessage('Export-Funktion konnte nicht geladen werden. Prüfen Sie Ihre Internetverbindung.', 'error'); return; }
   const data = [ ['Länge/Radius', 'Breite', 'Höhe', 'Form', 'Bezeichnung', 'Ergebnis', 'Einheit'] ];
+  const lengthSeries = [['Nr.', 'Bezeichnung', 'Messwert', 'Einheit']];
   $$('#measurementTable tbody tr').forEach(tr => {
     const form = tr.querySelector('[data-field="form"]').value;
     const { l, b, h, rawL, rawB, rawH } = getSanitizedDimensionValues(form, {
@@ -788,7 +789,13 @@ function exportToExcel(){
       b: tr.querySelector('[data-field="b"]').value,
       h: tr.querySelector('[data-field="h"]').value
     });
-    data.push([rawL, rawB, rawH, form, tr.querySelector('[data-field="name"]').value, calculateGeometry(form, l, b, h), getUnitSuffix(form)]);
+    const result = calculateGeometry(form, l, b, h);
+    const unitSuffix = getUnitSuffix(form);
+    const name = tr.querySelector('[data-field="name"]').value;
+    data.push([rawL, rawB, rawH, form, name, result, unitSuffix]);
+    if (form === 'Länge' && result > 0) {
+      lengthSeries.push([lengthSeries.length, name || `Länge ${lengthSeries.length}`, result, unitSuffix]);
+    }
     tr.querySelector('[data-field="l"]').value = rawL;
     tr.querySelector('[data-field="b"]').value = rawB;
     tr.querySelector('[data-field="h"]').value = rawH;
@@ -796,6 +803,10 @@ function exportToExcel(){
   const ws = XLSX.utils.aoa_to_sheet(data);
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Messungen');
+  if (lengthSeries.length > 1) {
+    const wsLengths = XLSX.utils.aoa_to_sheet(lengthSeries);
+    XLSX.utils.book_append_sheet(wb, wsLengths, 'Laengenserie');
+  }
 
   const fileName = `${$('#projectName').value || 'Messungen'}.xlsx`;
   const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
@@ -814,7 +825,7 @@ function exportToExcel(){
     tdShowExportFallback(url, fileName, blob);
     showMessage('Excel vorbereitet. Falls Download blockiert ist, Link im Balken nutzen.', 'success');
   } else {
-    showMessage('Daten erfolgreich nach Excel exportiert', 'success');
+    showMessage(lengthSeries.length > 1 ? 'Excel mit Messungen und Längenserie exportiert' : 'Daten erfolgreich nach Excel exportiert', 'success');
     setTimeout(() => URL.revokeObjectURL(url), 120000);
   }
 }
