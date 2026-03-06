@@ -464,10 +464,31 @@ const num = v => {
     return normalized === '' ? 0 : parseFloat(normalized);
 };
 const getDimensionConfig = form => (formCfg[form] || '').replace(/R/g, 'L').replace(/-/g, '');
+function getSanitizedDimensionValues(form, values = {}) {
+    const config = getDimensionConfig(form);
+    return {
+        l: config.includes('L') ? num(values.l) : 0,
+        b: config.includes('B') ? num(values.b) : 0,
+        h: config.includes('H') ? num(values.h) : 0,
+        rawL: config.includes('L') ? normalizeNumericValue(values.l) : '',
+        rawB: config.includes('B') ? normalizeNumericValue(values.b) : '',
+        rawH: config.includes('H') ? normalizeNumericValue(values.h) : ''
+    };
+}
 function normalizeInputElementValue(input) {
     if (!input) return;
     const normalized = normalizeNumericValue(input.value);
     if (normalized !== '') input.value = normalized;
+}
+function clearHiddenDimensionFields(target, form) {
+    if (!target) return;
+    const config = getDimensionConfig(form);
+    const fields = ['l', 'b', 'h'];
+    fields.forEach(field => {
+        const input = target.querySelector ? target.querySelector(`[data-field="${field}"], #editorValue${field.toUpperCase()}`) : null;
+        if (!input) return;
+        if (!config.includes(field.toUpperCase())) input.value = '';
+    });
 }
 function showMessage(message, type = 'success', duration = 3000) {
     const toast = $('#toast');
@@ -513,7 +534,15 @@ function updateRow(tr) {
     normalizeInputElementValue(tr.querySelector('[data-field="l"]'));
     normalizeInputElementValue(tr.querySelector('[data-field="b"]'));
     normalizeInputElementValue(tr.querySelector('[data-field="h"]'));
-    const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value);
+    const dims = getSanitizedDimensionValues(form, {
+        l: tr.querySelector('[data-field="l"]').value,
+        b: tr.querySelector('[data-field="b"]').value,
+        h: tr.querySelector('[data-field="h"]').value
+    });
+    tr.querySelector('[data-field="l"]').value = dims.rawL;
+    tr.querySelector('[data-field="b"]').value = dims.rawB;
+    tr.querySelector('[data-field="h"]').value = dims.rawH;
+    const { l, b, h } = dims;
     const name = tr.querySelector('[data-field="name"]').value;
     const resultText = tr.querySelector('.result-text');
     const config = getDimensionConfig(form);
@@ -539,6 +568,7 @@ function updateRowUI(tr) {
     const hLabel = labels.h || defaultLabels.h; hInput.placeholder = hLabel; hCell.dataset.label = hLabel;
     bCell.style.display = config.includes('B') ? '' : 'none';
     hCell.style.display = config.includes('H') ? '' : 'none';
+    clearHiddenDimensionFields(tr, form);
 }
 
 // 5. Visualization - KORREKTUR: FEHLENDER CODE WIEDER EINGEFÜGT
@@ -583,7 +613,11 @@ function updateTotals() {
     const rows = $$('#measurementTable tbody tr');
     rows.forEach(tr => {
         const form = tr.querySelector('[data-field="form"]').value; if (!form) return;
-        const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value);
+        const { l, b, h } = getSanitizedDimensionValues(form, {
+            l: tr.querySelector('[data-field="l"]').value,
+            b: tr.querySelector('[data-field="b"]').value,
+            h: tr.querySelector('[data-field="h"]').value
+        });
         const value = calculateGeometry(form, l, b, h);
         if (value > 0) {
             const unit = getUnitSuffix(form);
@@ -653,8 +687,15 @@ function exportToExcel(){
   const data = [ ['Länge/Radius', 'Breite', 'Höhe', 'Form', 'Bezeichnung', 'Ergebnis', 'Einheit'] ];
   $$('#measurementTable tbody tr').forEach(tr => {
     const form = tr.querySelector('[data-field="form"]').value;
-    const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value);
-    data.push([l, b, h, form, tr.querySelector('[data-field="name"]').value, calculateGeometry(form, l, b, h), getUnitSuffix(form)]);
+    const { l, b, h, rawL, rawB, rawH } = getSanitizedDimensionValues(form, {
+      l: tr.querySelector('[data-field="l"]').value,
+      b: tr.querySelector('[data-field="b"]').value,
+      h: tr.querySelector('[data-field="h"]').value
+    });
+    data.push([rawL, rawB, rawH, form, tr.querySelector('[data-field="name"]').value, calculateGeometry(form, l, b, h), getUnitSuffix(form)]);
+    tr.querySelector('[data-field="l"]').value = rawL;
+    tr.querySelector('[data-field="b"]').value = rawB;
+    tr.querySelector('[data-field="h"]').value = rawH;
   });
   const ws = XLSX.utils.aoa_to_sheet(data);
   const wb = XLSX.utils.book_new();
@@ -682,7 +723,7 @@ function exportToExcel(){
   }
 }
 $('#exportExcelButton').addEventListener('click', exportToExcel);
-function saveToLocalStorage(){ try {const data = {theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',projectName: $('#projectName').value, unit: UNIT,measurements: $$('#measurementTable tbody tr').map(tr => ({l: tr.querySelector('[data-field="l"]').value, b: tr.querySelector('[data-field="b"]').value, h: tr.querySelector('[data-field="h"]').value,form: tr.querySelector('[data-field="form"]').value, name: tr.querySelector('[data-field="name"]').value})).reverse()};localStorage.setItem(LS_KEY, JSON.stringify(data));} catch (e) { console.warn("LocalStorage nicht verfügbar:", e); showMessage('Speichern fehlgeschlagen', 'error'); }}
+function saveToLocalStorage(){ try {const data = {theme: document.body.classList.contains('dark-mode') ? 'dark' : 'light',projectName: $('#projectName').value, unit: UNIT,measurements: $$('#measurementTable tbody tr').map(tr => { const form = tr.querySelector('[data-field="form"]').value; const dims = getSanitizedDimensionValues(form, { l: tr.querySelector('[data-field="l"]').value, b: tr.querySelector('[data-field="b"]').value, h: tr.querySelector('[data-field="h"]').value }); return {l: dims.rawL, b: dims.rawB, h: dims.rawH, form, name: tr.querySelector('[data-field="name"]').value}; }).reverse()};localStorage.setItem(LS_KEY, JSON.stringify(data));} catch (e) { console.warn("LocalStorage nicht verfügbar:", e); showMessage('Speichern fehlgeschlagen', 'error'); }}
 function loadFromLocalStorage(){ try {const saved = localStorage.getItem(LS_KEY); if (!saved) return; const data = JSON.parse(saved); if (data.theme === 'dark') { document.body.classList.add('dark-mode'); $('#themeSwitcher').textContent = '🌙'; } if (data.projectName) $('#projectName').value = data.projectName; if (data.unit && conv[data.unit]) { $('#unitSelector').value = data.unit; UNIT = data.unit; } if (data.measurements && data.measurements.length > 0) { data.measurements.forEach(m => createRow(m, false)); } updateTotals();} catch (error) { console.warn('Fehler beim Laden aus dem LocalStorage:', error); localStorage.removeItem(LS_KEY); }}
 $('#projectName').addEventListener('input', saveToLocalStorage);
 
@@ -801,9 +842,12 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   function getRowData(tr) {
     ensureRowMeta(tr);
     const form = tr.querySelector('[data-field="form"]').value;
-    const l = num(tr.querySelector('[data-field="l"]').value);
-    const b = num(tr.querySelector('[data-field="b"]').value);
-    const h = num(tr.querySelector('[data-field="h"]').value);
+    const dims = getSanitizedDimensionValues(form, {
+      l: tr.querySelector('[data-field="l"]').value,
+      b: tr.querySelector('[data-field="b"]').value,
+      h: tr.querySelector('[data-field="h"]').value
+    });
+    const { l, b, h } = dims;
     const config = getDimensionConfig(form);
     const hasAllValues = (!config.includes('L') || l) && (!config.includes('B') || b) && (!config.includes('H') || h);
     const value = form ? calculateGeometry(form, l, b, h) : 0;
@@ -841,6 +885,12 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     if (config.includes('B')) parts.push(`${labels.b || defaults.b}: ${measurement.b ? fx(measurement.b) : '—'} ${UNIT}`);
     if (config.includes('H')) parts.push(`${labels.h || defaults.h}: ${measurement.h ? fx(measurement.h) : '—'} ${UNIT}`);
     return parts.join(' • ');
+  }
+
+  function formatCompactDimensionSummary(measurement) {
+    const summary = formatDimensionSummary(measurement);
+    if (summary.length <= 34) return summary;
+    return `${summary.slice(0, 31)}...`;
   }
 
   function renderShape(ctx, measurement, box) {
@@ -1112,7 +1162,9 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
       ctx.font = '13px "Segoe UI", sans-serif';
       ctx.fillStyle = '#6b7280';
       ctx.fillText(m.form || 'Form wählen', x + 16, y + 58);
-      renderShape(ctx, m, { x: x + 14, y: y + 64, w: tileWidth - 28, h: 72 });
+      ctx.font = '12px "Segoe UI", sans-serif';
+      ctx.fillText(formatCompactDimensionSummary(m), x + 16, y + 76);
+      renderShape(ctx, m, { x: x + 14, y: y + 82, w: tileWidth - 28, h: 58 });
       ctx.fillStyle = '#111827';
       ctx.font = '600 14px "Segoe UI", sans-serif';
       ctx.fillText(formatMeasurementValue(m), x + 16, y + tileHeight - 22);
@@ -1330,7 +1382,11 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     const normalized = normalizeNumericValue(input.value);
     if (normalized !== '') input.value = normalized;
   }));
-  editor.form.addEventListener('change', event => syncEditorLabels(event.target.value));
+  editor.form.addEventListener('change', event => {
+    const form = event.target.value;
+    syncEditorLabels(form);
+    clearHiddenDimensionFields(editor.overlay, form);
+  });
   document.getElementById('closeEditorButton').addEventListener('click', closeEditor);
   document.getElementById('cancelEditorButton').addEventListener('click', closeEditor);
   document.getElementById('saveEditorButton').addEventListener('click', saveEditor);
