@@ -47,6 +47,8 @@
     .quick-capture-grid .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .quick-capture-grid .control-group input,
     .quick-capture-grid .control-group select { width: 100%; }
+    .quick-capture-grid select,
+    #editorForm { min-height: 52px; font-size: 17px; }
     .quick-capture-input { border: 2px solid color-mix(in srgb, var(--primary-color) 40%, var(--border-color)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 10%, transparent); }
     .quick-capture-status { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
     .quick-capture-help { margin: 0; color: var(--secondary-color); font-size: 13px; }
@@ -55,6 +57,10 @@
     .quick-capture-input.flash { animation: quickCapturePulse 0.45s ease; }
     .quick-capture-toggle { min-width: 180px; }
     .next-name-badge { background: color-mix(in srgb, #0f766e 10%, var(--content-bg-color)); border-color: color-mix(in srgb, #0f766e 24%, var(--border-color)); }
+    .signal-ready { background: color-mix(in srgb, #0f766e 12%, var(--content-bg-color)); border-color: color-mix(in srgb, #0f766e 26%, var(--border-color)); color: #0f766e; }
+    .signal-waiting { background: color-mix(in srgb, #b45309 10%, var(--content-bg-color)); border-color: color-mix(in srgb, #b45309 24%, var(--border-color)); color: #92400e; }
+    .signal-off { color: var(--secondary-color); }
+    .quick-capture-exports { display: inline-flex; gap: 10px; flex-wrap: wrap; }
     .quick-capture-table { margin-top: 14px; }
     .quick-capture-table table { font-size: 15px; }
     .quick-capture-table td,
@@ -418,8 +424,14 @@ html[data-theme="dark"] body.td-unified textarea {
             <p id="quickCaptureHelp" class="quick-capture-help">Empfehlung: Serienmodus einschalten, Laser koppeln, dann bleiben Fokus und Enter-Workflow auf dem Eingabefeld.</p>
             <div class="quick-capture-meta">
               <div id="quickCapturePreviewBadge" class="selection-badge next-name-badge">Nächster Eintrag: Sparre 1</div>
+              <div id="quickCaptureSignalBadge" class="selection-badge signal-off">Bluetooth-Status: nicht aktiv</div>
+              <div id="quickCaptureLastValueBadge" class="selection-badge">Letzter Messwert: -</div>
               <button id="toggleQuickCaptureToneButton" type="button" class="secondary-button quick-capture-toggle">🔔 Feedback an</button>
               <button id="toggleQuickListModeButton" type="button" class="secondary-button quick-capture-toggle">📋 Listenmodus aus</button>
+            </div>
+            <div class="quick-capture-exports">
+              <button id="quickCaptureCsvExportButton" type="button" class="secondary-button quick-capture-toggle">📄 Längenserie CSV</button>
+              <button id="quickCaptureExcelExportButton" type="button" class="exportButton quick-capture-toggle">📊 Längenserie Excel</button>
             </div>
           </div>
           <div class="table-container quick-capture-table">
@@ -858,8 +870,12 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     help: document.getElementById('quickCaptureHelp'),
     badge: document.getElementById('quickCaptureStatusBadge'),
     preview: document.getElementById('quickCapturePreviewBadge'),
+    signal: document.getElementById('quickCaptureSignalBadge'),
+    lastValue: document.getElementById('quickCaptureLastValueBadge'),
     tone: document.getElementById('toggleQuickCaptureToneButton'),
     listMode: document.getElementById('toggleQuickListModeButton'),
+    exportCsv: document.getElementById('quickCaptureCsvExportButton'),
+    exportExcel: document.getElementById('quickCaptureExcelExportButton'),
     tableBody: document.getElementById('quickCaptureTableBody')
   };
   let quickCaptureEnabled = false;
@@ -867,6 +883,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   let quickCaptureToneEnabled = true;
   let quickCaptureListMode = false;
   let quickCaptureAudioContext = null;
+  let quickCaptureLastValue = '';
 
   function hexToRgb(hex) {
     const normalized = (hex || '#007aff').replace('#', '').trim();
@@ -972,6 +989,10 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     return getAllMeasurements().filter(item => item.form === 'Länge');
   }
 
+  function getOrderedQuickCaptureMeasurements() {
+    return getQuickCaptureMeasurements().slice().reverse();
+  }
+
   function getNextQuickCaptureName() {
     const prefix = quickCapture.prefix.value.trim() || 'Sparre';
     const count = getQuickCaptureMeasurements().length + 1;
@@ -1012,6 +1033,71 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     } catch (_) {}
   }
 
+  function setQuickCaptureSignal(mode, text) {
+    quickCapture.signal.textContent = text;
+    quickCapture.signal.classList.remove('signal-ready', 'signal-waiting', 'signal-off');
+    quickCapture.signal.classList.add(mode);
+  }
+
+  function updateQuickCaptureLastValue(value = '') {
+    quickCaptureLastValue = value || quickCaptureLastValue || '';
+    quickCapture.lastValue.textContent = `Letzter Messwert: ${quickCaptureLastValue || '-'}`;
+  }
+
+  function isEditableElement(element) {
+    if (!element) return false;
+    if (element === quickCapture.input) return true;
+    return element.matches?.('input, textarea, select') || element.isContentEditable;
+  }
+
+  function isRelayCandidateKey(event) {
+    if (!quickCaptureEnabled) return false;
+    if (editor.overlay.classList.contains('open')) return false;
+    if (event.ctrlKey || event.metaKey || event.altKey) return false;
+    return event.key === 'Enter' || event.key === 'Backspace' || /^[0-9.,-]$/.test(event.key);
+  }
+
+  function downloadBlobFile(blob, fileName) {
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    link.style.display = 'none';
+    document.body.appendChild(link);
+    try { link.click(); } catch (_) {}
+    link.remove();
+    const restrictedScheme = /^(file|content):$/i.test(location.protocol);
+    if (restrictedScheme) {
+      tdShowExportFallback(url, fileName, blob);
+    } else {
+      setTimeout(() => URL.revokeObjectURL(url), 120000);
+    }
+  }
+
+  function exportQuickCaptureCsv() {
+    const lengths = getOrderedQuickCaptureMeasurements();
+    if (!lengths.length) return showMessage('Noch keine Längen für den Serien-Export vorhanden.', 'error');
+    const rows = [['Nr.', 'Bezeichnung', 'Messwert', 'Einheit'], ...lengths.map((item, index) => [String(index + 1), item.name || `Sparre ${index + 1}`, fx(item.value), item.unitSuffix])];
+    const csv = rows.map(cols => cols.map(value => `"${String(value).replace(/"/g, '""')}"`).join(';')).join('\n');
+    const fileName = `${document.getElementById('projectName').value || 'Laengenserie'}-laengenserie.csv`;
+    downloadBlobFile(new Blob([csv], { type: 'text/csv;charset=utf-8' }), fileName);
+    showMessage('Längenserie als CSV exportiert', 'success');
+  }
+
+  function exportQuickCaptureExcel() {
+    if (typeof XLSX === 'undefined') return showMessage('Excel-Export konnte nicht geladen werden.', 'error');
+    const lengths = getOrderedQuickCaptureMeasurements();
+    if (!lengths.length) return showMessage('Noch keine Längen für den Serien-Export vorhanden.', 'error');
+    const data = [['Nr.', 'Bezeichnung', 'Messwert', 'Einheit'], ...lengths.map((item, index) => [index + 1, item.name || `Sparre ${index + 1}`, item.value, item.unitSuffix])];
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Laengenserie');
+    const fileName = `${document.getElementById('projectName').value || 'Laengenserie'}-laengenserie.xlsx`;
+    const wbArray = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    downloadBlobFile(new Blob([wbArray], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fileName);
+    showMessage('Längenserie als Excel exportiert', 'success');
+  }
+
   function focusQuickCaptureInput(force = false) {
     if (!quickCaptureEnabled && !force) return;
     clearTimeout(quickCaptureFocusTimer);
@@ -1025,7 +1111,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   function updateQuickCaptureUI() {
     const form = quickCapture.form.value;
     const supported = form === 'Länge';
-    const lengths = getQuickCaptureMeasurements();
+    const lengths = getOrderedQuickCaptureMeasurements();
     document.body.classList.toggle('wdm-list-mode', quickCaptureListMode);
     quickCapture.toggle.textContent = quickCaptureEnabled ? '🛑 Serienmodus beenden' : '📡 Serienmodus aktivieren';
     quickCapture.badge.textContent = quickCaptureEnabled ? `Serienmodus aktiv • ${form}` : 'Serienmodus aus';
@@ -1036,6 +1122,11 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     quickCapture.listMode.textContent = quickCaptureListMode ? '📋 Listenmodus an' : '📋 Listenmodus aus';
     quickCapture.input.disabled = !supported;
     quickCapture.input.placeholder = supported ? 'Wert empfangen und Enter senden' : 'Serienmodus ist aktuell nur für Länge optimiert';
+    setQuickCaptureSignal(
+      !quickCaptureEnabled ? 'signal-off' : document.activeElement === quickCapture.input ? 'signal-ready' : 'signal-waiting',
+      !quickCaptureEnabled ? 'Bluetooth-Status: nicht aktiv' : document.activeElement === quickCapture.input ? 'Bluetooth-Status: bereit für Eingaben' : 'Bluetooth-Status: Relay aktiv, Fokus wird gehalten'
+    );
+    updateQuickCaptureLastValue();
     quickCapture.help.textContent = supported
       ? 'Bei jeder Enter-Bestätigung wird automatisch ein neuer Längeneintrag erzeugt und das Eingabefeld neu fokussiert.'
       : 'Andere Formen bleiben über den normalen Editor verfügbar. Serienerfassung ist derzeit bewusst auf Länge optimiert.';
@@ -1076,6 +1167,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     selectedMeasurementId = row.dataset.id;
     quickCapture.input.value = '';
     rerenderDashboard();
+    updateQuickCaptureLastValue(`${fx(num(normalizedValue))} ${UNIT}`);
     flashQuickCaptureFeedback();
     playQuickCaptureTone();
     showMessage('Länge übernommen', 'success', 1800);
@@ -1653,6 +1745,12 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     event.preventDefault();
     addQuickCaptureMeasurement();
   });
+  quickCapture.input.addEventListener('input', () => {
+    if (!quickCaptureEnabled) return;
+    setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Eingabe erkannt');
+  });
+  quickCapture.exportCsv.addEventListener('click', exportQuickCaptureCsv);
+  quickCapture.exportExcel.addEventListener('click', exportQuickCaptureExcel);
   [editor.l, editor.b, editor.h].forEach(input => input.addEventListener('blur', () => {
     const normalized = normalizeNumericValue(input.value);
     if (normalized !== '') input.value = normalized;
@@ -1680,9 +1778,30 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   document.getElementById('saveEditorButton').addEventListener('click', saveEditor);
   document.getElementById('deleteEditorButton').addEventListener('click', () => editorState.rowId && deleteMeasurement(editorState.rowId));
   editor.overlay.addEventListener('click', event => event.target === editor.overlay && closeEditor());
+  document.addEventListener('keydown', event => {
+    if (!isRelayCandidateKey(event)) return;
+    const active = document.activeElement;
+    if (active === quickCapture.input) return;
+    if (isEditableElement(active)) return;
+    event.preventDefault();
+    if (event.key === 'Enter') {
+      addQuickCaptureMeasurement();
+      return;
+    }
+    if (event.key === 'Backspace') {
+      quickCapture.input.value = quickCapture.input.value.slice(0, -1);
+      setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Eingabe erkannt');
+      focusQuickCaptureInput(true);
+      return;
+    }
+    quickCapture.input.value += event.key;
+    setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Tastatursignal empfangen');
+    focusQuickCaptureInput(true);
+  });
   window.addEventListener('keydown', event => event.key === 'Escape' && editor.overlay.classList.contains('open') && closeEditor());
   window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => window.redrawAllVisualizations(), 150); });
   window.addEventListener('focus', () => focusQuickCaptureInput());
+  document.addEventListener('focusin', () => updateQuickCaptureUI());
 
   bindControls();
   restoreStoredMeta();
