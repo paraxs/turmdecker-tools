@@ -868,6 +868,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   const cardCounter = document.getElementById('cardCounter');
   const quickCapture = {
     panel: document.querySelector('.quick-capture-panel'),
+    tableWrap: document.querySelector('.quick-capture-table'),
     form: document.getElementById('quickCaptureForm'),
     prefix: document.getElementById('quickCaptureNamePrefix'),
     input: document.getElementById('laserCaptureInput'),
@@ -893,6 +894,8 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   let projectSceneVisible = false;
   let quickCaptureAudioContext = null;
   let quickCaptureLastValue = '';
+  let quickCaptureInputLockUntil = 0;
+  let quickCaptureRecentAcceptance = { value: '', at: 0 };
 
   function hexToRgb(hex) {
     const normalized = (hex || '#007aff').replace('#', '').trim();
@@ -999,7 +1002,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   }
 
   function getOrderedQuickCaptureMeasurements() {
-    return getQuickCaptureMeasurements().slice().reverse();
+    return getQuickCaptureMeasurements().slice();
   }
 
   function getNextQuickCaptureName() {
@@ -1064,11 +1067,24 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   function resetQuickCaptureDisplay() {
     quickCapture.input.value = '';
     quickCaptureLastValue = '';
+    quickCaptureInputLockUntil = 0;
     updateQuickCaptureLastValue('');
     setQuickCaptureSignal(
       quickCaptureEnabled ? 'signal-waiting' : 'signal-off',
       quickCaptureEnabled ? 'Bluetooth-Status: bereit für nächsten Messwert' : 'Bluetooth-Status: nicht aktiv'
     );
+  }
+
+  function scrollToLatestQuickCaptureRow() {
+    const latestRow = quickCapture.tableBody.querySelector('tr[data-id]');
+    if (!latestRow) {
+      scrollElementIntoView(quickCapture.panel);
+      return;
+    }
+    requestAnimationFrame(() => {
+      if (quickCapture.tableWrap) quickCapture.tableWrap.scrollTop = 0;
+      scrollElementIntoView(latestRow);
+    });
   }
 
   function isEditableElement(element) {
@@ -1107,6 +1123,10 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
 
   function relayQuickCaptureKey(event) {
     if (!isRelayCandidateKey(event)) return false;
+    if (Date.now() < quickCaptureInputLockUntil) {
+      setQuickCaptureSignal('signal-waiting', 'Bluetooth-Status: Doppelsignal ignoriert');
+      return true;
+    }
     if (event.key === 'Enter') {
       addQuickCaptureMeasurement();
       return true;
@@ -1196,7 +1216,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     );
     updateQuickCaptureLastValue();
     quickCapture.help.textContent = supported
-      ? 'Bei jeder Enter-Bestätigung wird automatisch ein neuer Längeneintrag erzeugt und das Eingabefeld neu fokussiert.'
+      ? 'Bei jeder Enter-Bestätigung wird automatisch ein neuer Längeneintrag erzeugt, die Liste springt zur neuesten Zeile und das Eingabefeld bleibt bereit.'
       : 'Andere Formen bleiben über den normalen Editor verfügbar. Serienerfassung ist derzeit bewusst auf Länge optimiert.';
     if (!lengths.length) {
       quickCapture.tableBody.innerHTML = '<tr><td colspan="4">Noch keine Schnellmessungen</td></tr>';
@@ -1213,13 +1233,27 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
 
   function addQuickCaptureMeasurement() {
     const form = quickCapture.form.value;
+    const now = Date.now();
     if (form !== 'Länge') {
       showMessage('Serienerfassung ist derzeit nur für Länge aktiv.', 'error');
       return;
     }
     const normalizedValue = normalizeNumericValue(quickCapture.input.value);
+    if (now < quickCaptureInputLockUntil) {
+      quickCapture.input.value = '';
+      setQuickCaptureSignal('signal-waiting', 'Bluetooth-Status: Doppelsignal ignoriert');
+      focusQuickCaptureInput(true);
+      return;
+    }
     if (!num(normalizedValue)) {
       showMessage('Bitte zuerst einen Messwert empfangen oder eingeben.', 'error');
+      focusQuickCaptureInput(true);
+      return;
+    }
+    if (quickCaptureRecentAcceptance.value === normalizedValue && (now - quickCaptureRecentAcceptance.at) < 650) {
+      quickCapture.input.value = '';
+      quickCaptureInputLockUntil = now + 450;
+      setQuickCaptureSignal('signal-waiting', 'Bluetooth-Status: Doppelsignal ignoriert');
       focusQuickCaptureInput(true);
       return;
     }
@@ -1233,6 +1267,8 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     updateRowUI(row);
     updateRow(row);
     selectedMeasurementId = row.dataset.id;
+    quickCaptureRecentAcceptance = { value: normalizedValue, at: now };
+    quickCaptureInputLockUntil = now + 450;
     quickCapture.input.value = '';
     rerenderDashboard();
     updateQuickCaptureLastValue(`${fx(num(normalizedValue))} ${UNIT}`);
@@ -1240,6 +1276,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     playQuickCaptureTone();
     playQuickCaptureHaptics();
     setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Messwert übernommen');
+    scrollToLatestQuickCaptureRow();
     showMessage('Länge übernommen', 'success', 1800);
     focusQuickCaptureInput();
   }
