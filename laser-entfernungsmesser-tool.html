@@ -42,6 +42,23 @@
     .section-head h2 { margin: 0 0 4px; font-size: 1.2rem; }
     .section-head p { margin: 0; color: var(--secondary-color); font-size: 14px; }
     .selection-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; background: color-mix(in srgb, var(--primary-color) 12%, var(--content-bg-color)); color: var(--text-color); font-size: 14px; font-weight: 600; border: 1px solid color-mix(in srgb, var(--primary-color) 22%, var(--border-color)); white-space: nowrap; }
+    .quick-capture-panel { margin-top: 26px; padding: 18px; background: linear-gradient(180deg, color-mix(in srgb, var(--content-bg-color) 95%, #eef4ff) 0%, var(--content-bg-color) 100%); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); }
+    .quick-capture-grid { display: grid; grid-template-columns: 1.2fr 1fr 1.4fr auto auto; gap: 12px; align-items: end; }
+    .quick-capture-grid .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+    .quick-capture-grid .control-group input,
+    .quick-capture-grid .control-group select { width: 100%; }
+    .quick-capture-input { border: 2px solid color-mix(in srgb, var(--primary-color) 40%, var(--border-color)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 10%, transparent); }
+    .quick-capture-status { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
+    .quick-capture-help { margin: 0; color: var(--secondary-color); font-size: 13px; }
+    .quick-capture-table { margin-top: 14px; }
+    .quick-capture-table table { font-size: 15px; }
+    .quick-capture-table td,
+    .quick-capture-table th { padding: 12px 10px; }
+    .quick-capture-table tbody tr { background: transparent; }
+    .quick-capture-table .capture-name { font-weight: 600; text-align: left; }
+    .quick-capture-table .capture-value { font-weight: 700; color: var(--primary-color); }
+    .capture-active { color: #0f766e; border-color: color-mix(in srgb, #0f766e 35%, var(--border-color)); background: color-mix(in srgb, #0f766e 10%, var(--content-bg-color)); }
+    .capture-inactive { color: var(--secondary-color); }
     .project-scene-panel, .cards-panel, .desktop-table-panel { margin-top: 26px; padding: 18px; background: var(--content-bg-color); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); }
     .project-scene-canvas { display: block; width: 100%; min-height: 260px; border-radius: 16px; background: linear-gradient(180deg, color-mix(in srgb, var(--content-bg-color) 92%, #dde7f5) 0%, color-mix(in srgb, var(--content-bg-color) 97%, transparent) 100%); border: 1px solid var(--border-color); }
     .scene-footer { display: flex; justify-content: space-between; align-items: center; gap: 14px; margin-top: 12px; flex-wrap: wrap; }
@@ -115,7 +132,10 @@
       h1 { font-size: 1.6rem; }
       .container { margin: 12px auto 24px; padding: 14px; }
       .controls { grid-template-columns: 1fr; }
+      .quick-capture-panel,
       .project-scene-panel, .cards-panel, .desktop-table-panel { padding: 14px; margin-top: 18px; }
+      .quick-capture-grid { grid-template-columns: 1fr; }
+      .quick-capture-grid button { width: 100%; }
       .section-head { flex-direction: column; align-items: stretch; }
       .selection-badge { white-space: normal; }
       .measurement-cards { grid-template-columns: 1fr; }
@@ -355,6 +375,46 @@ html[data-theme="dark"] body.td-unified textarea {
           <div class="control-group"><label for="projectName">Projektname</label><input id="projectName" type="text" placeholder="z.B. Wohnzimmer Renovierung"></div>
           <button id="addRowButton">➕ Neue Messung</button><button id="exportExcelButton" class="exportButton">📈 Excel Export</button><button id="collapseAllButton" class="secondary-button">⬇️ Alle einklappen</button><button id="expandAllButton" class="secondary-button">⬆️ Alle ausklappen</button><button id="clearDataButton">🗑️ Alles löschen</button>
         </div>
+        <section class="quick-capture-panel" aria-labelledby="quickCaptureHeading">
+          <div class="section-head">
+            <div>
+              <h2 id="quickCaptureHeading">Laser-Schnellerfassung</h2>
+              <p>Für WDM9-24 und andere Bluetooth-Tastatur-Geräte. Im Modus <code>Länge</code> wird nach jedem Messwert automatisch ein neuer Eintrag angelegt.</p>
+            </div>
+            <div id="quickCaptureStatusBadge" class="selection-badge capture-inactive">Serienmodus aus</div>
+          </div>
+          <div class="quick-capture-grid">
+            <div class="control-group">
+              <label for="quickCaptureForm">Form für Schnellerfassung</label>
+              <select id="quickCaptureForm">
+                <option value="Länge" selected>Länge</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="quickCaptureNamePrefix">Bezeichnungs-Präfix</label>
+              <input id="quickCaptureNamePrefix" type="text" placeholder="z.B. Sparre">
+            </div>
+            <div class="control-group">
+              <label for="laserCaptureInput">Messwert vom Laser</label>
+              <input id="laserCaptureInput" class="quick-capture-input" type="text" inputmode="decimal" placeholder="Wert empfangen und Enter senden">
+            </div>
+            <button id="focusLaserCaptureButton" type="button" class="secondary-button">⌨️ Fokus halten</button>
+            <button id="toggleQuickCaptureButton" type="button">📡 Serienmodus aktivieren</button>
+          </div>
+          <div class="quick-capture-status">
+            <p id="quickCaptureHelp" class="quick-capture-help">Empfehlung: Serienmodus einschalten, Laser koppeln, dann bleiben Fokus und Enter-Workflow auf dem Eingabefeld.</p>
+          </div>
+          <div class="table-container quick-capture-table">
+            <table aria-label="Serienerfasste Längen">
+              <thead>
+                <tr><th>Nr.</th><th>Bezeichnung</th><th>Messwert</th><th>Einheit</th></tr>
+              </thead>
+              <tbody id="quickCaptureTableBody">
+                <tr><td colspan="4">Noch keine Schnellmessungen</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
         <section class="project-scene-panel" aria-labelledby="projectSceneHeading">
           <div class="section-head">
             <div>
@@ -770,6 +830,18 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   const sceneLegend = document.getElementById('sceneLegend');
   const sceneBadge = document.getElementById('sceneSelectionBadge');
   const cardCounter = document.getElementById('cardCounter');
+  const quickCapture = {
+    form: document.getElementById('quickCaptureForm'),
+    prefix: document.getElementById('quickCaptureNamePrefix'),
+    input: document.getElementById('laserCaptureInput'),
+    toggle: document.getElementById('toggleQuickCaptureButton'),
+    focus: document.getElementById('focusLaserCaptureButton'),
+    help: document.getElementById('quickCaptureHelp'),
+    badge: document.getElementById('quickCaptureStatusBadge'),
+    tableBody: document.getElementById('quickCaptureTableBody')
+  };
+  let quickCaptureEnabled = false;
+  let quickCaptureFocusTimer = null;
 
   function hexToRgb(hex) {
     const normalized = (hex || '#007aff').replace('#', '').trim();
@@ -869,6 +941,80 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
 
   function getAllMeasurements() {
     return Array.from(document.querySelectorAll('#measurementTable tbody tr')).map(getRowData);
+  }
+
+  function getQuickCaptureMeasurements() {
+    return getAllMeasurements().filter(item => item.form === 'Länge');
+  }
+
+  function getNextQuickCaptureName() {
+    const prefix = quickCapture.prefix.value.trim() || 'Länge';
+    const count = getQuickCaptureMeasurements().length + 1;
+    return `${prefix} ${count}`;
+  }
+
+  function focusQuickCaptureInput(force = false) {
+    if (!quickCaptureEnabled && !force) return;
+    clearTimeout(quickCaptureFocusTimer);
+    quickCaptureFocusTimer = setTimeout(() => {
+      if (document.hidden) return;
+      quickCapture.input.focus({ preventScroll: true });
+      quickCapture.input.select();
+    }, 20);
+  }
+
+  function updateQuickCaptureUI() {
+    const form = quickCapture.form.value;
+    const supported = form === 'Länge';
+    const lengths = getQuickCaptureMeasurements();
+    quickCapture.toggle.textContent = quickCaptureEnabled ? '🛑 Serienmodus beenden' : '📡 Serienmodus aktivieren';
+    quickCapture.badge.textContent = quickCaptureEnabled ? `Serienmodus aktiv • ${form}` : 'Serienmodus aus';
+    quickCapture.badge.classList.toggle('capture-active', quickCaptureEnabled);
+    quickCapture.badge.classList.toggle('capture-inactive', !quickCaptureEnabled);
+    quickCapture.input.disabled = !supported;
+    quickCapture.input.placeholder = supported ? 'Wert empfangen und Enter senden' : 'Serienmodus ist aktuell nur für Länge optimiert';
+    quickCapture.help.textContent = supported
+      ? 'Bei jeder Enter-Bestätigung wird automatisch ein neuer Längeneintrag erzeugt und das Eingabefeld neu fokussiert.'
+      : 'Andere Formen bleiben über den normalen Editor verfügbar. Serienerfassung ist derzeit bewusst auf Länge optimiert.';
+    if (!lengths.length) {
+      quickCapture.tableBody.innerHTML = '<tr><td colspan="4">Noch keine Schnellmessungen</td></tr>';
+      return;
+    }
+    quickCapture.tableBody.innerHTML = lengths.map((item, index) => `
+      <tr data-id="${item.id}">
+        <td>${index + 1}</td>
+        <td class="capture-name">${item.name || `Länge ${index + 1}`}</td>
+        <td class="capture-value">${fx(item.value)}</td>
+        <td>${item.unitSuffix}</td>
+      </tr>`).join('');
+  }
+
+  function addQuickCaptureMeasurement() {
+    const form = quickCapture.form.value;
+    if (form !== 'Länge') {
+      showMessage('Serienerfassung ist derzeit nur für Länge aktiv.', 'error');
+      return;
+    }
+    const normalizedValue = normalizeNumericValue(quickCapture.input.value);
+    if (!num(normalizedValue)) {
+      showMessage('Bitte zuerst einen Messwert empfangen oder eingeben.', 'error');
+      focusQuickCaptureInput(true);
+      return;
+    }
+    const nextName = getNextQuickCaptureName();
+    const row = window.createRow({}, true);
+    row.querySelector('[data-field="form"]').value = 'Länge';
+    row.querySelector('[data-field="name"]').value = nextName;
+    row.querySelector('[data-field="l"]').value = normalizedValue;
+    row.querySelector('[data-field="b"]').value = '';
+    row.querySelector('[data-field="h"]').value = '';
+    updateRowUI(row);
+    updateRow(row);
+    selectedMeasurementId = row.dataset.id;
+    quickCapture.input.value = '';
+    rerenderDashboard();
+    showMessage('Länge übernommen', 'success', 1800);
+    focusQuickCaptureInput();
   }
 
   function formatMeasurementValue(measurement) {
@@ -1178,6 +1324,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   function rerenderDashboard() {
     if (!selectedMeasurementId) selectedMeasurementId = document.querySelector('#measurementTable tbody tr')?.dataset.id || null;
     syncRowSelection();
+    updateQuickCaptureUI();
     renderCards();
     renderScene();
   }
@@ -1194,6 +1341,9 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
         projectName: document.getElementById('projectName').value,
         unit: UNIT,
         selectedMeasurementId,
+        quickCaptureEnabled,
+        quickCaptureForm: quickCapture.form.value,
+        quickCapturePrefix: quickCapture.prefix.value,
         measurements: getAllMeasurements().slice().reverse().map(({ id, color, form, name, l, b, h }) => ({ id, color, form, name, l, b, h }))
       };
       localStorage.setItem(LS_KEY, JSON.stringify(payload));
@@ -1252,11 +1402,28 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     syncEditorLabels(measurement.form || '');
     editor.overlay.classList.add('open');
     editor.overlay.setAttribute('aria-hidden', 'false');
+    setTimeout(() => {
+      const target = measurement.form
+        ? (editor.wrapL.style.display !== 'none' ? editor.l : editor.name)
+        : editor.form;
+      target.focus({ preventScroll: true });
+      if (target.select) target.select();
+    }, 40);
   }
 
   function closeEditor() {
     editor.overlay.classList.remove('open');
     editor.overlay.setAttribute('aria-hidden', 'true');
+    focusQuickCaptureInput();
+  }
+
+  function getEditorFieldOrder() {
+    return [editor.form, editor.l, editor.b, editor.h, editor.name].filter(field => {
+      if (field === editor.l) return editor.wrapL.style.display !== 'none';
+      if (field === editor.b) return editor.wrapB.style.display !== 'none';
+      if (field === editor.h) return editor.wrapH.style.display !== 'none';
+      return true;
+    });
   }
 
   function saveEditor() {
@@ -1366,6 +1533,9 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
       const rows = Array.from(document.querySelectorAll('#measurementTable tbody tr'));
       (stored.measurements || []).forEach((item, index) => rows[index] && ensureRowMeta(rows[index], item));
       selectedMeasurementId = stored.selectedMeasurementId || rows[0]?.dataset.id || null;
+      quickCaptureEnabled = !!stored.quickCaptureEnabled;
+      quickCapture.form.value = stored.quickCaptureForm || 'Länge';
+      quickCapture.prefix.value = stored.quickCapturePrefix || '';
     } catch (_) {
       selectedMeasurementId = document.querySelector('#measurementTable tbody tr')?.dataset.id || null;
     }
@@ -1378,9 +1548,45 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     const hit = sceneHitAreas.find(area => x >= area.x && x <= area.x + area.w && y >= area.y && y <= area.y + area.h);
     if (hit) selectMeasurement(hit.id);
   });
+  quickCapture.toggle.addEventListener('click', () => {
+    quickCaptureEnabled = !quickCaptureEnabled;
+    updateQuickCaptureUI();
+    window.saveToLocalStorage();
+    if (quickCaptureEnabled) {
+      showMessage('Serienmodus aktiv', 'success');
+      focusQuickCaptureInput(true);
+    } else {
+      showMessage('Serienmodus beendet', 'success');
+    }
+  });
+  quickCapture.focus.addEventListener('click', () => focusQuickCaptureInput(true));
+  quickCapture.form.addEventListener('change', () => {
+    updateQuickCaptureUI();
+    window.saveToLocalStorage();
+    if (quickCaptureEnabled) focusQuickCaptureInput(true);
+  });
+  quickCapture.prefix.addEventListener('input', () => window.saveToLocalStorage());
+  quickCapture.input.addEventListener('keydown', event => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    addQuickCaptureMeasurement();
+  });
   [editor.l, editor.b, editor.h].forEach(input => input.addEventListener('blur', () => {
     const normalized = normalizeNumericValue(input.value);
     if (normalized !== '') input.value = normalized;
+  }));
+  [editor.form, editor.l, editor.b, editor.h, editor.name].forEach(field => field.addEventListener('keydown', event => {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    const ordered = getEditorFieldOrder();
+    const index = ordered.indexOf(event.target);
+    const next = ordered[index + 1];
+    if (next) {
+      next.focus({ preventScroll: true });
+      if (next.select) next.select();
+      return;
+    }
+    saveEditor();
   }));
   editor.form.addEventListener('change', event => {
     const form = event.target.value;
@@ -1394,10 +1600,12 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   editor.overlay.addEventListener('click', event => event.target === editor.overlay && closeEditor());
   window.addEventListener('keydown', event => event.key === 'Escape' && editor.overlay.classList.contains('open') && closeEditor());
   window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => window.redrawAllVisualizations(), 150); });
+  window.addEventListener('focus', () => focusQuickCaptureInput());
 
   bindControls();
   restoreStoredMeta();
   window.redrawAllVisualizations();
+  if (quickCaptureEnabled) focusQuickCaptureInput(true);
 })();
 </script>
 </body>
