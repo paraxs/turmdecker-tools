@@ -419,15 +419,15 @@ html[data-theme="dark"] body.td-unified textarea {
               </div>
               <div class="sheet-field" id="editorFieldLWrap">
                 <span id="editorLabelL">Länge</span>
-                <input id="editorValueL" type="number" step="0.01" min="0" placeholder="0.00" aria-label="Wert L">
+                <input id="editorValueL" type="text" inputmode="decimal" placeholder="0.00" aria-label="Wert L">
               </div>
               <div class="sheet-field" id="editorFieldBWrap">
                 <span id="editorLabelB">Breite</span>
-                <input id="editorValueB" type="number" step="0.01" min="0" placeholder="0.00" aria-label="Wert B">
+                <input id="editorValueB" type="text" inputmode="decimal" placeholder="0.00" aria-label="Wert B">
               </div>
               <div class="sheet-field" id="editorFieldHWrap">
                 <span id="editorLabelH">Höhe</span>
-                <input id="editorValueH" type="number" step="0.01" min="0" placeholder="0.00" aria-label="Wert H">
+                <input id="editorValueH" type="text" inputmode="decimal" placeholder="0.00" aria-label="Wert H">
               </div>
             </div>
             <div class="sheet-actions">
@@ -451,7 +451,24 @@ const LS_KEY = 'laserApp18.5.2';
 
 // 2. Helper Functions
 const fx = v => Number(v).toFixed(2);
-const num = v => parseFloat(v) || 0;
+function normalizeNumericValue(value) {
+    if (value === null || value === undefined) return '';
+    const raw = String(value).trim();
+    if (!raw) return '';
+    const normalized = raw.replace(/\s+/g, '').replace(/,/g, '.');
+    const parsed = parseFloat(normalized);
+    return Number.isFinite(parsed) ? String(parseFloat(parsed.toPrecision(15))) : '';
+}
+const num = v => {
+    const normalized = normalizeNumericValue(v);
+    return normalized === '' ? 0 : parseFloat(normalized);
+};
+const getDimensionConfig = form => (formCfg[form] || '').replace(/R/g, 'L').replace(/-/g, '');
+function normalizeInputElementValue(input) {
+    if (!input) return;
+    const normalized = normalizeNumericValue(input.value);
+    if (normalized !== '') input.value = normalized;
+}
 function showMessage(message, type = 'success', duration = 3000) {
     const toast = $('#toast');
     toast.textContent = message;
@@ -481,7 +498,7 @@ function getUnitSuffix(form) {
 // 4. Row Management
 function createRow(data = {}, prepend = false) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td data-label="Länge / Radius" class="collapsible-cell"><input type="number" data-field="l" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Breite" class="collapsible-cell"><input type="number" data-field="b" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Höhe" class="collapsible-cell"><input type="number" data-field="h" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Form" class="collapsible-cell"><select data-field="form" class="formSelectInTable" disabled>${Object.keys(formCfg).map(f => `<option value="${f}"${f === (data.form || '') ? ' selected' : ''}>${f || 'Form wählen...'}</option>`).join('')}</select></td><td data-label="Bezeichnung" class="collapsible-cell"><input data-field="name" type="text" placeholder="Beschreibung..." readonly></td><td data-label="Ergebnis & Visualisierung" class="result-cell"><div class="collapsed-name-display"></div><div class="result-text">Werte eingeben...</div><canvas class="visualization-canvas"></canvas></td><td data-label="Aktionen" class="action-buttons"><button class="editButton" title="Bearbeiten / Speichern">✏️</button><button class="collapseButton" title="Einklappen / Ausklappen">⬇️</button><button class="deleteButton" title="Löschen">🗑️</button></td>`;
+    tr.innerHTML = `<td data-label="Länge / Radius" class="collapsible-cell"><input type="number" inputmode="decimal" data-field="l" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Breite" class="collapsible-cell"><input type="number" inputmode="decimal" data-field="b" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Höhe" class="collapsible-cell"><input type="number" inputmode="decimal" data-field="h" step="0.01" min="0" placeholder="0.00" readonly></td><td data-label="Form" class="collapsible-cell"><select data-field="form" class="formSelectInTable" disabled>${Object.keys(formCfg).map(f => `<option value="${f}"${f === (data.form || '') ? ' selected' : ''}>${f || 'Form wählen...'}</option>`).join('')}</select></td><td data-label="Bezeichnung" class="collapsible-cell"><input data-field="name" type="text" placeholder="Beschreibung..." readonly></td><td data-label="Ergebnis & Visualisierung" class="result-cell"><div class="collapsed-name-display"></div><div class="result-text">Werte eingeben...</div><canvas class="visualization-canvas"></canvas></td><td data-label="Aktionen" class="action-buttons"><button class="editButton" title="Bearbeiten / Speichern">✏️</button><button class="collapseButton" title="Einklappen / Ausklappen">⬇️</button><button class="deleteButton" title="Löschen">🗑️</button></td>`;
     if (prepend) { $('#measurementTable tbody').prepend(tr); } else { $('#measurementTable tbody').appendChild(tr); }
     if (data.l) tr.querySelector('[data-field="l"]').value = data.l;
     if (data.b) tr.querySelector('[data-field="b"]').value = data.b;
@@ -493,10 +510,13 @@ function createRow(data = {}, prepend = false) {
 }
 function updateRow(tr) {
     const form = tr.querySelector('[data-field="form"]').value;
+    normalizeInputElementValue(tr.querySelector('[data-field="l"]'));
+    normalizeInputElementValue(tr.querySelector('[data-field="b"]'));
+    normalizeInputElementValue(tr.querySelector('[data-field="h"]'));
     const l = num(tr.querySelector('[data-field="l"]').value), b = num(tr.querySelector('[data-field="b"]').value), h = num(tr.querySelector('[data-field="h"]').value);
     const name = tr.querySelector('[data-field="name"]').value;
     const resultText = tr.querySelector('.result-text');
-    const config = formCfg[form] || '';
+    const config = getDimensionConfig(form);
     tr.querySelector('[data-field="l"]').classList.toggle('invalid', !l && config.includes('L'));
     tr.querySelector('[data-field="b"]').classList.toggle('invalid', !b && config.includes('B'));
     tr.querySelector('[data-field="h"]').classList.toggle('invalid', !h && config.includes('H'));
@@ -509,7 +529,7 @@ function updateRow(tr) {
 }
 function updateRowUI(tr) {
     const form = tr.querySelector('[data-field="form"]').value;
-    const config = formCfg[form] || '';
+    const config = getDimensionConfig(form);
     const lInput = tr.querySelector('[data-field="l"]'), bInput = tr.querySelector('[data-field="b"]'), hInput = tr.querySelector('[data-field="h"]');
     const lCell = lInput.closest('td'), bCell = bInput.closest('td'), hCell = hInput.closest('td');
     const labels = labelCfg[form] || {};
@@ -582,7 +602,7 @@ function updateTotals() {
 $('#measurementTable').addEventListener('input', e => { if (e.target.matches('input, select')) { const tr = e.target.closest('tr'); if (tr) { clearTimeout(tr._updateTimeout); tr._updateTimeout = setTimeout(() => updateRow(tr), 300); } } });
 $('#measurementTable').addEventListener('click', e => { const button = e.target.closest('button'); if (!button) return; const tr = button.closest('tr'); if (!tr) return; if (button.classList.contains('deleteButton')) { if (confirm('Diese Messung wirklich löschen?')) { tr.remove(); updateTotals(); saveToLocalStorage(); showMessage('Messung gelöscht', 'success'); } } else if (button.classList.contains('collapseButton')) { tr.classList.toggle('collapsed'); button.innerHTML = tr.classList.contains('collapsed') ? '⬆️' : '⬇️'; } else if (button.classList.contains('editButton')) { const isReadonly = tr.querySelector('[data-field="l"]').hasAttribute('readonly'); tr.classList.toggle('editing', isReadonly); tr.querySelectorAll('input, select').forEach(input => { if (isReadonly) { input.removeAttribute('readonly'); input.removeAttribute('disabled'); } else { input.setAttribute('readonly', 'true'); if (input.tagName === 'SELECT') input.setAttribute('disabled', 'true'); } }); button.innerHTML = isReadonly ? '💾' : '✏️'; if (!isReadonly) { updateRow(tr); showMessage('Änderungen gespeichert', 'success'); } } });
 $('#addRowButton').addEventListener('click', () => { const newRow = createRow({}, true); newRow.querySelector('.editButton').click(); newRow.querySelector('[data-field="form"]').focus(); newRow.scrollIntoView({ behavior: 'smooth', block: 'center' }); showMessage('Neue Messung hinzugefügt', 'success');});
-$('#unitSelector').addEventListener('change', e => { const newUnit = e.target.value, oldUnit = UNIT; const factor = conv[newUnit] / conv[oldUnit]; $$('#measurementTable input[type="number"]').forEach(input => { if (input.value) { const preciseValue = num(input.value) * factor; input.value = parseFloat(preciseValue.toPrecision(15)); } }); UNIT = newUnit; $$('#measurementTable tbody tr').forEach(updateRow); showMessage(`Einheit auf ${newUnit.toUpperCase()} geändert`, 'success');});
+$('#unitSelector').addEventListener('change', e => { const newUnit = e.target.value, oldUnit = UNIT; const factor = conv[newUnit] / conv[oldUnit]; $$('#measurementTable [data-field="l"], #measurementTable [data-field="b"], #measurementTable [data-field="h"]').forEach(input => { if (input.value) { const preciseValue = num(input.value) * factor; input.value = parseFloat(preciseValue.toPrecision(15)); } }); UNIT = newUnit; $$('#measurementTable tbody tr').forEach(updateRow); showMessage(`Einheit auf ${newUnit.toUpperCase()} geändert`, 'success');});
 $('#clearDataButton').addEventListener('click', () => { if (confirm('Wirklich alle Daten löschen? Dies kann nicht rückgängig gemacht werden.')) { $('#measurementTable tbody').innerHTML = ''; updateTotals(); localStorage.removeItem(LS_KEY); $('#projectName').value = ''; showMessage('Alle Daten gelöscht', 'error');}});
 $('#collapseAllButton').addEventListener('click', () => { $$('#measurementTable tbody tr').forEach(tr => { tr.classList.add('collapsed'); tr.querySelector('.collapseButton').innerHTML = '⬆️'; });});
 $('#expandAllButton').addEventListener('click', () => { $$('#measurementTable tbody tr').forEach(tr => { tr.classList.remove('collapsed'); tr.querySelector('.collapseButton').innerHTML = '⬇️'; });});
@@ -1173,9 +1193,9 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     editor.form.value = measurement.form || '';
     editor.name.value = measurement.name || '';
     editor.color.value = measurement.color || nextColor();
-    editor.l.value = measurement.l || '';
-    editor.b.value = measurement.b || '';
-    editor.h.value = measurement.h || '';
+    editor.l.value = measurement.l ? normalizeNumericValue(measurement.l) : '';
+    editor.b.value = measurement.b ? normalizeNumericValue(measurement.b) : '';
+    editor.h.value = measurement.h ? normalizeNumericValue(measurement.h) : '';
     editor.deleteBtn.style.display = id ? '' : 'none';
     syncEditorLabels(measurement.form || '');
     editor.overlay.classList.add('open');
@@ -1191,19 +1211,25 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     const form = editor.form.value;
     const config = getDimensionConfig(form);
     const wasNew = editorState.isNew;
+    const normalizedL = config.includes('L') ? normalizeNumericValue(editor.l.value) : '';
+    const normalizedB = config.includes('B') ? normalizeNumericValue(editor.b.value) : '';
+    const normalizedH = config.includes('H') ? normalizeNumericValue(editor.h.value) : '';
     if (!form) return showMessage('Bitte zuerst eine Form wählen.', 'error');
-    if (config.includes('L') && !num(editor.l.value)) return showMessage(`Bitte ${editor.labelL.textContent} eingeben.`, 'error');
-    if (config.includes('B') && !num(editor.b.value)) return showMessage(`Bitte ${editor.labelB.textContent} eingeben.`, 'error');
-    if (config.includes('H') && !num(editor.h.value)) return showMessage(`Bitte ${editor.labelH.textContent} eingeben.`, 'error');
+    if (config.includes('L') && !num(normalizedL)) return showMessage(`Bitte ${editor.labelL.textContent} eingeben.`, 'error');
+    if (config.includes('B') && !num(normalizedB)) return showMessage(`Bitte ${editor.labelB.textContent} eingeben.`, 'error');
+    if (config.includes('H') && !num(normalizedH)) return showMessage(`Bitte ${editor.labelH.textContent} eingeben.`, 'error');
     let row = editorState.rowId ? document.querySelector(`#measurementTable tbody tr[data-id="${editorState.rowId}"]`) : null;
     if (!row) row = window.createRow({}, true);
     ensureRowMeta(row, { color: editor.color.value });
     row.dataset.color = editor.color.value;
     row.querySelector('[data-field="form"]').value = form;
     row.querySelector('[data-field="name"]').value = editor.name.value.trim();
-    row.querySelector('[data-field="l"]').value = editor.l.value;
-    row.querySelector('[data-field="b"]').value = editor.b.value;
-    row.querySelector('[data-field="h"]').value = editor.h.value;
+    editor.l.value = normalizedL;
+    editor.b.value = normalizedB;
+    editor.h.value = normalizedH;
+    row.querySelector('[data-field="l"]').value = normalizedL;
+    row.querySelector('[data-field="b"]').value = normalizedB;
+    row.querySelector('[data-field="h"]').value = normalizedH;
     updateRowUI(row);
     updateRow(row);
     editorState.rowId = row.dataset.id;
@@ -1241,7 +1267,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     cloneWithListeners('#unitSelector', select => select.addEventListener('change', event => {
       const newUnit = event.target.value;
       const factor = conv[newUnit] / conv[UNIT];
-      document.querySelectorAll('#measurementTable input[type="number"]').forEach(input => {
+      document.querySelectorAll('#measurementTable [data-field="l"], #measurementTable [data-field="b"], #measurementTable [data-field="h"]').forEach(input => {
         if (input.value) input.value = parseFloat((num(input.value) * factor).toPrecision(15));
       });
       UNIT = newUnit;
@@ -1300,6 +1326,10 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     const hit = sceneHitAreas.find(area => x >= area.x && x <= area.x + area.w && y >= area.y && y <= area.y + area.h);
     if (hit) selectMeasurement(hit.id);
   });
+  [editor.l, editor.b, editor.h].forEach(input => input.addEventListener('blur', () => {
+    const normalized = normalizeNumericValue(input.value);
+    if (normalized !== '') input.value = normalized;
+  }));
   editor.form.addEventListener('change', event => syncEditorLabels(event.target.value));
   document.getElementById('closeEditorButton').addEventListener('click', closeEditor);
   document.getElementById('cancelEditorButton').addEventListener('click', closeEditor);
