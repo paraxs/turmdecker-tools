@@ -22,8 +22,8 @@
       --bg-color: #000000; --content-bg-color: #1c1c1e; --text-color: #f2f2f7; --border-color: #3a3a3c; --input-bg-color: #2c2c2e; --readonly-bg-color: #2c2c2e; --shadow-color: rgba(255, 255, 255, 0.1);
     }
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.3s, color 0.3s; }
-    .container { max-width: 1400px; margin: 20px auto; padding: 20px; }
+    body { margin: 0; font-family: var(--font-family); background-color: var(--bg-color); color: var(--text-color); transition: background-color 0.3s, color 0.3s; --keyboard-offset: 0px; }
+    .container { max-width: 1400px; margin: 20px auto; padding: 20px 20px calc(20px + var(--keyboard-offset)); }
     h1 { text-align: center; margin: 0 0 24px; font-size: 2rem; font-weight: 600; }
     .controls { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; padding: 20px; background-color: var(--content-bg-color); border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); border: 1px solid var(--border-color); }
     .control-group label { font-weight: 500; color: var(--secondary-color); font-size: 14px; margin-bottom: 5px; }
@@ -50,6 +50,7 @@
     .quick-capture-grid select,
     #editorForm { min-height: 52px; font-size: 17px; }
     .quick-capture-input { border: 2px solid color-mix(in srgb, var(--primary-color) 40%, var(--border-color)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 10%, transparent); }
+    .quick-capture-input[readonly] { cursor: text; background: color-mix(in srgb, var(--content-bg-color) 92%, #eef6ff); }
     .quick-capture-status { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
     .quick-capture-help { margin: 0; color: var(--secondary-color); font-size: 13px; }
     .quick-capture-meta { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
@@ -73,6 +74,8 @@
     body.wdm-list-mode .project-scene-panel,
     body.wdm-list-mode .cards-panel,
     body.wdm-list-mode .desktop-table-panel { display: none; }
+    body.project-scene-visible .project-scene-panel { display: block; }
+    .project-scene-panel { display: none; }
     @keyframes quickCapturePulse {
       0% { box-shadow: 0 0 0 0 rgba(15, 118, 110, 0.42); transform: translateY(0); }
       40% { box-shadow: 0 0 0 8px rgba(15, 118, 110, 0.08); transform: translateY(-1px); }
@@ -147,9 +150,11 @@
     .sheet-field.full { grid-column: 1 / -1; }
     .sheet-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; }
     .sheet-actions button { min-width: 120px; }
+    .measurement-sheet input,
+    .measurement-sheet select { scroll-margin-block: 140px; }
     @media (max-width: 768px) {
       h1 { font-size: 1.6rem; }
-      .container { margin: 12px auto 24px; padding: 14px; }
+      .container { margin: 12px auto 24px; padding: 14px 14px calc(14px + var(--keyboard-offset)); }
       .controls { grid-template-columns: 1fr; }
       .quick-capture-panel,
       .project-scene-panel, .cards-panel, .desktop-table-panel { padding: 14px; margin-top: 18px; }
@@ -415,7 +420,7 @@ html[data-theme="dark"] body.td-unified textarea {
             </div>
             <div class="control-group">
               <label for="laserCaptureInput">Messwert vom Laser</label>
-              <input id="laserCaptureInput" class="quick-capture-input" type="text" inputmode="decimal" placeholder="Wert empfangen und Enter senden">
+              <input id="laserCaptureInput" class="quick-capture-input" type="text" inputmode="none" readonly placeholder="Wert vom WDM9-24 empfangen">
             </div>
             <button id="focusLaserCaptureButton" type="button" class="secondary-button">⌨️ Fokus halten</button>
             <button id="toggleQuickCaptureButton" type="button">📡 Serienmodus aktivieren</button>
@@ -428,6 +433,7 @@ html[data-theme="dark"] body.td-unified textarea {
               <div id="quickCaptureLastValueBadge" class="selection-badge">Letzter Messwert: -</div>
               <button id="toggleQuickCaptureToneButton" type="button" class="secondary-button quick-capture-toggle">🔔 Feedback an</button>
               <button id="toggleQuickListModeButton" type="button" class="secondary-button quick-capture-toggle">📋 Listenmodus aus</button>
+              <button id="toggleProjectSceneButton" type="button" class="secondary-button quick-capture-toggle">🗂 Projektansicht aus</button>
             </div>
             <div class="quick-capture-exports">
               <button id="quickCaptureCsvExportButton" type="button" class="secondary-button quick-capture-toggle">📄 Längenserie CSV</button>
@@ -872,6 +878,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     preview: document.getElementById('quickCapturePreviewBadge'),
     signal: document.getElementById('quickCaptureSignalBadge'),
     lastValue: document.getElementById('quickCaptureLastValueBadge'),
+    projectSceneToggle: document.getElementById('toggleProjectSceneButton'),
     tone: document.getElementById('toggleQuickCaptureToneButton'),
     listMode: document.getElementById('toggleQuickListModeButton'),
     exportCsv: document.getElementById('quickCaptureCsvExportButton'),
@@ -882,6 +889,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   let quickCaptureFocusTimer = null;
   let quickCaptureToneEnabled = true;
   let quickCaptureListMode = false;
+  let projectSceneVisible = false;
   let quickCaptureAudioContext = null;
   let quickCaptureLastValue = '';
 
@@ -1057,6 +1065,45 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     return event.key === 'Enter' || event.key === 'Backspace' || /^[0-9.,-]$/.test(event.key);
   }
 
+  function scrollElementIntoView(element) {
+    if (!element?.scrollIntoView) return;
+    requestAnimationFrame(() => {
+      try {
+        element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' });
+      } catch (_) {
+        element.scrollIntoView();
+      }
+    });
+  }
+
+  function updateKeyboardOffset() {
+    const viewport = window.visualViewport;
+    if (!viewport) {
+      document.body.style.setProperty('--keyboard-offset', '0px');
+      return;
+    }
+    const keyboardOffset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop));
+    document.body.style.setProperty('--keyboard-offset', `${keyboardOffset}px`);
+  }
+
+  function relayQuickCaptureKey(event) {
+    if (!isRelayCandidateKey(event)) return false;
+    if (event.key === 'Enter') {
+      addQuickCaptureMeasurement();
+      return true;
+    }
+    if (event.key === 'Backspace') {
+      quickCapture.input.value = quickCapture.input.value.slice(0, -1);
+      setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Eingabe erkannt');
+      focusQuickCaptureInput(true);
+      return true;
+    }
+    quickCapture.input.value += event.key;
+    setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Tastatursignal empfangen');
+    focusQuickCaptureInput(true);
+    return true;
+  }
+
   function downloadBlobFile(blob, fileName) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -1104,7 +1151,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     quickCaptureFocusTimer = setTimeout(() => {
       if (document.hidden) return;
       quickCapture.input.focus({ preventScroll: true });
-      quickCapture.input.select();
+      scrollElementIntoView(quickCapture.panel);
     }, 20);
   }
 
@@ -1113,11 +1160,13 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     const supported = form === 'Länge';
     const lengths = getOrderedQuickCaptureMeasurements();
     document.body.classList.toggle('wdm-list-mode', quickCaptureListMode);
+    document.body.classList.toggle('project-scene-visible', projectSceneVisible && !quickCaptureListMode);
     quickCapture.toggle.textContent = quickCaptureEnabled ? '🛑 Serienmodus beenden' : '📡 Serienmodus aktivieren';
     quickCapture.badge.textContent = quickCaptureEnabled ? `Serienmodus aktiv • ${form}` : 'Serienmodus aus';
     quickCapture.badge.classList.toggle('capture-active', quickCaptureEnabled);
     quickCapture.badge.classList.toggle('capture-inactive', !quickCaptureEnabled);
     quickCapture.preview.textContent = `Nächster Eintrag: ${getNextQuickCaptureName()}`;
+    quickCapture.projectSceneToggle.textContent = projectSceneVisible && !quickCaptureListMode ? '🗂 Projektansicht an' : '🗂 Projektansicht aus';
     quickCapture.tone.textContent = quickCaptureToneEnabled ? '🔔 Feedback an' : '🔕 Feedback aus';
     quickCapture.listMode.textContent = quickCaptureListMode ? '📋 Listenmodus an' : '📋 Listenmodus aus';
     quickCapture.input.disabled = !supported;
@@ -1503,6 +1552,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
         quickCapturePrefix: quickCapture.prefix.value,
         quickCaptureToneEnabled,
         quickCaptureListMode,
+        projectSceneVisible,
         measurements: getAllMeasurements().slice().reverse().map(({ id, color, form, name, l, b, h }) => ({ id, color, form, name, l, b, h }))
       };
       localStorage.setItem(LS_KEY, JSON.stringify(payload));
@@ -1697,6 +1747,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
       quickCapture.prefix.value = stored.quickCapturePrefix || '';
       quickCaptureToneEnabled = stored.quickCaptureToneEnabled !== false;
       quickCaptureListMode = !!stored.quickCaptureListMode;
+      projectSceneVisible = !!stored.projectSceneVisible;
     } catch (_) {
       selectedMeasurementId = document.querySelector('#measurementTable tbody tr')?.dataset.id || null;
     }
@@ -1740,14 +1791,14 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     updateQuickCaptureUI();
     window.saveToLocalStorage();
   });
-  quickCapture.input.addEventListener('keydown', event => {
-    if (event.key !== 'Enter') return;
-    event.preventDefault();
-    addQuickCaptureMeasurement();
+  quickCapture.projectSceneToggle.addEventListener('click', () => {
+    projectSceneVisible = !projectSceneVisible;
+    updateQuickCaptureUI();
+    window.saveToLocalStorage();
   });
-  quickCapture.input.addEventListener('input', () => {
-    if (!quickCaptureEnabled) return;
-    setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Eingabe erkannt');
+  quickCapture.input.addEventListener('keydown', event => {
+    event.preventDefault();
+    relayQuickCaptureKey(event);
   });
   quickCapture.exportCsv.addEventListener('click', exportQuickCaptureCsv);
   quickCapture.exportExcel.addEventListener('click', exportQuickCaptureExcel);
@@ -1781,30 +1832,26 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   document.addEventListener('keydown', event => {
     if (!isRelayCandidateKey(event)) return;
     const active = document.activeElement;
-    if (active === quickCapture.input) return;
     if (isEditableElement(active)) return;
     event.preventDefault();
-    if (event.key === 'Enter') {
-      addQuickCaptureMeasurement();
-      return;
-    }
-    if (event.key === 'Backspace') {
-      quickCapture.input.value = quickCapture.input.value.slice(0, -1);
-      setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Eingabe erkannt');
-      focusQuickCaptureInput(true);
-      return;
-    }
-    quickCapture.input.value += event.key;
-    setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Tastatursignal empfangen');
-    focusQuickCaptureInput(true);
+    relayQuickCaptureKey(event);
   });
   window.addEventListener('keydown', event => event.key === 'Escape' && editor.overlay.classList.contains('open') && closeEditor());
   window.addEventListener('resize', () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(() => window.redrawAllVisualizations(), 150); });
   window.addEventListener('focus', () => focusQuickCaptureInput());
-  document.addEventListener('focusin', () => updateQuickCaptureUI());
+  document.addEventListener('focusin', event => {
+    updateQuickCaptureUI();
+    const target = event.target;
+    if (target?.matches?.('input, select, textarea')) scrollElementIntoView(target);
+  });
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateKeyboardOffset);
+    window.visualViewport.addEventListener('scroll', updateKeyboardOffset);
+  }
 
   bindControls();
   restoreStoredMeta();
+  updateKeyboardOffset();
   window.redrawAllVisualizations();
   if (quickCaptureEnabled) focusQuickCaptureInput(true);
 })();
