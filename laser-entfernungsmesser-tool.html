@@ -42,30 +42,34 @@
     .section-head h2 { margin: 0 0 4px; font-size: 1.2rem; }
     .section-head p { margin: 0; color: var(--secondary-color); font-size: 14px; }
     .selection-badge { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; background: color-mix(in srgb, var(--primary-color) 12%, var(--content-bg-color)); color: var(--text-color); font-size: 14px; font-weight: 600; border: 1px solid color-mix(in srgb, var(--primary-color) 22%, var(--border-color)); white-space: nowrap; }
-    .quick-capture-panel { margin-top: 26px; padding: 18px; background: linear-gradient(180deg, color-mix(in srgb, var(--content-bg-color) 95%, #eef4ff) 0%, var(--content-bg-color) 100%); border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); }
+    .quick-capture-panel { --capture-accent: #0f766e; --capture-tint: #eef4ff; --capture-strong: rgba(15, 118, 110, 0.16); margin-top: 26px; padding: 18px; background: linear-gradient(180deg, color-mix(in srgb, var(--content-bg-color) 95%, var(--capture-tint)) 0%, var(--content-bg-color) 100%); border: 1px solid color-mix(in srgb, var(--capture-accent) 18%, var(--border-color)); border-radius: var(--border-radius); box-shadow: 0 4px 15px var(--shadow-color); }
+    .quick-capture-panel.mode-laser { --capture-accent: #0f766e; --capture-tint: #e8fbf4; --capture-strong: rgba(15, 118, 110, 0.16); }
+    .quick-capture-panel.mode-manual { --capture-accent: #b45309; --capture-tint: #fff4e5; --capture-strong: rgba(180, 83, 9, 0.16); }
     .quick-capture-grid { display: grid; grid-template-columns: 1.2fr 1fr 1.4fr auto auto; gap: 12px; align-items: end; }
     .quick-capture-grid .control-group { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
     .quick-capture-grid .control-group input,
     .quick-capture-grid .control-group select { width: 100%; }
     .quick-capture-grid select,
     #editorForm { min-height: 52px; font-size: 17px; }
-    .quick-capture-input { border: 2px solid color-mix(in srgb, var(--primary-color) 40%, var(--border-color)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary-color) 10%, transparent); }
-    .quick-capture-input[readonly] { cursor: text; background: color-mix(in srgb, var(--content-bg-color) 92%, #eef6ff); }
+    .quick-capture-input { border: 2px solid color-mix(in srgb, var(--capture-accent) 42%, var(--border-color)); box-shadow: 0 0 0 4px color-mix(in srgb, var(--capture-accent) 12%, transparent); }
+    .quick-capture-input[readonly] { cursor: text; background: color-mix(in srgb, var(--content-bg-color) 92%, var(--capture-tint)); }
     .quick-capture-status { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
-    .quick-capture-help { margin: 0; color: var(--secondary-color); font-size: 13px; }
+    .quick-capture-help { margin: 0; color: color-mix(in srgb, var(--capture-accent) 68%, var(--secondary-color)); font-size: 13px; }
     .quick-capture-meta { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .quick-capture-settings { margin-top: 14px; }
-    .quick-capture-settings details { border: 1px solid var(--border-color); border-radius: 14px; background: color-mix(in srgb, var(--content-bg-color) 94%, #eef4ff); overflow: hidden; }
+    .quick-capture-settings details { border: 1px solid color-mix(in srgb, var(--capture-accent) 18%, var(--border-color)); border-radius: 14px; background: color-mix(in srgb, var(--content-bg-color) 94%, var(--capture-tint)); overflow: hidden; }
     .quick-capture-settings summary { list-style: none; cursor: pointer; padding: 12px 14px; font-weight: 600; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .quick-capture-settings summary::-webkit-details-marker { display: none; }
     .quick-capture-settings summary::after { content: '▾'; color: var(--secondary-color); font-size: 14px; }
     .quick-capture-settings details[open] summary::after { content: '▴'; }
     .quick-capture-settings-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 0 14px 14px; }
     .quick-capture-settings-panel .control-group { display: flex; flex-direction: column; gap: 6px; }
+    .quick-capture-mode-chip { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; letter-spacing: 0.02em; background: color-mix(in srgb, var(--capture-accent) 10%, var(--content-bg-color)); color: var(--capture-accent); border: 1px solid color-mix(in srgb, var(--capture-accent) 26%, var(--border-color)); }
+    .quick-capture-mode-chip::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: var(--capture-accent); box-shadow: 0 0 0 4px color-mix(in srgb, var(--capture-accent) 16%, transparent); }
     .quick-capture-panel.flash,
     .quick-capture-input.flash { animation: quickCapturePulse 0.45s ease; }
     .quick-capture-toggle { min-width: 180px; }
-    .next-name-badge { background: color-mix(in srgb, #0f766e 10%, var(--content-bg-color)); border-color: color-mix(in srgb, #0f766e 24%, var(--border-color)); }
+    .next-name-badge { background: color-mix(in srgb, var(--capture-accent) 10%, var(--content-bg-color)); border-color: color-mix(in srgb, var(--capture-accent) 24%, var(--border-color)); color: var(--capture-accent); }
     .signal-ready { background: color-mix(in srgb, #0f766e 12%, var(--content-bg-color)); border-color: color-mix(in srgb, #0f766e 26%, var(--border-color)); color: #0f766e; }
     .signal-waiting { background: color-mix(in srgb, #b45309 10%, var(--content-bg-color)); border-color: color-mix(in srgb, #b45309 24%, var(--border-color)); color: #92400e; }
     .signal-off { color: var(--secondary-color); }
@@ -436,6 +440,7 @@ html[data-theme="dark"] body.td-unified textarea {
           <div class="quick-capture-status">
             <p id="quickCaptureHelp" class="quick-capture-help">Empfehlung: Serienmodus einschalten. Danach kann die Erfassung per WDM9-24 oder manuell per Tastatur erfolgen.</p>
             <div class="quick-capture-meta">
+              <div id="quickCaptureModeBadge" class="quick-capture-mode-chip">Laser-Modus</div>
               <div id="quickCapturePreviewBadge" class="selection-badge next-name-badge">Nächster Eintrag: Sparre 1</div>
               <div id="quickCaptureSignalBadge" class="selection-badge signal-off">Bluetooth-Status: nicht aktiv</div>
               <div id="quickCaptureLastValueBadge" class="selection-badge">Letzter Messwert: -</div>
@@ -912,6 +917,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     focus: document.getElementById('focusLaserCaptureButton'),
     help: document.getElementById('quickCaptureHelp'),
     badge: document.getElementById('quickCaptureStatusBadge'),
+    modeBadge: document.getElementById('quickCaptureModeBadge'),
     preview: document.getElementById('quickCapturePreviewBadge'),
     signal: document.getElementById('quickCaptureSignalBadge'),
     lastValue: document.getElementById('quickCaptureLastValueBadge'),
@@ -1259,13 +1265,17 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   function updateQuickCaptureUI() {
     const form = quickCapture.form.value;
     const supported = form === 'Länge';
+    const manual = quickCaptureInputMode === 'manual';
     const lengths = getOrderedQuickCaptureMeasurements();
     document.body.classList.toggle('wdm-list-mode', quickCaptureListMode);
     document.body.classList.toggle('project-scene-visible', projectSceneVisible && !quickCaptureListMode);
+    quickCapture.panel.classList.toggle('mode-manual', manual);
+    quickCapture.panel.classList.toggle('mode-laser', !manual);
     quickCapture.toggle.textContent = quickCaptureEnabled ? '🛑 Serienmodus beenden' : '📡 Serienmodus aktivieren';
     quickCapture.badge.textContent = quickCaptureEnabled ? `Serienmodus aktiv • ${form}` : 'Serienmodus aus';
     quickCapture.badge.classList.toggle('capture-active', quickCaptureEnabled);
     quickCapture.badge.classList.toggle('capture-inactive', !quickCaptureEnabled);
+    quickCapture.modeBadge.textContent = manual ? 'Manuell-Modus' : 'Laser-Modus';
     quickCapture.preview.textContent = `Nächster Eintrag: ${getNextQuickCaptureName()}`;
     quickCapture.projectSceneToggle.textContent = projectSceneVisible && !quickCaptureListMode ? '🗂 Projektansicht an' : '🗂 Projektansicht aus';
     quickCapture.focusLock.textContent = quickCaptureFocusLockEnabled ? '🎯 Fokus halten an' : '🎯 Fokus halten aus';
