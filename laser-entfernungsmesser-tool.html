@@ -54,6 +54,14 @@
     .quick-capture-status { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 14px; }
     .quick-capture-help { margin: 0; color: var(--secondary-color); font-size: 13px; }
     .quick-capture-meta { display: inline-flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .quick-capture-settings { margin-top: 14px; }
+    .quick-capture-settings details { border: 1px solid var(--border-color); border-radius: 14px; background: color-mix(in srgb, var(--content-bg-color) 94%, #eef4ff); overflow: hidden; }
+    .quick-capture-settings summary { list-style: none; cursor: pointer; padding: 12px 14px; font-weight: 600; color: var(--text-color); display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .quick-capture-settings summary::-webkit-details-marker { display: none; }
+    .quick-capture-settings summary::after { content: '▾'; color: var(--secondary-color); font-size: 14px; }
+    .quick-capture-settings details[open] summary::after { content: '▴'; }
+    .quick-capture-settings-panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; padding: 0 14px 14px; }
+    .quick-capture-settings-panel .control-group { display: flex; flex-direction: column; gap: 6px; }
     .quick-capture-panel.flash,
     .quick-capture-input.flash { animation: quickCapturePulse 0.45s ease; }
     .quick-capture-toggle { min-width: 180px; }
@@ -403,7 +411,7 @@ html[data-theme="dark"] body.td-unified textarea {
           <div class="section-head">
             <div>
               <h2 id="quickCaptureHeading">Laser-Schnellerfassung</h2>
-              <p>Für WDM9-24 und andere Bluetooth-Tastatur-Geräte. Im Modus <code>Länge</code> wird nach jedem Messwert automatisch ein neuer Eintrag angelegt.</p>
+              <p>Für WDM9-24, Bluetooth-Tastaturen und manuelle Eingabe. Im Modus <code>Länge</code> wird nach jedem Messwert automatisch ein neuer Eintrag angelegt.</p>
             </div>
             <div id="quickCaptureStatusBadge" class="selection-badge capture-inactive">Serienmodus aus</div>
           </div>
@@ -419,21 +427,36 @@ html[data-theme="dark"] body.td-unified textarea {
               <input id="quickCaptureNamePrefix" type="text" placeholder="z.B. Sparre">
             </div>
             <div class="control-group">
-              <label for="laserCaptureInput">Messwert vom Laser</label>
+              <label for="laserCaptureInput">Messwert</label>
               <input id="laserCaptureInput" class="quick-capture-input" type="text" inputmode="none" readonly placeholder="Wert vom WDM9-24 empfangen">
             </div>
             <button id="focusLaserCaptureButton" type="button" class="secondary-button">⌨️ Fokus halten</button>
             <button id="toggleQuickCaptureButton" type="button">📡 Serienmodus aktivieren</button>
           </div>
           <div class="quick-capture-status">
-            <p id="quickCaptureHelp" class="quick-capture-help">Empfehlung: Serienmodus einschalten, Laser koppeln, dann bleiben Fokus und Enter-Workflow auf dem Eingabefeld.</p>
+            <p id="quickCaptureHelp" class="quick-capture-help">Empfehlung: Serienmodus einschalten. Danach kann die Erfassung per WDM9-24 oder manuell per Tastatur erfolgen.</p>
             <div class="quick-capture-meta">
               <div id="quickCapturePreviewBadge" class="selection-badge next-name-badge">Nächster Eintrag: Sparre 1</div>
               <div id="quickCaptureSignalBadge" class="selection-badge signal-off">Bluetooth-Status: nicht aktiv</div>
               <div id="quickCaptureLastValueBadge" class="selection-badge">Letzter Messwert: -</div>
-              <button id="toggleQuickCaptureToneButton" type="button" class="secondary-button quick-capture-toggle">🔔 Ton + Vibration an</button>
-              <button id="toggleQuickListModeButton" type="button" class="secondary-button quick-capture-toggle">📋 Listenmodus aus</button>
-              <button id="toggleProjectSceneButton" type="button" class="secondary-button quick-capture-toggle">🗂 Projektansicht aus</button>
+            </div>
+            <div class="quick-capture-settings">
+              <details id="quickCaptureSettings">
+                <summary>⚙️ Einstellungen</summary>
+                <div class="quick-capture-settings-panel">
+                  <div class="control-group">
+                    <label for="quickCaptureInputMode">Eingabemodus</label>
+                    <select id="quickCaptureInputMode">
+                      <option value="laser" selected>Laser / Bluetooth</option>
+                      <option value="manual">Manuelle Tastatur</option>
+                    </select>
+                  </div>
+                  <button id="toggleQuickFocusLockButton" type="button" class="secondary-button quick-capture-toggle">🎯 Fokus halten an</button>
+                  <button id="toggleQuickCaptureToneButton" type="button" class="secondary-button quick-capture-toggle">🔔 Ton + Vibration an</button>
+                  <button id="toggleQuickListModeButton" type="button" class="secondary-button quick-capture-toggle">📋 Listenmodus aus</button>
+                  <button id="toggleProjectSceneButton" type="button" class="secondary-button quick-capture-toggle">🗂 Projektansicht aus</button>
+                </div>
+              </details>
             </div>
             <div class="quick-capture-exports">
               <button id="quickCaptureCsvExportButton" type="button" class="secondary-button quick-capture-toggle">📄 Nur Längenserie CSV</button>
@@ -880,7 +903,9 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   const quickCapture = {
     panel: document.querySelector('.quick-capture-panel'),
     tableWrap: document.querySelector('.quick-capture-table'),
+    settings: document.getElementById('quickCaptureSettings'),
     form: document.getElementById('quickCaptureForm'),
+    inputMode: document.getElementById('quickCaptureInputMode'),
     prefix: document.getElementById('quickCaptureNamePrefix'),
     input: document.getElementById('laserCaptureInput'),
     toggle: document.getElementById('toggleQuickCaptureButton'),
@@ -890,6 +915,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     preview: document.getElementById('quickCapturePreviewBadge'),
     signal: document.getElementById('quickCaptureSignalBadge'),
     lastValue: document.getElementById('quickCaptureLastValueBadge'),
+    focusLock: document.getElementById('toggleQuickFocusLockButton'),
     projectSceneToggle: document.getElementById('toggleProjectSceneButton'),
     tone: document.getElementById('toggleQuickCaptureToneButton'),
     listMode: document.getElementById('toggleQuickListModeButton'),
@@ -899,6 +925,8 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   };
   let quickCaptureEnabled = false;
   let quickCaptureFocusTimer = null;
+  let quickCaptureInputMode = 'laser';
+  let quickCaptureFocusLockEnabled = true;
   let quickCaptureToneEnabled = true;
   let quickCaptureHapticsEnabled = true;
   let quickCaptureListMode = false;
@@ -1132,6 +1160,30 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     document.body.style.setProperty('--keyboard-offset', `${keyboardOffset}px`);
   }
 
+  function syncQuickCaptureInputMode(supported) {
+    const manual = quickCaptureInputMode === 'manual';
+    quickCapture.input.readOnly = !manual;
+    if (!manual) quickCapture.input.setAttribute('readonly', 'true');
+    else quickCapture.input.removeAttribute('readonly');
+    quickCapture.input.inputMode = manual ? 'decimal' : 'none';
+    quickCapture.input.autocomplete = 'off';
+    quickCapture.input.autocapitalize = 'off';
+    quickCapture.input.spellcheck = false;
+    quickCapture.input.disabled = !supported;
+  }
+
+  function shouldKeepQuickCaptureFocus() {
+    if (!quickCaptureEnabled || !quickCaptureFocusLockEnabled) return false;
+    if (editor.overlay.classList.contains('open')) return false;
+    const active = document.activeElement;
+    if (!active || active === document.body || active === document.documentElement) return true;
+    if (active === quickCapture.input) return false;
+    if (quickCapture.settings?.contains(active)) return false;
+    if (quickCapture.panel.contains(active)) return false;
+    if (active.matches?.('button, a, input, select, textarea, summary')) return false;
+    return true;
+  }
+
   function relayQuickCaptureKey(event) {
     if (!isRelayCandidateKey(event)) return false;
     if (Date.now() < quickCaptureInputLockUntil) {
@@ -1201,7 +1253,6 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     quickCaptureFocusTimer = setTimeout(() => {
       if (document.hidden) return;
       quickCapture.input.focus({ preventScroll: true });
-      scrollElementIntoView(quickCapture.panel);
     }, 20);
   }
 
@@ -1217,17 +1268,31 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     quickCapture.badge.classList.toggle('capture-inactive', !quickCaptureEnabled);
     quickCapture.preview.textContent = `Nächster Eintrag: ${getNextQuickCaptureName()}`;
     quickCapture.projectSceneToggle.textContent = projectSceneVisible && !quickCaptureListMode ? '🗂 Projektansicht an' : '🗂 Projektansicht aus';
+    quickCapture.focusLock.textContent = quickCaptureFocusLockEnabled ? '🎯 Fokus halten an' : '🎯 Fokus halten aus';
     quickCapture.tone.textContent = quickCaptureToneEnabled || quickCaptureHapticsEnabled ? '🔔 Ton + Vibration an' : '🔕 Ton + Vibration aus';
     quickCapture.listMode.textContent = quickCaptureListMode ? '📋 Listenmodus an' : '📋 Listenmodus aus';
-    quickCapture.input.disabled = !supported;
-    quickCapture.input.placeholder = supported ? 'Wert vom WDM9-24 empfangen' : 'Serienmodus ist aktuell nur für Länge optimiert';
+    quickCapture.inputMode.value = quickCaptureInputMode;
+    syncQuickCaptureInputMode(supported);
+    quickCapture.input.placeholder = supported
+      ? quickCaptureInputMode === 'manual'
+        ? 'Wert manuell eintippen und Enter drücken'
+        : 'Wert vom WDM9-24 empfangen'
+      : 'Serienmodus ist aktuell nur für Länge optimiert';
     setQuickCaptureSignal(
       !quickCaptureEnabled ? 'signal-off' : document.activeElement === quickCapture.input ? 'signal-ready' : 'signal-waiting',
-      !quickCaptureEnabled ? 'Bluetooth-Status: nicht aktiv' : document.activeElement === quickCapture.input ? 'Bluetooth-Status: bereit für Eingaben' : 'Bluetooth-Status: Relay aktiv, Fokus wird gehalten'
+      !quickCaptureEnabled
+        ? 'Bluetooth-Status: nicht aktiv'
+        : document.activeElement === quickCapture.input
+          ? quickCaptureInputMode === 'manual'
+            ? 'Bluetooth-Status: bereit für Tastatureingabe'
+            : 'Bluetooth-Status: bereit für Laser-Eingaben'
+          : 'Bluetooth-Status: Relay aktiv, Fokus wird gehalten'
     );
     updateQuickCaptureLastValue();
     quickCapture.help.textContent = supported
-      ? 'Bei jeder Enter-Bestätigung wird automatisch ein neuer Längeneintrag erzeugt, die Liste springt zur neuesten Zeile und das Eingabefeld bleibt bereit.'
+      ? quickCaptureInputMode === 'manual'
+        ? 'Manuelle Tastatur aktiv: Wert eintippen, Enter drücken, neuer Eintrag wird sofort erzeugt.'
+        : 'Laser/Bluetooth aktiv: Nach jedem Messwert wird automatisch ein neuer Längeneintrag erzeugt und das Eingabefeld bleibt bereit.'
       : 'Andere Formen bleiben über den normalen Editor verfügbar. Serienerfassung ist derzeit bewusst auf Länge optimiert.';
     if (!lengths.length) {
       quickCapture.tableBody.innerHTML = '<tr><td colspan="4">Noch keine Schnellmessungen</td></tr>';
@@ -1245,6 +1310,10 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   function addQuickCaptureMeasurement() {
     const form = quickCapture.form.value;
     const now = Date.now();
+    if (!quickCaptureEnabled) {
+      showMessage('Bitte zuerst den Serienmodus aktivieren.', 'error');
+      return;
+    }
     if (form !== 'Länge') {
       showMessage('Serienerfassung ist derzeit nur für Länge aktiv.', 'error');
       return;
@@ -1619,6 +1688,8 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
         quickCaptureEnabled,
         quickCaptureForm: quickCapture.form.value,
         quickCapturePrefix: quickCapture.prefix.value,
+        quickCaptureInputMode,
+        quickCaptureFocusLockEnabled,
         quickCaptureToneEnabled,
         quickCaptureHapticsEnabled,
         quickCaptureListMode,
@@ -1819,6 +1890,8 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
       quickCaptureEnabled = !!stored.quickCaptureEnabled;
       quickCapture.form.value = stored.quickCaptureForm || 'Länge';
       quickCapture.prefix.value = stored.quickCapturePrefix || '';
+      quickCaptureInputMode = stored.quickCaptureInputMode || 'laser';
+      quickCaptureFocusLockEnabled = stored.quickCaptureFocusLockEnabled !== false;
       quickCaptureToneEnabled = stored.quickCaptureToneEnabled !== false;
       quickCaptureHapticsEnabled = stored.quickCaptureHapticsEnabled !== false;
       quickCaptureListMode = !!stored.quickCaptureListMode;
@@ -1853,9 +1926,21 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     window.saveToLocalStorage();
     if (quickCaptureEnabled) focusQuickCaptureInput(true);
   });
+  quickCapture.inputMode.addEventListener('change', () => {
+    quickCaptureInputMode = quickCapture.inputMode.value;
+    updateQuickCaptureUI();
+    window.saveToLocalStorage();
+    if (quickCaptureEnabled) focusQuickCaptureInput(true);
+  });
   quickCapture.prefix.addEventListener('input', () => {
     updateQuickCaptureUI();
     window.saveToLocalStorage();
+  });
+  quickCapture.focusLock.addEventListener('click', () => {
+    quickCaptureFocusLockEnabled = !quickCaptureFocusLockEnabled;
+    updateQuickCaptureUI();
+    window.saveToLocalStorage();
+    if (quickCaptureEnabled && quickCaptureFocusLockEnabled) focusQuickCaptureInput(true);
   });
   quickCapture.tone.addEventListener('click', () => {
     quickCaptureToneEnabled = !quickCaptureToneEnabled;
@@ -1874,8 +1959,25 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
     window.saveToLocalStorage();
   });
   quickCapture.input.addEventListener('keydown', event => {
-    event.preventDefault();
-    relayQuickCaptureKey(event);
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      addQuickCaptureMeasurement();
+      return;
+    }
+    if (quickCaptureInputMode === 'laser') {
+      event.preventDefault();
+      relayQuickCaptureKey(event);
+    }
+  });
+  quickCapture.input.addEventListener('input', () => {
+    if (!quickCaptureEnabled || quickCaptureInputMode !== 'manual') return;
+    setQuickCaptureSignal('signal-ready', 'Bluetooth-Status: Tastatureingabe erkannt');
+  });
+  quickCapture.input.addEventListener('focusout', event => {
+    const nextTarget = event.relatedTarget;
+    if (nextTarget?.matches?.('button, a, input, select, textarea, summary')) return;
+    if (!shouldKeepQuickCaptureFocus()) return;
+    focusQuickCaptureInput(true);
   });
   quickCapture.exportCsv.addEventListener('click', exportQuickCaptureCsv);
   quickCapture.exportExcel.addEventListener('click', exportQuickCaptureExcel);
@@ -1919,7 +2021,7 @@ document.addEventListener('DOMContentLoaded', () => { loadFromLocalStorage(); co
   document.addEventListener('focusin', event => {
     updateQuickCaptureUI();
     const target = event.target;
-    if (target?.matches?.('input, select, textarea')) scrollElementIntoView(target);
+    if (target?.closest?.('.measurement-sheet')) scrollElementIntoView(target);
   });
   if (window.visualViewport) {
     window.visualViewport.addEventListener('resize', updateKeyboardOffset);
