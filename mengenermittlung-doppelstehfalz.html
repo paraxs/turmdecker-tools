@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Dach-Einteilung Doppelstehfalz | Turmdecker Tools</title>
   <meta name="description" content="Lokales Profi-Tool für Dach-Einteilung bei Doppelstehfalz: Scharen, Passscharen, Falzluft, Materialbedarf, Hafte, Falzgel, Norm- und Plausibilitätsprüfung." />
+  <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <link rel="icon" type="image/png" sizes="512x512" href="./android-chrome-512x512.png" />
   <link rel="canonical" href="https://tools.turmdecker.com/mengenermittlung-doppelstehfalz.html" />
   <meta property="og:type" content="website" />
   <meta property="og:site_name" content="Turmdecker – Kofler e.U." />
@@ -79,6 +81,58 @@
     .bg-orb span:nth-child(2) { right: -17vmax; top: 12vmax; background: var(--accent); }
     .bg-orb span:nth-child(3) { left: 38%; bottom: -26vmax; background: var(--green); opacity: .10; }
 
+    .tool-topbar {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 16px clamp(14px,3vw,36px) 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tool-brand,
+    .tool-back {
+      color: var(--text);
+      text-decoration: none;
+      font-weight: 800;
+    }
+
+    .tool-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .tool-brand img {
+      width: 38px;
+      height: 38px;
+      flex: 0 0 38px;
+    }
+
+    .tool-brand span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .tool-back {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 9px 13px;
+      background: rgba(255,255,255,.08);
+      white-space: nowrap;
+      transition: background .2s ease, border-color .2s ease;
+    }
+
+    .tool-back:hover,
+    .tool-back:focus-visible {
+      background: rgba(255,255,255,.15);
+      border-color: rgba(255,255,255,.28);
+      outline: none;
+    }
+
     header {
       max-width: 1480px;
       margin: 0 auto;
@@ -120,6 +174,13 @@
 
     @media (max-width: 1080px) {
       main { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 640px) {
+      .tool-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
     }
 
     .panel {
@@ -471,6 +532,7 @@
       }
 
       .bg-orb,
+      .tool-topbar,
       header,
       .controls,
       .toolbar,
@@ -605,6 +667,14 @@
 </head>
 <body>
   <div class="bg-orb" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <nav class="tool-topbar" aria-label="Tool-Navigation">
+    <a class="tool-brand" href="./index.html">
+      <img src="./favicon.svg" alt="" loading="eager" decoding="async" />
+      <span>Turmdecker Tools</span>
+    </a>
+    <a class="tool-back" href="./index.html">Zur Toolübersicht</a>
+  </nav>
 
   <header>
     <section class="hero">
