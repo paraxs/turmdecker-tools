@@ -1,0 +1,1629 @@
+<!doctype html>
+<html lang="de-AT">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Dach-Einteilung Doppelstehfalz | Turmdecker Tools</title>
+  <meta name="description" content="Lokales Profi-Tool für Dach-Einteilung bei Doppelstehfalz: Scharen, Passscharen, Falzluft, Materialbedarf, Hafte, Falzgel, Norm- und Plausibilitätsprüfung." />
+  <link rel="canonical" href="https://tools.turmdecker.com/mengenermittlung-doppelstehfalz.html" />
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Turmdecker – Kofler e.U." />
+  <meta property="og:title" content="Dach-Einteilung Doppelstehfalz | Turmdecker Tools" />
+  <meta property="og:description" content="Profi-Tool für Doppelstehfalz-Dächer: Scharen, Passscharen, Falzluft, Materialbedarf, Hafte und Falzgel." />
+  <meta property="og:url" content="https://tools.turmdecker.com/mengenermittlung-doppelstehfalz.html" />
+  <meta property="og:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Dach-Einteilung Doppelstehfalz | Turmdecker Tools" />
+  <meta name="twitter:description" content="Scharen, Passscharen, Falzluft, Materialbedarf, Hafte und Falzgel für Doppelstehfalz-Dächer berechnen." />
+  <meta name="twitter:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <style>
+    :root {
+      --bg: #0b1017;
+      --panel: rgba(17,24,39,.95);
+      --panel-2: rgba(30,41,59,.88);
+      --line: rgba(255,255,255,.16);
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --dim: #94a3b8;
+      --paper: #f8fafc;
+      --ink: #0f172a;
+      --accent: #f59e0b;
+      --blue: #0ea5e9;
+      --green: #22c55e;
+      --warn: #facc15;
+      --danger: #fb7185;
+      --violet: #a78bfa;
+      --good-bg: rgba(34,197,94,.16);
+      --warn-bg: rgba(250,204,21,.16);
+      --danger-bg: rgba(251,113,133,.18);
+      --info-bg: rgba(14,165,233,.16);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      font-family: Arial, Helvetica, system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 7% 4%, rgba(14,165,233,.24), transparent 28rem),
+        radial-gradient(circle at 92% 10%, rgba(245,158,11,.20), transparent 32rem),
+        radial-gradient(circle at 50% 105%, rgba(34,197,94,.12), transparent 32rem),
+        linear-gradient(135deg, #070a10 0%, #111827 58%, #070a10 100%);
+    }
+
+    button, input, select { font: inherit; }
+
+    .bg-orb {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .bg-orb span {
+      position: absolute;
+      width: 42vmax;
+      height: 42vmax;
+      border-radius: 50%;
+      filter: blur(72px);
+      opacity: .17;
+    }
+
+    .bg-orb span:nth-child(1) { left: -13vmax; top: -15vmax; background: var(--blue); }
+    .bg-orb span:nth-child(2) { right: -17vmax; top: 12vmax; background: var(--accent); }
+    .bg-orb span:nth-child(3) { left: 38%; bottom: -26vmax; background: var(--green); opacity: .10; }
+
+    header {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 24px clamp(14px,3vw,36px) 12px;
+    }
+
+    .hero {
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      padding: clamp(20px,4vw,38px);
+      background: linear-gradient(135deg, rgba(255,255,255,.13), rgba(255,255,255,.045));
+      box-shadow: 0 26px 90px rgba(0,0,0,.34);
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 4.8vw, 4.4rem);
+      line-height: 1.02;
+      letter-spacing: -.045em;
+    }
+
+    .subtitle {
+      max-width: 1060px;
+      margin: 14px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: clamp(.98rem,2vw,1.15rem);
+    }
+
+    main {
+      max-width: 1480px;
+      margin: 0 auto;
+      padding: 12px clamp(14px,3vw,36px) 56px;
+      display: grid;
+      grid-template-columns: minmax(320px, 440px) minmax(0,1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    @media (max-width: 1080px) {
+      main { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: 0 24px 80px rgba(0,0,0,.33);
+    }
+
+    .controls {
+      position: sticky;
+      top: 12px;
+      padding: 18px;
+    }
+
+    @media (max-width: 1080px) {
+      .controls { position: relative; top: 0; }
+    }
+
+    .head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+
+    .head h2,
+    .toolbar h2,
+    .block-title {
+      margin: 0;
+      font-size: 1.05rem;
+      letter-spacing: -.01em;
+    }
+
+    .badge {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: var(--accent);
+      color: #1f1300;
+      font-size: .75rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    details.input-group {
+      border: 1px solid rgba(255,255,255,.13);
+      border-radius: 18px;
+      background: rgba(255,255,255,.045);
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    details.input-group[open] {
+      background: rgba(255,255,255,.06);
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: 900;
+      color: #f8fafc;
+      list-style-position: outside;
+      padding: 2px 0;
+    }
+
+    .grid { display: grid; gap: 12px; margin-top: 12px; }
+    .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    @media (max-width: 440px) {
+      .cols { grid-template-columns: 1fr; }
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--muted);
+      font-size: .84rem;
+      font-weight: 850;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid rgba(255,255,255,.18);
+      border-radius: 15px;
+      background: rgba(255,255,255,.085);
+      color: var(--text);
+      padding: 12px 13px;
+      outline: none;
+      min-height: 46px;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(14,165,233,.18);
+    }
+
+    select option { background: #111827; color: #fff; }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: .86rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+
+    .check-row input {
+      width: auto;
+      min-height: 0;
+      transform: scale(1.1);
+      accent-color: var(--accent);
+    }
+
+    .quick-buttons,
+    .button-row {
+      display: grid;
+      grid-template-columns: repeat(3,1fr);
+      gap: 8px;
+    }
+
+    .button-row {
+      grid-template-columns: 1fr 1fr;
+      margin-top: 14px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 15px;
+      padding: 12px 10px;
+      cursor: pointer;
+      font-weight: 950;
+      color: #171204;
+      background: var(--accent);
+    }
+
+    button.secondary {
+      background: rgba(255,255,255,.12);
+      color: var(--text);
+      border: 1px solid rgba(255,255,255,.18);
+    }
+
+    button.mini {
+      padding: 10px 8px;
+      font-size: .83rem;
+    }
+
+    .hint {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 16px;
+      color: var(--muted);
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.10);
+      font-size: .86rem;
+      line-height: 1.45;
+    }
+
+    .hint strong { color: var(--text); }
+
+    .visual {
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.13);
+      color: var(--muted);
+      font-size: .80rem;
+      font-weight: 950;
+    }
+
+    .pill.ok { background: var(--green); color: #03170d; border-color: transparent; }
+    .pill.warn { background: var(--warn); color: #171204; border-color: transparent; }
+    .pill.danger { background: var(--danger); color: #240007; border-color: transparent; }
+
+    .drawing-wrap {
+      background: var(--paper);
+      border-radius: 22px;
+      padding: 12px;
+      overflow: auto;
+      box-shadow: inset 0 0 0 1px rgba(15,23,42,.12);
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      min-width: 1100px;
+      height: auto;
+      font-family: Arial, Helvetica, sans-serif;
+      text-rendering: geometricPrecision;
+      shape-rendering: geometricPrecision;
+    }
+
+    .result-grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    @media (max-width: 980px) {
+      .result-grid { grid-template-columns: repeat(2,1fr); }
+    }
+
+    @media (max-width: 560px) {
+      .result-grid { grid-template-columns: 1fr; }
+    }
+
+    .result {
+      padding: 14px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.065);
+      border: 1px solid rgba(255,255,255,.12);
+      min-width: 0;
+    }
+
+    .result small {
+      display: block;
+      margin-bottom: 6px;
+      color: var(--muted);
+      font-weight: 900;
+      font-size: .78rem;
+    }
+
+    .result strong {
+      display: block;
+      font-size: clamp(1.08rem,2.2vw,1.36rem);
+      line-height: 1.14;
+      overflow-wrap: anywhere;
+    }
+
+    .blocks {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 16px;
+    }
+
+    @media (max-width: 980px) {
+      .blocks { grid-template-columns: 1fr; }
+    }
+
+    .normbox,
+    .tablebox {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+    }
+
+    .normbox.full,
+    .tablebox.full {
+      grid-column: 1 / -1;
+    }
+
+    .norm-list {
+      display: grid;
+      gap: 9px;
+      color: var(--muted);
+      font-size: .91rem;
+      line-height: 1.45;
+      margin-top: 10px;
+    }
+
+    .norm-item {
+      padding: 10px 11px;
+      border-radius: 12px;
+      border-left: 5px solid var(--blue);
+      background: var(--info-bg);
+    }
+
+    .norm-item.ok { border-left-color: var(--green); background: var(--good-bg); }
+    .norm-item.warn { border-left-color: var(--warn); background: var(--warn-bg); }
+    .norm-item.danger { border-left-color: var(--danger); background: var(--danger-bg); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: .90rem;
+      color: var(--muted);
+    }
+
+    th,
+    td {
+      border: 1px solid rgba(255,255,255,.14);
+      padding: 8px 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: #f8fafc;
+      background: rgba(255,255,255,.07);
+      font-size: .78rem;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .num { text-align: right; white-space: nowrap; }
+
+    .footer-note {
+      color: var(--dim);
+      margin: 14px 0 0;
+      font-size: .80rem;
+      line-height: 1.45;
+    }
+
+    .print-title { display: none; }
+
+    @page {
+      size: A4 landscape;
+      margin: 8mm;
+    }
+
+    @media print {
+      html, body {
+        width: 297mm;
+        min-height: 210mm;
+        background: #fff !important;
+        color: #000 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      .bg-orb,
+      header,
+      .controls,
+      .toolbar,
+      .button-row,
+      .hint {
+        display: none !important;
+      }
+
+      main {
+        display: block;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+      }
+
+      .panel,
+      .visual {
+        background: #fff !important;
+        border: 0 !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        overflow: visible !important;
+      }
+
+      .print-title {
+        display: block;
+        color: #111827;
+        font-size: 14pt;
+        font-weight: 950;
+        margin: 0 0 4mm;
+      }
+
+      .drawing-wrap {
+        padding: 0;
+        border-radius: 0;
+        box-shadow: none;
+        overflow: visible;
+        background: #fff !important;
+      }
+
+      svg {
+        width: 100%;
+        min-width: 0 !important;
+        max-height: 118mm;
+      }
+
+      .result-grid {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 3mm;
+        margin-top: 4mm;
+        page-break-inside: avoid;
+      }
+
+      .result {
+        background: #fff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 3mm;
+        padding: 2.6mm;
+        color: #0f172a !important;
+      }
+
+      .result small {
+        color: #475569 !important;
+        font-size: 7.8pt;
+      }
+
+      .result strong {
+        color: #000 !important;
+        font-size: 12.5pt;
+      }
+
+      .blocks {
+        grid-template-columns: 1fr 1fr;
+        gap: 4mm;
+        margin-top: 4mm;
+      }
+
+      .normbox,
+      .tablebox {
+        background: #fff !important;
+        border: 1px solid #cbd5e1 !important;
+        border-radius: 3mm;
+        padding: 3mm;
+        color: #0f172a !important;
+        page-break-inside: avoid;
+      }
+
+      .normbox.full,
+      .tablebox.full {
+        grid-column: auto;
+      }
+
+      .block-title {
+        color: #0f172a !important;
+        font-size: 10.5pt;
+      }
+
+      .norm-list {
+        color: #1f2937 !important;
+        font-size: 7.8pt;
+        gap: 1.8mm;
+      }
+
+      .norm-item {
+        background: #fff !important;
+        border-radius: 0;
+        padding: 0 0 0 2mm;
+        border-left-width: 2.5px;
+      }
+
+      table {
+        color: #111827 !important;
+        font-size: 7.4pt;
+      }
+
+      th, td {
+        border-color: #d1d5db !important;
+        padding: 1.4mm;
+      }
+
+      th {
+        color: #111827 !important;
+        background: #eef2f7 !important;
+      }
+
+      .footer-note {
+        color: #4b5563 !important;
+        font-size: 7.2pt;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-orb" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <header>
+    <section class="hero">
+      <h1>Dach-Einteilung Doppelstehfalz</h1>
+      <p class="subtitle">
+        Profi-Version für Scharenaufteilung, Passscharen, echte Falzluft, Materialbedarf,
+        Hafte, Befestigungsmittel, Falzgel und Plausibilitätsprüfung nach hinterlegten Fachregeln.
+        Das Tool bleibt lokal im Browser und speichert nichts extern.
+      </p>
+    </section>
+  </header>
+
+  <main>
+    <aside class="panel controls">
+      <div class="head">
+        <h2>Eingaben</h2>
+        <span class="badge">Profi v2</span>
+      </div>
+
+      <details class="input-group" open>
+        <summary>1. Dachfläche und Einteilung</summary>
+        <div class="grid">
+          <div class="cols">
+            <label>Dachbreite / Traufe in m
+              <input id="roofWidthM" type="number" min="0.1" step="0.01" value="13.00" />
+            </label>
+            <label>Scharenlänge in m
+              <input id="roofLengthM" type="number" min="0.1" step="0.01" value="10.50" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Dachneigung in °
+              <input id="pitchDeg" type="number" min="0" max="90" step="0.1" value="6" />
+            </label>
+            <label>Einteilung
+              <select id="mode">
+                <option value="sym" selected>Symmetrische Passscharen links/rechts</option>
+                <option value="max">Maximal viele Standardscharen, Rest prüfen</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Coilbreite in mm
+              <input id="coilWidth" type="number" min="100" step="1" value="670" />
+            </label>
+            <label>Standard-Achsmaß in mm
+              <input id="axisWidth" type="number" min="80" step="1" value="590" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Falzverlust / Profilzugabe in mm
+              <input id="profileAllowance" type="number" min="0" step="1" value="80" />
+            </label>
+            <label>Mindest-Passschar sichtbar in mm
+              <input id="minPassVisible" type="number" min="0" step="1" value="180" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Falzluft zwischen Scharen in mm
+              <input id="jointGap" type="number" min="0" step="0.1" value="2" />
+            </label>
+            <label>Schnittfuge bei Passschar-Teilung in mm
+              <input id="cutGap" type="number" min="0" step="0.1" value="3" />
+            </label>
+          </div>
+
+          <div class="quick-buttons">
+            <button class="secondary mini" type="button" data-gap="1">Sommer 1 mm</button>
+            <button class="secondary mini" type="button" data-gap="2">Standard 2 mm</button>
+            <button class="secondary mini" type="button" data-gap="3">Kalt 3 mm</button>
+          </div>
+
+          <button id="syncProfileBtn" class="secondary" type="button">Falzverlust = Coil − Achsmaß</button>
+        </div>
+      </details>
+
+      <details class="input-group" open>
+        <summary>2. Material und Normprüfung</summary>
+        <div class="grid">
+          <div class="cols">
+            <label>Material
+              <select id="material">
+                <option value="steel">Stahl verzinkt / beschichtet</option>
+                <option value="zinc">Titanzink / Zinkblech</option>
+                <option value="copper">Kupferblech</option>
+                <option value="alu">Aluminiumblech / PREFALZ</option>
+                <option value="stainless">Edelstahl</option>
+              </select>
+            </label>
+            <label>Blechdicke in mm
+              <input id="sheetThickness" type="number" min="0.1" step="0.05" value="0.70" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Gebäudehöhe
+              <select id="buildingHeight">
+                <option value="h8" selected>0–8 m</option>
+                <option value="h20">&gt; 8–20 m</option>
+                <option value="h40">&gt; 20–40 m</option>
+                <option value="h100">&gt; 40–100 m</option>
+              </select>
+            </label>
+            <label>Prüfmodus Scharenbreite
+              <select id="normRegime">
+                <option value="at2026" selected>AT aktuell: ÖNORM B 3521:2026 – 430 mm Warnlimit</option>
+                <option value="legacy">Alt/Fachregel 2012/2014 – vereinfachte Tabelle</option>
+                <option value="custom">Projekt-/Herstellerwert manuell</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Windklasse für Alt-Tabelle
+              <select id="windClass">
+                <option value="low" selected>≤ 0,3 kN/m² / vb ≤ 22,0 m/s</option>
+                <option value="mid">≤ 0,4 kN/m² / vb ≤ 25,3 m/s</option>
+                <option value="high">≤ 0,5 kN/m² / vb ≤ 28,3 m/s</option>
+              </select>
+            </label>
+            <label>Bereich
+              <select id="roofZone">
+                <option value="regular" selected>Regelfläche</option>
+                <option value="edge">Rand-/Ortgangbereich</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Unterdach / Trennlage für Alt-Tabelle
+              <select id="hasUnderlay">
+                <option value="yes" selected>mit Unterdach / Trennlage</option>
+                <option value="no">ohne Unterdach / Trennlage</option>
+              </select>
+            </label>
+            <label>Manuelles Max-Achsmaß in mm
+              <input id="customMaxAxis" type="number" min="100" step="1" value="600" />
+            </label>
+          </div>
+
+          <label class="check-row">
+            <input id="strictWarnings" type="checkbox" checked />
+            Aktuelle Norm-/Plausibilitätswarnungen deutlich markieren
+          </label>
+        </div>
+      </details>
+
+      <details class="input-group" open>
+        <summary>3. Bestellung, Hafte und Falzgel</summary>
+        <div class="grid">
+          <div class="cols">
+            <label>Zugabe Traufe + First je Schar in mm
+              <input id="lengthAllowance" type="number" min="0" step="10" value="300" />
+            </label>
+            <label>Verschnitt / Reserve in %
+              <input id="wastePercent" type="number" min="0" step="0.5" value="5" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Haftabstand Regelbereich in mm
+              <input id="clipSpacing" type="number" min="100" step="10" value="500" />
+            </label>
+            <label>Festhaftbereich in m
+              <input id="fixedZoneM" type="number" min="1" max="3" step="0.1" value="2.0" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Rand-/Sicherheitszuschlag Hafte in %
+              <input id="clipExtraPercent" type="number" min="0" step="1" value="10" />
+            </label>
+            <label>Temperaturspanne ΔT für Dehnung in K
+              <input id="tempDeltaK" type="number" min="0" step="5" value="80" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Falzgel-Modus
+              <select id="sealantMode">
+                <option value="auto" selected>Auto: bei DN &lt; 7° rechnen</option>
+                <option value="always">immer rechnen</option>
+                <option value="off">nicht rechnen</option>
+              </select>
+            </label>
+            <label>Falzgel ml je Falzmeter
+              <input id="sealantMlPerM" type="number" min="0" step="0.5" value="6" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Falzgel-Reserve in %
+              <input id="sealantWastePercent" type="number" min="0" step="1" value="10" />
+            </label>
+            <label>Darstellung
+              <select id="contrastMode">
+                <option value="high" selected>Hoher Kontrast</option>
+                <option value="realistic">Material realistisch</option>
+              </select>
+            </label>
+          </div>
+        </div>
+      </details>
+
+      <div class="button-row">
+        <button id="calcBtn" type="button">Berechnen</button>
+        <button id="printBtn" class="secondary" type="button">Drucken / PDF</button>
+      </div>
+
+      <div class="hint">
+        <strong>Wichtig:</strong> Die 2-mm-Falzluft wird als echte Zwischenfuge gerechnet.
+        Bei 23 Scharen gibt es 22 Fugen. Der Materialbedarf optimiert zusätzlich, ob beide Passscharen aus einer Coil-Länge geschnitten werden können.
+      </div>
+    </aside>
+
+    <section class="panel visual">
+      <div class="toolbar">
+        <h2>Visualisierung und Ergebnis</h2>
+        <div class="pills" id="statusPills"></div>
+      </div>
+
+      <h2 class="print-title">Dach-Einteilung Doppelstehfalz – Ergebnisblatt</h2>
+
+      <div class="drawing-wrap">
+        <svg id="roofSvg" viewBox="0 0 1500 920" role="img" aria-label="Dynamische Dach-Einteilung Doppelstehfalz"></svg>
+      </div>
+
+      <div class="result-grid">
+        <div class="result"><small>Scharen gesamt</small><strong id="rTotal">–</strong></div>
+        <div class="result"><small>Standardscharen</small><strong id="rFull">–</strong></div>
+        <div class="result"><small>Passschar links/rechts</small><strong id="rSide">–</strong></div>
+        <div class="result"><small>Falzluft gesamt</small><strong id="rGap">–</strong></div>
+        <div class="result"><small>Bestellmenge Coil</small><strong id="rOrderLm">–</strong></div>
+        <div class="result"><small>Rohblechfläche / Gewicht</small><strong id="rAreaWeight">–</strong></div>
+        <div class="result"><small>Hafte gesamt</small><strong id="rClips">–</strong></div>
+        <div class="result"><small>Fest-/Schiebehafte</small><strong id="rClipSplit">–</strong></div>
+        <div class="result"><small>Befestigungsmittel</small><strong id="rFasteners">–</strong></div>
+        <div class="result"><small>Falzgel ca.</small><strong id="rSealant">–</strong></div>
+      </div>
+
+      <div class="blocks">
+        <div class="normbox">
+          <h3 class="block-title">Ausführungs- und Normhinweise</h3>
+          <div id="normList" class="norm-list"></div>
+          <p class="footer-note">
+            Das Tool ersetzt keine objektbezogene Windlastbemessung, keine aktuelle Normprüfung und keine Herstellerfreigabe.
+            Es ist ein Rechen- und Plausibilitätswerkzeug für Baustelle, Angebot und Vorbereitung.
+          </p>
+        </div>
+
+        <div class="tablebox">
+          <h3 class="block-title">Material- und Mengenblatt</h3>
+          <table>
+            <tbody id="quantityTable"></tbody>
+          </table>
+        </div>
+
+        <div class="tablebox full">
+          <h3 class="block-title">Scharenliste</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Typ</th>
+                <th class="num">Anzahl</th>
+                <th class="num">Achsmaß sichtbar</th>
+                <th class="num">Rohbreite ca.</th>
+                <th class="num">Länge je Schar inkl. Zugabe</th>
+                <th>Bestelllogik</th>
+              </tr>
+            </thead>
+            <tbody id="scharTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+  "use strict";
+
+  const $ = (id) => document.getElementById(id);
+
+  const MATERIALS = {
+    steel: {
+      label: "Stahl verzinkt / beschichtet",
+      short: "Stahl",
+      group: "cuznfe",
+      density: 7850,
+      defaultThickness: 0.70,
+      slideFromM: 6,
+      maxLengthM: 14,
+      alpha: 12,
+      color: "#475569",
+      minThickness: { h8: 0.55, h20: 0.55, h40: 0.55, h100: 0.60 }
+    },
+    zinc: {
+      label: "Titanzink / Zinkblech",
+      short: "Titanzink",
+      group: "cuznfe",
+      density: 7200,
+      defaultThickness: 0.70,
+      slideFromM: 3,
+      maxLengthM: 10,
+      alpha: 22,
+      color: "#7c8794",
+      minThickness: { h8: 0.70, h20: 0.70, h40: 0.70, h100: 0.80 }
+    },
+    copper: {
+      label: "Kupferblech",
+      short: "Kupfer",
+      group: "cuznfe",
+      density: 8930,
+      defaultThickness: 0.60,
+      slideFromM: 3,
+      maxLengthM: 10,
+      alpha: 17,
+      color: "#b76e3c",
+      minThickness: { h8: 0.60, h20: 0.60, h40: 0.70, h100: 0.70 }
+    },
+    alu: {
+      label: "Aluminiumblech / PREFALZ",
+      short: "Alu",
+      group: "alunrs",
+      density: 2700,
+      defaultThickness: 0.70,
+      slideFromM: 3,
+      maxLengthM: 12,
+      alpha: 24,
+      color: "#a3acb8",
+      minThickness: { h8: 0.70, h20: 0.70, h40: 0.70, h100: 1.00 }
+    },
+    stainless: {
+      label: "Edelstahl",
+      short: "Edelstahl",
+      group: "alunrs",
+      density: 7900,
+      defaultThickness: 0.50,
+      slideFromM: 6,
+      maxLengthM: 10,
+      alpha: 16,
+      color: "#7b8490",
+      minThickness: { h8: 0.40, h20: 0.40, h40: 0.50, h100: 0.50 }
+    }
+  };
+
+  const LEGACY_WIDTHS = {
+    regular: {
+      cuznfe: { low: { yes: 600, no: 600 }, mid: { yes: 600, no: 500 }, high: { yes: 500, no: 500 } },
+      alunrs: { low: { yes: 600, no: 500 }, mid: { yes: 500, no: 430 }, high: { yes: 430, no: 430 } }
+    },
+    edge: {
+      cuznfe: { low: { yes: 500, no: 500 }, mid: { yes: 500, no: 500 }, high: { yes: 430, no: 430 } },
+      alunrs: { low: { yes: 500, no: 430 }, mid: { yes: 430, no: 430 }, high: { yes: 430, no: 430 } }
+    }
+  };
+
+  const MIN_CLIPS_PER_M2 = {
+    regular: { low: 3.3, mid: 4.4, high: 5.5 },
+    edge: { low: 7.4, mid: 9.8, high: 12.3 }
+  };
+
+  const fmt = (n, digits = 0) => Number(n || 0).toLocaleString("de-AT", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  });
+  const fmtMm = (n, digits = 0) => `${fmt(n, digits)} mm`;
+  const fmtM = (n, digits = 2) => `${fmt(n, digits)} m`;
+  const fmtM2 = (n, digits = 2) => `${fmt(n, digits)} m²`;
+  const fmtKg = (n, digits = 0) => `${fmt(n, digits)} kg`;
+
+  function getInputs() {
+    const materialKey = $("material").value;
+    const material = MATERIALS[materialKey] || MATERIALS.steel;
+    return {
+      widthM: Number($("roofWidthM").value || 0),
+      lengthM: Number($("roofLengthM").value || 0),
+      pitch: Number($("pitchDeg").value || 0),
+      mode: $("mode").value,
+      coil: Number($("coilWidth").value || 0),
+      axis: Number($("axisWidth").value || 0),
+      profileAllowance: Number($("profileAllowance").value || 0),
+      minPassVisible: Number($("minPassVisible").value || 0),
+      jointGap: Number($("jointGap").value || 0),
+      cutGap: Number($("cutGap").value || 0),
+      materialKey,
+      material,
+      sheetThickness: Number($("sheetThickness").value || material.defaultThickness),
+      buildingHeight: $("buildingHeight").value,
+      normRegime: $("normRegime").value,
+      windClass: $("windClass").value,
+      roofZone: $("roofZone").value,
+      hasUnderlay: $("hasUnderlay").value,
+      customMaxAxis: Number($("customMaxAxis").value || 0),
+      strictWarnings: $("strictWarnings").checked,
+      lengthAllowance: Number($("lengthAllowance").value || 0),
+      wastePercent: Number($("wastePercent").value || 0),
+      clipSpacing: Number($("clipSpacing").value || 0),
+      fixedZoneM: Number($("fixedZoneM").value || 2),
+      clipExtraPercent: Number($("clipExtraPercent").value || 0),
+      tempDeltaK: Number($("tempDeltaK").value || 0),
+      sealantMode: $("sealantMode").value,
+      sealantMlPerM: Number($("sealantMlPerM").value || 0),
+      sealantWastePercent: Number($("sealantWastePercent").value || 0),
+      contrastMode: $("contrastMode").value
+    };
+  }
+
+  function maxAxisForInput(input) {
+    if (input.normRegime === "at2026") return 430;
+    if (input.normRegime === "custom") return input.customMaxAxis || Infinity;
+    return LEGACY_WIDTHS[input.roofZone][input.material.group][input.windClass][input.hasUnderlay];
+  }
+
+  function fixedPointInfo(input) {
+    let ratio;
+    let label;
+    if (input.pitch <= 5) {
+      ratio = 0.50;
+      label = "mittig";
+    } else if (input.pitch <= 10) {
+      ratio = 2 / 3;
+      label = "oberer 1/3-Punkt";
+    } else if (input.pitch <= 30) {
+      ratio = 3 / 4;
+      label = "oberer 1/4-Punkt";
+    } else {
+      ratio = 0.92;
+      label = "Firstbereich";
+    }
+
+    return {
+      ratio,
+      label,
+      fromTraufeM: input.lengthM * ratio
+    };
+  }
+
+  function calculateLayout(input) {
+    const total = input.widthM * 1000;
+    const axis = input.axis;
+    const gap = input.jointGap;
+    const minSide = input.minPassVisible;
+
+    let best = null;
+    const safeDenom = Math.max(1, axis + gap);
+    const rough = Math.max(0, Math.floor(total / safeDenom));
+
+    const candidate = (full) => {
+      const fields = full + 2;
+      const joints = fields - 1;
+      const rest = total - full * axis - joints * gap;
+      const side = rest / 2;
+      return {
+        method: input.mode === "max" ? "Maximalvariante" : "symmetrische Passscharen",
+        full,
+        side,
+        fields,
+        joints,
+        validSide: side >= minSide && side <= axis && rest >= 0
+      };
+    };
+
+    if (input.mode === "max") {
+      for (let full = rough + 4; full >= 0; full--) {
+        const c = candidate(full);
+        if (c.side >= 0 && c.side <= axis) { best = c; break; }
+      }
+    } else {
+      for (let full = rough + 4; full >= 0; full--) {
+        const c = candidate(full);
+        if (c.validSide) { best = c; break; }
+      }
+    }
+
+    if (!best) {
+      best = candidate(Math.max(0, rough - 1));
+      best.method = "Notlösung prüfen";
+    }
+
+    const standardTotal = best.full * axis;
+    const jointTotal = best.joints * gap;
+    const passTotal = 2 * best.side;
+
+    return {
+      ...best,
+      widthMm: total,
+      lengthMm: input.lengthM * 1000,
+      minSide,
+      axis,
+      gap,
+      standardTotal,
+      jointTotal,
+      passTotal,
+      totalScharen: best.fields,
+      standardRawWidth: axis + input.profileAllowance,
+      passRawWidth: best.side + input.profileAllowance,
+      sumCheck: standardTotal + jointTotal + passTotal
+    };
+  }
+
+  function calculateQuantities(input, layout) {
+    const lengthWithAllowanceM = input.lengthM + input.lengthAllowance / 1000;
+    const fullLm = layout.full * lengthWithAllowanceM;
+
+    const bothPassFitOneCoil = (2 * layout.passRawWidth + input.cutGap) <= input.coil;
+    const passLm = bothPassFitOneCoil ? lengthWithAllowanceM : 2 * lengthWithAllowanceM;
+    const netCoilLm = fullLm + passLm;
+    const orderCoilLm = netCoilLm * (1 + input.wastePercent / 100);
+
+    const rawAreaM2 = orderCoilLm * input.coil / 1000;
+    const visibleAreaM2 = input.widthM * input.lengthM;
+    const weightKg = rawAreaM2 * (input.sheetThickness / 1000) * input.material.density;
+
+    const maxRegularSpacing = 500;
+    const maxFixedSpacing = 330;
+    const spacingUsed = Math.min(input.clipSpacing || maxRegularSpacing, maxRegularSpacing);
+    const fixedSpacingUsed = Math.min(spacingUsed, maxFixedSpacing);
+
+    const fixedZoneM = Math.min(Math.max(input.fixedZoneM, 1), 3, input.lengthM);
+    const fixedPerSeam = Math.max(1, Math.ceil((fixedZoneM * 1000) / fixedSpacingUsed) + 1);
+    const outsideM = Math.max(0, input.lengthM - fixedZoneM);
+    const slidingPerSeam = Math.max(0, Math.ceil((outsideM * 1000) / spacingUsed));
+    const clipsBySpacing = layout.joints * (fixedPerSeam + slidingPerSeam);
+
+    const minClipsPerM2 = MIN_CLIPS_PER_M2[input.roofZone][input.windClass];
+    const clipsByArea = Math.ceil(visibleAreaM2 * minClipsPerM2);
+    const clipsBeforeExtra = Math.max(clipsBySpacing, clipsByArea);
+    const clipsTotal = Math.ceil(clipsBeforeExtra * (1 + input.clipExtraPercent / 100));
+
+    const slidingRequired = input.lengthM >= input.material.slideFromM;
+    let fixedClips = Math.ceil(layout.joints * fixedPerSeam * (1 + input.clipExtraPercent / 100));
+    fixedClips = Math.min(fixedClips, clipsTotal);
+    let slidingClips = slidingRequired ? Math.max(0, clipsTotal - fixedClips) : 0;
+    if (!slidingRequired) {
+      fixedClips = clipsTotal;
+      slidingClips = 0;
+    }
+
+    const fasteners = clipsTotal * 2;
+    const seamMeters = layout.joints * input.lengthM;
+    const sealantRequired = input.sealantMode === "always" || (input.sealantMode === "auto" && input.pitch < 7);
+    const sealantNetLiters = sealantRequired ? seamMeters * input.sealantMlPerM / 1000 : 0;
+    const sealantOrderLiters = sealantNetLiters * (1 + input.sealantWastePercent / 100);
+
+    const expansionMm = input.lengthM * input.material.alpha * input.tempDeltaK / 1000;
+    const fp = fixedPointInfo(input);
+
+    return {
+      lengthWithAllowanceM,
+      fullLm,
+      bothPassFitOneCoil,
+      passLm,
+      netCoilLm,
+      orderCoilLm,
+      rawAreaM2,
+      visibleAreaM2,
+      weightKg,
+      spacingUsed,
+      fixedSpacingUsed,
+      fixedZoneM,
+      fixedPerSeam,
+      slidingPerSeam,
+      clipsBySpacing,
+      minClipsPerM2,
+      clipsByArea,
+      clipsBeforeExtra,
+      clipsTotal,
+      fixedClips,
+      slidingClips,
+      slidingRequired,
+      fasteners,
+      seamMeters,
+      sealantRequired,
+      sealantNetLiters,
+      sealantOrderLiters,
+      expansionMm,
+      fixedPoint: fp
+    };
+  }
+
+  function normMessages(input, layout, qty) {
+    const messages = [];
+    const maxAxis = maxAxisForInput(input);
+    const minThickness = input.material.minThickness[input.buildingHeight];
+    const rawDiff = input.coil - input.axis;
+
+    if (input.widthM <= 0 || input.lengthM <= 0) {
+      messages.push({ type: "danger", text: "Dachbreite und Scharenlänge müssen größer als 0 sein." });
+    }
+
+    if (input.pitch < 3) {
+      messages.push({ type: "danger", text: "Dachneigung unter 3°: normale Doppelstehfalz-Planung nicht sauber ansetzen. Sonderdetail/Systemnachweis erforderlich." });
+    } else if (input.pitch < 5) {
+      messages.push({ type: "danger", text: "Dachneigung 3° bis unter 5°: nur als streng begrenzter Sonderfall mit Unterdach, ohne problematische Ichsen/Durchführungen und mit Detailfreigabe bewerten." });
+    } else if (input.pitch < 7) {
+      messages.push({ type: "warn", text: "Dachneigung unter 7°: niedriger Neigungsbereich. Falzdichtung/Falzgel, Unterdach, Querfalze und Durchdringungen streng prüfen." });
+    } else {
+      messages.push({ type: "ok", text: "Dachneigung ab 7°: für Doppelstehfalz deutlich unkritischer, Detailprüfung bleibt notwendig." });
+    }
+
+    if (input.normRegime === "at2026") {
+      messages.push({
+        type: input.axis <= maxAxis ? "ok" : "danger",
+        text: `Prüfmodus AT 2026: hinterlegtes Warnlimit ${fmtMm(maxAxis)}. Eingestelltes Achsmaß ${fmtMm(input.axis)} ${input.axis <= maxAxis ? "liegt darunter." : "überschreitet dieses Limit."}`
+      });
+    } else if (input.normRegime === "legacy") {
+      messages.push({
+        type: input.axis <= maxAxis ? "ok" : "danger",
+        text: `Alt-/Fachregel-Tabelle: max. Scharenbreite für Material/Wind/Bereich ${fmtMm(maxAxis)}. Eingestellt: ${fmtMm(input.axis)}.`
+      });
+    } else {
+      messages.push({
+        type: input.axis <= maxAxis ? "ok" : "warn",
+        text: `Manueller Projektwert: max. ${fmtMm(maxAxis)}. Nur verwenden, wenn Herstellerfreigabe/Projektvorgabe vorliegt.`
+      });
+    }
+
+    messages.push({
+      type: input.sheetThickness >= minThickness ? "ok" : "danger",
+      text: `${input.material.short}: eingestellte Dicke ${fmt(input.sheetThickness, 2)} mm, hinterlegte Mindestdicke für Gebäudehöhe ${fmt(minThickness, 2)} mm.`
+    });
+
+    if (layout.standardRawWidth > input.coil) {
+      messages.push({
+        type: "danger",
+        text: `Rohbreite Standardschar ${fmtMm(layout.standardRawWidth)} ist größer als Coil ${fmtMm(input.coil)}. Achsmaß, Coil oder Falzverlust korrigieren.`
+      });
+    } else {
+      messages.push({
+        type: "ok",
+        text: `Rohbreite Standardschar ${fmtMm(layout.standardRawWidth)} passt in Coil ${fmtMm(input.coil)}.`
+      });
+    }
+
+    if (Math.abs(rawDiff - input.profileAllowance) > 3) {
+      messages.push({
+        type: "warn",
+        text: `Coil − Achsmaß ergibt ${fmtMm(rawDiff)}. Eingestellter Falzverlust ist ${fmtMm(input.profileAllowance)}. Abweichung prüfen, sonst stimmt die Passschar-/Materiallogik nicht.`
+      });
+    }
+
+    messages.push({
+      type: layout.validSide ? "ok" : "danger",
+      text: layout.validSide
+        ? `Passschar sichtbar ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)} erfüllt Mindestmaß ${fmtMm(input.minPassVisible)}.`
+        : `Passschar sichtbar ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)} unterschreitet Mindestmaß oder überschreitet Standardschar. Einteilung ändern.`
+    });
+
+    if (input.lengthM > input.material.maxLengthM) {
+      messages.push({
+        type: "danger",
+        text: `${input.material.short}: Scharenlänge ${fmtM(input.lengthM)} überschreitet hinterlegte Länge ohne Sondermaßnahmen (${fmtM(input.material.maxLengthM, 0)}). Dehnungs-/Querstoßlösung planen.`
+      });
+    } else {
+      messages.push({
+        type: "ok",
+        text: `${input.material.short}: Scharenlänge liegt unter hinterlegter Maximal-Länge ohne Sondermaßnahmen (${fmtM(input.material.maxLengthM, 0)}).`
+      });
+    }
+
+    messages.push({
+      type: qty.slidingRequired ? "warn" : "ok",
+      text: qty.slidingRequired
+        ? `${input.material.short}: ab ${fmtM(input.material.slideFromM, 0)} Scharenlänge Schiebehafte berücksichtigen. Berechnung trennt Fest-/Schiebehafte.`
+        : `${input.material.short}: unter ${fmtM(input.material.slideFromM, 0)}; Schiebehaftbedarf objektbezogen prüfen.`
+    });
+
+    if (input.clipSpacing > 500) {
+      messages.push({ type: "danger", text: "Haftabstand über 500 mm eingegeben. Das Tool begrenzt die Berechnung auf 500 mm; Eingabe fachlich korrigieren." });
+    }
+
+    messages.push({
+      type: qty.clipsByArea > qty.clipsBySpacing ? "warn" : "ok",
+      text: qty.clipsByArea > qty.clipsBySpacing
+        ? `Mindesthaftanzahl nach m² (${qty.clipsByArea} Stk.) ist höher als Abstandszählung (${qty.clipsBySpacing} Stk.). Maßgebend wurde m²-Ansatz.`
+        : `Haftzählung über Abstand ist maßgebend (${qty.clipsBySpacing} Stk. vor Zuschlag).`
+    });
+
+    messages.push({
+      type: qty.sealantRequired ? "warn" : "ok",
+      text: qty.sealantRequired
+        ? `Falzgel/Dichtmittel wird gerechnet: ${fmt(qty.seamMeters, 1)} Falzmeter × ${fmt(input.sealantMlPerM, 1)} ml/m plus Reserve.`
+        : "Falzgel wird nach aktuellem Modus nicht gerechnet."
+    });
+
+    messages.push({
+      type: "ok",
+      text: `Festhaftbereich: ${qty.fixedPoint.label}, ca. ${fmtM(qty.fixedPoint.fromTraufeM)} von der Traufe; Breite ${fmtM(qty.fixedZoneM, 1)}.`
+    });
+
+    messages.push({
+      type: "warn",
+      text: `Thermische Längenänderung grob: ${fmtMm(qty.expansionMm, 1)} bei ΔT ${fmt(input.tempDeltaK, 0)} K. Bewegungsräume an Anschlüssen nicht vergessen.`
+    });
+
+    return messages;
+  }
+
+  function makeSvgEl(name, attrs, parent) {
+    const el = document.createElementNS("http://www.w3.org/2000/svg", name);
+    Object.entries(attrs || {}).forEach(([k, v]) => el.setAttribute(k, String(v)));
+    parent.appendChild(el);
+    return el;
+  }
+
+  function drawSvg(input, layout, qty, messages) {
+    const svg = $("roofSvg");
+    svg.innerHTML = "";
+    const W = 1500;
+    const H = 920;
+
+    const defs = makeSvgEl("defs", {}, svg);
+    const marker = makeSvgEl("marker", {
+      id: "arrow",
+      markerWidth: 10,
+      markerHeight: 10,
+      refX: 5,
+      refY: 5,
+      orient: "auto",
+      markerUnits: "strokeWidth"
+    }, defs);
+    makeSvgEl("path", { d: "M0,0 L10,5 L0,10 z", fill: "#0f172a" }, marker);
+
+    const grad = makeSvgEl("linearGradient", { id: "roofGrad", x1: "0%", y1: "0%", x2: "100%", y2: "0%" }, defs);
+    const mat = input.contrastMode === "realistic" ? input.material.color : "#536270";
+    makeSvgEl("stop", { offset: "0%", "stop-color": "#18212f" }, grad);
+    makeSvgEl("stop", { offset: "47%", "stop-color": mat }, grad);
+    makeSvgEl("stop", { offset: "100%", "stop-color": "#18212f" }, grad);
+
+    makeSvgEl("rect", { x: 0, y: 0, width: W, height: H, rx: 0, fill: "#f8fafc" }, svg);
+
+    const txt = (content, x, y, opts = {}) => {
+      const el = makeSvgEl("text", {
+        x, y,
+        fill: opts.fill || "#0f172a",
+        "font-size": opts.size || 18,
+        "font-weight": opts.weight || 800,
+        "text-anchor": opts.anchor || "middle",
+        "dominant-baseline": opts.baseline || "auto"
+      }, svg);
+      if (opts.rotate) el.setAttribute("transform", opts.rotate);
+      el.textContent = content;
+      return el;
+    };
+
+    txt("Dach-Einteilung Doppelstehfalz", 46, 42, { anchor: "start", size: 28, weight: 950 });
+    txt(
+      `Breite ${fmtM(input.widthM)} · Länge ${fmtM(input.lengthM)} · DN ${fmt(input.pitch, 1)}° · ${input.material.label} · ${layout.totalScharen} Scharen`,
+      46,
+      74,
+      { anchor: "start", size: 16, weight: 750, fill: "#475569" }
+    );
+
+    const roofX = 170;
+    const roofY = 128;
+    const roofW = 1120;
+    const roofH = 395;
+    const topInset = 96;
+
+    const pLT = { x: roofX + topInset, y: roofY };
+    const pRT = { x: roofX + roofW - topInset, y: roofY };
+    const pRB = { x: roofX + roofW, y: roofY + roofH };
+    const pLB = { x: roofX, y: roofY + roofH };
+
+    makeSvgEl("polygon", {
+      points: `${pLT.x},${pLT.y} ${pRT.x},${pRT.y} ${pRB.x},${pRB.y} ${pLB.x},${pLB.y}`,
+      fill: "url(#roofGrad)",
+      stroke: "#111827",
+      "stroke-width": 4
+    }, svg);
+
+    makeSvgEl("polygon", {
+      points: `${pLB.x},${pLB.y} ${pRB.x},${pRB.y} ${pRB.x - 12},${pRB.y + 28} ${pLB.x + 12},${pLB.y + 28}`,
+      fill: "#0f172a",
+      stroke: "#020617",
+      "stroke-width": 2
+    }, svg);
+
+    const fields = [{ type: "pass", width: layout.side, label: "Pass links" }];
+    for (let i = 0; i < layout.full; i++) fields.push({ type: "std", width: layout.axis, label: `Standard ${i + 1}` });
+    fields.push({ type: "pass", width: layout.side, label: "Pass rechts" });
+
+    const totalCalc = layout.sumCheck;
+
+    const interp = (t, top) => {
+      const left = top ? pLT : pLB;
+      const right = top ? pRT : pRB;
+      return { x: left.x + (right.x - left.x) * t, y: left.y + (right.y - left.y) * t };
+    };
+
+    let acc = 0;
+
+    fields.forEach((field, idx) => {
+      const t0 = acc / totalCalc;
+      const t1 = (acc + field.width) / totalCalc;
+      const a = interp(t0, true), b = interp(t1, true), c = interp(t1, false), d = interp(t0, false);
+      const pass = field.type === "pass";
+      const fill = pass ? "rgba(245,158,11,.34)" : (idx % 2 ? "rgba(255,255,255,.14)" : "rgba(15,23,42,.16)");
+      makeSvgEl("polygon", {
+        points: `${a.x},${a.y} ${b.x},${b.y} ${c.x},${c.y} ${d.x},${d.y}`,
+        fill,
+        stroke: pass ? "rgba(245,158,11,.95)" : "rgba(255,255,255,.24)",
+        "stroke-width": pass ? 2 : .8
+      }, svg);
+
+      if (pass) {
+        const midTop = interp((t0 + t1) / 2, true);
+        const midBot = interp((t0 + t1) / 2, false);
+        txt(`${fmtMm(field.width, field.width % 1 ? 1 : 0)}`, (midTop.x + midBot.x) / 2, (midTop.y + midBot.y) / 2, {
+          size: 19,
+          weight: 950,
+          fill: "#fff7ed",
+          rotate: `rotate(-90 ${(midTop.x + midBot.x) / 2} ${(midTop.y + midBot.y) / 2})`
+        });
+      }
+
+      acc += field.width;
+
+      if (idx < fields.length - 1) {
+        const g0 = acc / totalCalc;
+        const g1 = (acc + layout.gap) / totalCalc;
+        const gt0 = interp(g0, true), gt1 = interp(g1, true), gb0 = interp(g0, false), gb1 = interp(g1, false);
+        const gxT = (gt0.x + gt1.x) / 2;
+        const gxB = (gb0.x + gb1.x) / 2;
+
+        makeSvgEl("polygon", {
+          points: `${gt0.x},${gt0.y} ${gt1.x},${gt1.y} ${gb1.x},${gb1.y} ${gb0.x},${gb0.y}`,
+          fill: "rgba(14,165,233,.46)",
+          stroke: "rgba(255,255,255,.72)",
+          "stroke-width": .8
+        }, svg);
+
+        makeSvgEl("line", { x1: gxT, y1: gt0.y, x2: gxB, y2: gb0.y, stroke: "#020617", "stroke-width": 3.2, "stroke-linecap": "round" }, svg);
+        makeSvgEl("line", { x1: gxT + 4, y1: gt0.y, x2: gxB + 4, y2: gb0.y, stroke: "#f8fafc", "stroke-width": 1.4, "stroke-linecap": "round", opacity: .78 }, svg);
+
+        acc += layout.gap;
+      }
+    });
+
+    txt("First", 750, 116, { size: 25, weight: 950 });
+    txt("Traufe", 750, 573, { size: 25, weight: 950 });
+    txt("Ortgang links", 132, 322, { size: 16, weight: 950 });
+    txt("Ortgang rechts", 1368, 322, { size: 16, weight: 950 });
+
+    makeSvgEl("line", {
+      x1: 750, y1: 448, x2: 750, y2: 205,
+      stroke: "#ffffff", "stroke-width": 7, "marker-end": "url(#arrow)"
+    }, svg);
+    txt("Scharenlauf", 778, 328, { size: 19, weight: 950, fill: "#ffffff", rotate: "rotate(-90 778 328)" });
+
+    makeSvgEl("line", {
+      x1: 96, y1: roofY, x2: 96, y2: roofY + roofH,
+      stroke: "#0f172a", "stroke-width": 2.5, "marker-start": "url(#arrow)", "marker-end": "url(#arrow)"
+    }, svg);
+    txt(fmtMm(layout.lengthMm), 62, roofY + roofH / 2, { size: 23, weight: 950, rotate: `rotate(-90 62 ${roofY + roofH / 2})` });
+
+    const dimY1 = 632;
+    const dimY2 = 724;
+
+    txt(
+      `${layout.full} × ${fmtMm(layout.axis)} Standardscharen = ${fmtMm(layout.standardTotal)} · ${layout.joints} × ${fmtMm(layout.gap, layout.gap % 1 ? 1 : 0)} Falzluft = ${fmtMm(layout.jointTotal, layout.jointTotal % 1 ? 1 : 0)}`,
+      750,
+      dimY1,
+      { size: 19, weight: 950 }
+    );
+
+    txt(
+      `2 × ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)} Passschar = ${fmtMm(layout.passTotal, layout.passTotal % 1 ? 1 : 0)} · Kontrollsumme ${fmtMm(layout.sumCheck, layout.sumCheck % 1 ? 1 : 0)}`,
+      750,
+      dimY1 + 31,
+      { size: 17, weight: 850, fill: "#334155" }
+    );
+
+    makeSvgEl("line", {
+      x1: roofX, y1: dimY2, x2: roofX + roofW, y2: dimY2,
+      stroke: "#0f172a", "stroke-width": 2.5, "marker-start": "url(#arrow)", "marker-end": "url(#arrow)"
+    }, svg);
+    txt(fmtMm(layout.widthMm), 750, dimY2 + 40, { size: 32, weight: 950 });
+
+    const okCount = messages.filter(m => m.type === "ok").length;
+    const warnCount = messages.filter(m => m.type === "warn").length;
+    const dangerCount = messages.filter(m => m.type === "danger").length;
+
+    const cards = [
+      { label: "Coil", value: fmtM(qty.orderCoilLm), color: "#0f766e" },
+      { label: "Hafte", value: `${qty.clipsTotal} Stk.`, color: "#075985" },
+      { label: "Falzgel", value: `${fmt(qty.sealantOrderLiters, 2)} l`, color: "#92400e" },
+      { label: "Status", value: `${dangerCount} Fehler · ${warnCount} Warn.`, color: dangerCount ? "#be123c" : warnCount ? "#a16207" : "#15803d" }
+    ];
+
+    cards.forEach((card, i) => {
+      const x = 70 + i * 350;
+      const y = 812;
+      makeSvgEl("rect", { x, y, width: 305, height: 70, rx: 18, fill: "#ffffff", stroke: "#cbd5e1" }, svg);
+      txt(card.label, x + 18, y + 25, { anchor: "start", size: 15, weight: 900, fill: "#64748b" });
+      txt(card.value, x + 18, y + 55, { anchor: "start", size: 23, weight: 950, fill: card.color });
+    });
+  }
+
+  function setText(id, value) {
+    const el = $(id);
+    if (el) el.textContent = value;
+  }
+
+  function renderTables(input, layout, qty) {
+    const tbody = $("quantityTable");
+    tbody.innerHTML = [
+      ["Scharenlänge inkl. Zugabe", fmtM(qty.lengthWithAllowanceM)],
+      ["Standardscharen-Laufmeter", fmtM(qty.fullLm)],
+      ["Passschar-Laufmeter", `${fmtM(qty.passLm)} (${qty.bothPassFitOneCoil ? "2 Passscharen aus 1 Coil-Länge" : "2 getrennte Coil-Längen"})`],
+      ["Netto-Coil vor Reserve", fmtM(qty.netCoilLm)],
+      ["Bestell-Coil inkl. Reserve", fmtM(qty.orderCoilLm)],
+      ["Rohblechfläche", fmtM2(qty.rawAreaM2)],
+      ["Sichtbare Dachfläche", fmtM2(qty.visibleAreaM2)],
+      ["Gewicht ca.", fmtKg(qty.weightKg)],
+      ["Falzmeter längs", fmtM(qty.seamMeters, 1)],
+      ["Haftabstand gerechnet", `${fmtMm(qty.spacingUsed)} / Festhaftbereich ${fmtMm(qty.fixedSpacingUsed)}`],
+      ["Mindesthaftanzahl m²-Ansatz", `${qty.clipsByArea} Stk. (${fmt(qty.minClipsPerM2, 1)} /m²)`],
+      ["Thermische Dehnung grob", fmtMm(qty.expansionMm, 1)]
+    ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
+
+    $("scharTable").innerHTML = [
+      `<tr>
+        <td>Standardschar</td>
+        <td class="num">${layout.full}</td>
+        <td class="num">${fmtMm(layout.axis)}</td>
+        <td class="num">${fmtMm(layout.standardRawWidth)}</td>
+        <td class="num">${fmtM(qty.lengthWithAllowanceM)}</td>
+        <td>je Standardschar eine Coil-Länge</td>
+      </tr>`,
+      `<tr>
+        <td>Passschar links/rechts</td>
+        <td class="num">2</td>
+        <td class="num">${fmtMm(layout.side, layout.side % 1 ? 1 : 0)}</td>
+        <td class="num">${fmtMm(layout.passRawWidth, layout.passRawWidth % 1 ? 1 : 0)}</td>
+        <td class="num">${fmtM(qty.lengthWithAllowanceM)}</td>
+        <td>${qty.bothPassFitOneCoil ? "beide Passscharen passen nebeneinander in eine Coilbreite" : "jede Passschar benötigt eigene Coil-Länge"}</td>
+      </tr>`
+    ].join("");
+  }
+
+  function render() {
+    const input = getInputs();
+    const layout = calculateLayout(input);
+    const qty = calculateQuantities(input, layout);
+    const messages = normMessages(input, layout, qty);
+
+    setText("rTotal", layout.totalScharen);
+    setText("rFull", layout.full);
+    setText("rSide", `2 × ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)}`);
+    setText("rGap", fmtMm(layout.jointTotal, layout.jointTotal % 1 ? 1 : 0));
+    setText("rOrderLm", fmtM(qty.orderCoilLm));
+    setText("rAreaWeight", `${fmtM2(qty.rawAreaM2)} / ${fmtKg(qty.weightKg)}`);
+    setText("rClips", `${qty.clipsTotal} Stk.`);
+    setText("rClipSplit", `${qty.fixedClips} / ${qty.slidingClips}`);
+    setText("rFasteners", `${qty.fasteners} Stk.`);
+    setText("rSealant", `${fmt(qty.sealantOrderLiters, 2)} l`);
+
+    const dangerCount = messages.filter(m => m.type === "danger").length;
+    const warnCount = messages.filter(m => m.type === "warn").length;
+    const maxAxis = maxAxisForInput(input);
+
+    $("statusPills").innerHTML = [
+      `<span class="pill ${dangerCount ? "danger" : warnCount ? "warn" : "ok"}">${dangerCount ? dangerCount + " Fehler" : warnCount ? warnCount + " Warnungen" : "OK"}</span>`,
+      `<span class="pill">${input.material.short}</span>`,
+      `<span class="pill ${input.axis <= maxAxis ? "ok" : "danger"}">Achsmaß ${fmtMm(input.axis)}</span>`,
+      `<span class="pill">Coil ${fmtM(qty.orderCoilLm)}</span>`,
+      `<span class="pill">Hafte ${qty.clipsTotal}</span>`
+    ].join("");
+
+    $("normList").innerHTML = messages.map(m => `<div class="norm-item ${m.type}">${m.text}</div>`).join("");
+
+    renderTables(input, layout, qty);
+    drawSvg(input, layout, qty, messages);
+  }
+
+  function syncMaterialThickness() {
+    const material = MATERIALS[$("material").value] || MATERIALS.steel;
+    if (!$("sheetThickness").dataset.userChanged) {
+      $("sheetThickness").value = material.defaultThickness.toFixed(2);
+    }
+  }
+
+  document.addEventListener("input", (event) => {
+    if (event.target && event.target.id === "sheetThickness") {
+      event.target.dataset.userChanged = "1";
+    }
+  });
+
+  document.querySelectorAll("input, select").forEach((el) => {
+    el.addEventListener("input", render);
+    el.addEventListener("change", () => {
+      if (el.id === "material") syncMaterialThickness();
+      render();
+    });
+  });
+
+  document.querySelectorAll("[data-gap]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      $("jointGap").value = btn.dataset.gap;
+      render();
+    });
+  });
+
+  $("syncProfileBtn").addEventListener("click", () => {
+    const diff = Number($("coilWidth").value || 0) - Number($("axisWidth").value || 0);
+    $("profileAllowance").value = Math.max(0, diff).toFixed(0);
+    render();
+  });
+
+  $("calcBtn").addEventListener("click", render);
+  $("printBtn").addEventListener("click", () => window.print());
+
+  syncMaterialThickness();
+  render();
+  </script>
+</body>
+</html>

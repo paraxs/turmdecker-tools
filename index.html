@@ -9,11 +9,11 @@
   <title>Turmdecker Tools | Planung, Berechnung & Dokumentation</title>
   <meta
     name="description"
-    content="Die Turmdecker Toolseite mit 7 Werkzeugen für Aufmaß, Geometrie, Holzbedarf und Dokumentation im Dach- und Turmbereich."
+    content="Die Turmdecker Toolseite mit 8 Werkzeugen für Aufmaß, Geometrie, Metall- und Holzbedarf sowie Dokumentation im Dach- und Turmbereich."
   /><meta property="og:type" content="website" />
   <meta property="og:site_name" content="Turmdecker – Kofler e.U." />
   <meta property="og:title" content="Turmdecker Tools | Planung, Berechnung & Dokumentation" />
-  <meta property="og:description" content="7 Tools für Aufmaß, Geometrie, Holzbedarf und Restaurierungsdokumentation." />
+  <meta property="og:description" content="8 Tools für Aufmaß, Geometrie, Metall- und Holzbedarf sowie Restaurierungsdokumentation." />
   <meta property="og:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="Turmdecker Tools" />
@@ -501,6 +501,8 @@
     .btn-holz-main:hover, .btn-holz-main:focus-visible { background: #5f2f18; }
     .btn-geo-cut { background: #145a75; }
     .btn-geo-cut:hover, .btn-geo-cut:focus-visible { background: #10465c; }
+    .btn-standing-seam { background: #8f5b12; }
+    .btn-standing-seam:hover, .btn-standing-seam:focus-visible { background: #6f460e; }
     .btn-holz-shingle { background: #6b4d1b; }
     .btn-holz-shingle:hover, .btn-holz-shingle:focus-visible { background: #553d15; }
     .btn-geo-cone { background: #4a3f73; }
@@ -625,7 +627,7 @@
     "@type": "CollectionPage",
     "name": "Turmdecker Toolseite",
     "url": "https://tools.turmdecker.com/",
-    "description": "Werkzeugzentrale für Aufmaß, Geometrie, Holzbedarf und Restaurierungsdokumentation.",
+    "description": "Werkzeugzentrale für Aufmaß, Geometrie, Metall- und Holzbedarf sowie Restaurierungsdokumentation.",
     "about": ["Dachbau", "Kirchturmdecken", "Spenglerei", "Bestandsdokumentation"],
     "isPartOf": {
       "@type": "WebSite",
@@ -680,7 +682,7 @@
           <ul class="list">
             <li>Rechner für Geometrie, Längen und Materialbedarf</li>
             <li>Werkzeuge für strukturierte Projektvorbereitung</li>
-            <li>Schneller Zugriff auf alle 7 aktuellen Tools</li>
+            <li>Schneller Zugriff auf alle 8 aktuellen Tools</li>
           </ul>
         </div>
         <div>
@@ -716,7 +718,7 @@
             <button class="chip" type="button" data-filter="messung">Messung</button>
             <button class="chip" type="button" data-filter="dokumentation">Dokumentation</button>
           </div>
-          <p class="tools-count" id="toolsCount">7 Tools sichtbar</p>
+          <p class="tools-count" id="toolsCount">8 Tools sichtbar</p>
         </div>
       </div>
       <section class="grid" aria-label="Tool-Übersicht">
@@ -738,6 +740,17 @@
           <span class="tag">Bandblech</span>
           <a class="tool-btn btn-geo-cut" href="./abwicklung-verschnittoptimierung.html" target="_blank" rel="noopener noreferrer">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 18h16"></path><path d="M6 18 12 6l6 12"></path></svg>
+            Tool öffnen
+          </a>
+        </article>
+
+        <article class="card" data-category="bandblech" data-keywords="doppelstehfalz stehfalz blechdach scharen passscharen materialbedarf hafte falzgel">
+          <h3>Dach-Einteilung Doppelstehfalz</h3>
+          <p>Berechnet Scharen, Passscharen, Falzluft, Materialbedarf, Hafte und Falzgel für Doppelstehfalz-Dächer.</p>
+          <p class="card-mini">Ideal für praxisnahe Doppelstehfalz-Einteilung mit Plausibilitätsprüfung.</p>
+          <span class="tag">Bandblech</span>
+          <a class="tool-btn btn-standing-seam" href="./mengenermittlung-doppelstehfalz.html" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 19h16"></path><path d="M7 19V5"></path><path d="M12 19V5"></path><path d="M17 19V5"></path><path d="M6 5h2"></path><path d="M11 5h2"></path><path d="M16 5h2"></path></svg>
             Tool öffnen
           </a>
         </article>
