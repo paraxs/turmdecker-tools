@@ -4,17 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Abwicklung- und Verschnittoptimierung</title>
-    <meta name="description" content="Tool fuer Abwicklung und Verschnittoptimierung im Bandblechbereich - fuer praxisnahe Zuschnittplanung und Materialeinsatz.">
-    <link rel="canonical" href="https://tools.turmdecker.com/abwicklung-verschnittoptimierung.html">
-    <meta property="og:type" content="website">
-    <meta property="og:site_name" content="Turmdecker - Kofler e.U.">
-    <meta property="og:title" content="Abwicklung &amp; Verschnittoptimierung | Turmdecker Tools">
-    <meta property="og:description" content="Tool fuer Abwicklung und Verschnittoptimierung im Bandblechbereich - fuer praxisnahe Zuschnittplanung und Materialeinsatz.">
-    <meta property="og:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Abwicklung &amp; Verschnittoptimierung | Turmdecker Tools">
-    <meta name="twitter:description" content="Tool fuer Abwicklung und Verschnittoptimierung im Bandblechbereich - fuer praxisnahe Zuschnittplanung und Materialeinsatz.">
-    <meta name="twitter:image" content="https://tools.turmdecker.com/og-tools-1200x630.webp">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <!-- FontAwesome für Icons (CSS-only, vermeidet SRI/JS-Blocker) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" referrerpolicy="no-referrer">
@@ -1380,7 +1369,7 @@ html[data-theme="dark"] body.td-unified textarea {
     </main>
 
     <footer>
-        <p>&copy; 2026 Kofler e.U. • Abwicklung &amp; Verschnittoptimierung • Version 8.2</p>
+        <p>&copy; 2026 Kofler e.U. • Abwicklung &amp; Verschnittoptimierung • Version V9</p>
     </footer>
 </div>
 
@@ -2132,203 +2121,652 @@ html[data-theme="dark"] body.td-unified textarea {
             }, 100);
         };
 
-        // Funktion zur Durchführung der Optimierung
-        const performOptimization = (cuts, rollWidth, maxLaenge, rollLength) => {
-            // Eingabeparameter validieren
-            if (!Array.isArray(cuts) || cuts.length === 0) {
-                throw new Error('Keine Zuschnitte vorhanden');
+        // Deterministischer MaxRects-Multi-Start-Kern für 2D-Strip-Packing.
+        const compareNumberArrays = (left, right) => {
+            const length = Math.max(left.length, right.length);
+            for (let index = 0; index < length; index++) {
+                const difference = (left[index] || 0) - (right[index] || 0);
+                if (Math.abs(difference) > EPSILON) return difference;
             }
-            
-            if (rollWidth <= 0 || maxLaenge <= 0 || rollLength <= 0) {
-                throw new Error('Ungültige Parameter für Optimierung');
-            }
+            return 0;
+        };
 
-            // Liste aller Zuschnittteile erstellen, aufgeteilt nach maximaler Abkantlänge
-            let allPieces = [];
-            cuts.forEach(cut => {
-                if (!cut || typeof cut !== 'object') return; // Überspringe ungültige Zuschnitte
-                
-                let remainingLength = parseFloat(cut.laenge);
-                if (isNaN(remainingLength) || remainingLength <= 0) return; // Überspringe ungültige Längen
-                
+        const stablePieceCompare = (left, right) =>
+            left.sourceIndex - right.sourceIndex || left.pieceIndex - right.pieceIndex;
+
+        const prepareOptimizationPieces = (cuts, rollWidth, maxLaenge, rollLength) => {
+            const pieces = [];
+            cuts.forEach((cut, sourceIndex) => {
+                if (!cut || typeof cut !== 'object') return;
                 const breite = parseFloat(cut.breite);
-                if (isNaN(breite) || breite <= 0) return; // Überspringe ungültige Breiten
-                
-                // Wenn die Breite größer als die Rollenbreite ist und die Drehung möglich ist
-                if (breite > rollWidth && cut.laenge <= rollWidth) {
-                    // Gedrehten Zuschnitt hinzufügen
-                    allPieces.push({
-                        breite: cut.laenge,
-                        laenge: breite,
-                        color: cut.color,
-                        bezeichnung: cut.bezeichnung,
-                        materialBezeichnung: cut.materialBezeichnung,
-                        rotated: true
-                    });
-                    return; // Nächster Zuschnitt
-                }
-                
-                // Wenn die Breite größer als die Rollenbreite ist und die Drehung nicht möglich ist
-                if (breite > rollWidth) {
-                    throw new Error(`Der Zuschnitt "${cut.bezeichnung || 'ohne Bezeichnung'}" ist mit ${(breite * 100).toFixed(1)} cm zu breit für die Rolle mit ${(rollWidth * 100).toFixed(1)} cm Breite und kann nicht gedreht werden.`);
-                }
-                
+                let remainingLength = parseFloat(cut.laenge);
+                if (!Number.isFinite(breite) || breite <= 0 ||
+                    !Number.isFinite(remainingLength) || remainingLength <= 0) return;
+
+                let pieceIndex = 0;
                 while (remainingLength > EPSILON) {
                     const pieceLength = Math.min(remainingLength, maxLaenge);
-                    allPieces.push({
-                        breite: breite,
+                    const normalFits = breite <= rollWidth + EPSILON && pieceLength <= rollLength + EPSILON;
+                    const rotatedFits = pieceLength <= rollWidth + EPSILON &&
+                        breite <= maxLaenge + EPSILON && breite <= rollLength + EPSILON;
+                    if (!normalFits && !rotatedFits) {
+                        throw new Error(`Der Zuschnitt "${cut.bezeichnung || 'ohne Bezeichnung'}" passt in keiner zulässigen Orientierung auf die Rolle.`);
+                    }
+                    pieces.push({
+                        breite,
                         laenge: pieceLength,
                         color: cut.color,
                         bezeichnung: cut.bezeichnung,
                         materialBezeichnung: cut.materialBezeichnung,
-                        rotated: false
+                        sourceIndex,
+                        pieceIndex
                     });
                     remainingLength = Math.max(0, remainingLength - pieceLength);
+                    pieceIndex++;
                 }
             });
+            if (pieces.length === 0) throw new Error('Keine gültigen Zuschnitte vorhanden');
+            return pieces;
+        };
 
-            // Überprüfen, ob nach der Verarbeitung noch Teile vorhanden sind
-            if (allPieces.length === 0) {
-                throw new Error('Keine gültigen Zuschnitte vorhanden');
-            }
-
-            // Sortieren nach Fläche (größte zuerst) für bessere Packdichte
-            allPieces.sort((a, b) => {
-                const areaA = a.breite * a.laenge;
-                const areaB = b.breite * b.laenge;
-                return areaB - areaA;
-            });
-
-            const rohleOptimized = [];
-            let currentRohle = createNewRohblech(rollWidth, rollLength, rohleOptimized);
-
-            // Erweiterte Platzierungslogik für bessere Optimierung
-            let noPlacementPossible = false;
-            
-            // Platzierungsalgorithmus mit Berücksichtigung der Materialverschwendung
-            while (allPieces.length > 0 && !noPlacementPossible) {
-                const piece = allPieces.shift();
-                noPlacementPossible = true;
-                
-                // Beide Orientierungen prüfen (normale und gedrehte)
-                let orientations = [];
-                
-                // Normale Orientierung hinzufügen
+        const getPieceOrientations = (piece, rollWidth, maxLaenge, rollLength) => {
+            const orientations = [];
+            if (piece.breite <= rollWidth + EPSILON && piece.laenge <= maxLaenge + EPSILON &&
+                piece.laenge <= rollLength + EPSILON) {
                 orientations.push({ breite: piece.breite, laenge: piece.laenge, rotated: false });
-                
-                // Gedrehte Orientierung hinzufügen, wenn möglich
-                if (piece.laenge <= rollWidth && piece.breite <= rollLength && piece.breite !== piece.laenge) {
-                    orientations.push({ breite: piece.laenge, laenge: piece.breite, rotated: true });
+            }
+            if (Math.abs(piece.breite - piece.laenge) > EPSILON &&
+                piece.laenge <= rollWidth + EPSILON && piece.breite <= maxLaenge + EPSILON &&
+                piece.breite <= rollLength + EPSILON) {
+                orientations.push({ breite: piece.laenge, laenge: piece.breite, rotated: true });
+            }
+            return orientations;
+        };
+
+        const createMaxRectsBin = (rollWidth, rollLength) => ({
+            width: rollWidth,
+            length: rollLength,
+            placements: [],
+            freeRects: [{ x: 0, y: 0, width: rollWidth, height: rollLength }],
+            usedLength: 0
+        });
+
+        const scoreMaxRectsCandidate = (bin, freeRect, orientation, heuristic) => {
+            const remainingWidth = freeRect.width - orientation.breite;
+            const remainingHeight = freeRect.height - orientation.laenge;
+            const shortSide = Math.min(remainingWidth, remainingHeight);
+            const longSide = Math.max(remainingWidth, remainingHeight);
+            const areaFit = freeRect.width * freeRect.height - orientation.breite * orientation.laenge;
+            const bottom = freeRect.y + orientation.laenge;
+            const projectedLength = Math.max(bin.usedLength, bottom);
+            const extension = projectedLength - bin.usedLength;
+            const rotatedTieBreak = orientation.rotated ? 1 : 0;
+
+            switch (heuristic) {
+                case 'area': return [areaFit, shortSide, projectedLength, freeRect.y, freeRect.x, rotatedTieBreak];
+                case 'short': return [shortSide, longSide, projectedLength, freeRect.y, freeRect.x, rotatedTieBreak];
+                case 'long': return [longSide, shortSide, projectedLength, freeRect.y, freeRect.x, rotatedTieBreak];
+                case 'bottom': return [bottom, freeRect.x, shortSide, longSide, rotatedTieBreak];
+                default: return [projectedLength, extension, bottom, areaFit, shortSide, freeRect.x, rotatedTieBreak];
+            }
+        };
+
+        const listMaxRectsPlacements = (bin, piece, rollWidth, maxLaenge, rollLength, heuristic) => {
+            const candidates = [];
+            const seen = new Set();
+            const orientations = getPieceOrientations(piece, rollWidth, maxLaenge, rollLength);
+            bin.freeRects.forEach((freeRect, freeIndex) => {
+                orientations.forEach(orientation => {
+                    if (orientation.breite > freeRect.width + EPSILON ||
+                        orientation.laenge > freeRect.height + EPSILON) return;
+                    const key = [freeRect.x, freeRect.y, orientation.breite, orientation.laenge]
+                        .map(value => value.toFixed(9)).join(':');
+                    if (seen.has(key)) return;
+                    seen.add(key);
+                    const score = scoreMaxRectsCandidate(bin, freeRect, orientation, heuristic);
+                    candidates.push({ freeIndex, freeRect, orientation, score });
+                });
+            });
+            return candidates.sort((left, right) =>
+                compareNumberArrays(left.score, right.score) || left.freeIndex - right.freeIndex);
+        };
+
+        const findMaxRectsPlacement = (bin, piece, rollWidth, maxLaenge, rollLength, heuristic) => {
+            let best = null;
+            const orientations = getPieceOrientations(piece, rollWidth, maxLaenge, rollLength);
+            bin.freeRects.forEach((freeRect, freeIndex) => {
+                orientations.forEach(orientation => {
+                    if (orientation.breite > freeRect.width + EPSILON ||
+                        orientation.laenge > freeRect.height + EPSILON) return;
+                    const score = scoreMaxRectsCandidate(bin, freeRect, orientation, heuristic);
+                    if (!best || compareNumberArrays(score, best.score) < 0) {
+                        best = { freeIndex, freeRect, orientation, score };
+                    }
+                });
+            });
+            return best;
+        };
+
+        const rectanglesIntersect = (left, right) =>
+            left.x < right.x + right.width - EPSILON && left.x + left.width > right.x + EPSILON &&
+            left.y < right.y + right.height - EPSILON && left.y + left.height > right.y + EPSILON;
+
+        const splitMaxRectsFreeSpace = (freeRect, usedRect) => {
+            if (!rectanglesIntersect(freeRect, usedRect)) return [freeRect];
+            const result = [];
+            const freeRight = freeRect.x + freeRect.width;
+            const freeBottom = freeRect.y + freeRect.height;
+            const usedRight = usedRect.x + usedRect.width;
+            const usedBottom = usedRect.y + usedRect.height;
+
+            if (usedRect.y > freeRect.y + EPSILON && usedRect.y < freeBottom - EPSILON) {
+                result.push({ x: freeRect.x, y: freeRect.y, width: freeRect.width, height: usedRect.y - freeRect.y });
+            }
+            if (usedBottom < freeBottom - EPSILON) {
+                result.push({ x: freeRect.x, y: usedBottom, width: freeRect.width, height: freeBottom - usedBottom });
+            }
+            if (usedRect.x > freeRect.x + EPSILON && usedRect.x < freeRight - EPSILON) {
+                result.push({ x: freeRect.x, y: freeRect.y, width: usedRect.x - freeRect.x, height: freeRect.height });
+            }
+            if (usedRight < freeRight - EPSILON) {
+                result.push({ x: usedRight, y: freeRect.y, width: freeRight - usedRight, height: freeRect.height });
+            }
+            return result;
+        };
+
+        const pruneMaxRectsFreeSpaces = (freeRects) => {
+            const valid = freeRects.filter(rect => rect.width > EPSILON && rect.height > EPSILON);
+            return valid.filter((rect, index) => !valid.some((other, otherIndex) => {
+                if (index === otherIndex) return false;
+                const contained = rect.x >= other.x - EPSILON && rect.y >= other.y - EPSILON &&
+                    rect.x + rect.width <= other.x + other.width + EPSILON &&
+                    rect.y + rect.height <= other.y + other.height + EPSILON;
+                if (!contained) return false;
+                const identical = Math.abs(rect.x - other.x) <= EPSILON && Math.abs(rect.y - other.y) <= EPSILON &&
+                    Math.abs(rect.width - other.width) <= EPSILON && Math.abs(rect.height - other.height) <= EPSILON;
+                return !identical || otherIndex < index;
+            })).sort((left, right) =>
+                left.y - right.y || left.x - right.x || left.width - right.width || left.height - right.height);
+        };
+
+        const insertMaxRectsPlacement = (bin, piece, candidate) => {
+            const placement = {
+                x: candidate.freeRect.x,
+                y: candidate.freeRect.y,
+                breite: candidate.orientation.breite,
+                laenge: candidate.orientation.laenge,
+                color: piece.color,
+                bezeichnung: piece.bezeichnung,
+                materialBezeichnung: piece.materialBezeichnung,
+                rotated: candidate.orientation.rotated
+            };
+            const usedRect = {
+                x: placement.x,
+                y: placement.y,
+                width: placement.breite,
+                height: placement.laenge
+            };
+            bin.freeRects = pruneMaxRectsFreeSpaces(
+                bin.freeRects.flatMap(freeRect => splitMaxRectsFreeSpace(freeRect, usedRect))
+            );
+            bin.placements.push(placement);
+            bin.usedLength = Math.max(bin.usedLength, placement.y + placement.laenge);
+        };
+
+        // Erzeugt eine nicht überlappende, flächentreue Partition für die Verschnittanzeige.
+        const buildVisualizationSpaces = (placements, rollWidth, usedLength, rollLength) => {
+            if (usedLength <= EPSILON) return [{ x: 0, y: 0, width: rollWidth, height: rollLength }];
+            const yValues = [0, usedLength];
+            placements.forEach(placement => {
+                yValues.push(placement.y, Math.min(usedLength, placement.y + placement.laenge));
+            });
+            const rows = [...new Set(yValues.map(value => value.toFixed(9)))]
+                .map(Number).sort((left, right) => left - right);
+            const spaces = [];
+            const openBySpan = new Map();
+
+            for (let rowIndex = 0; rowIndex < rows.length - 1; rowIndex++) {
+                const y = rows[rowIndex];
+                const nextY = rows[rowIndex + 1];
+                if (nextY - y <= EPSILON) continue;
+                const occupied = placements
+                    .filter(placement => placement.y < nextY - EPSILON &&
+                        placement.y + placement.laenge > y + EPSILON)
+                    .map(placement => [placement.x, placement.x + placement.breite])
+                    .sort((left, right) => left[0] - right[0]);
+                const merged = [];
+                occupied.forEach(interval => {
+                    const last = merged[merged.length - 1];
+                    if (last && interval[0] <= last[1] + EPSILON) last[1] = Math.max(last[1], interval[1]);
+                    else merged.push(interval.slice());
+                });
+                const gaps = [];
+                let cursor = 0;
+                merged.forEach(interval => {
+                    if (interval[0] > cursor + EPSILON) gaps.push([cursor, interval[0]]);
+                    cursor = Math.max(cursor, interval[1]);
+                });
+                if (cursor < rollWidth - EPSILON) gaps.push([cursor, rollWidth]);
+
+                const nextOpen = new Map();
+                gaps.forEach(gap => {
+                    const key = `${gap[0].toFixed(9)}:${gap[1].toFixed(9)}`;
+                    const existing = openBySpan.get(key);
+                    if (existing) {
+                        existing.height += nextY - y;
+                        nextOpen.set(key, existing);
+                    } else {
+                        const space = { x: gap[0], y, width: gap[1] - gap[0], height: nextY - y };
+                        spaces.push(space);
+                        nextOpen.set(key, space);
+                    }
+                });
+                openBySpan.clear();
+                nextOpen.forEach((value, key) => openBySpan.set(key, value));
+            }
+            if (rollLength - usedLength > EPSILON) {
+                spaces.push({ x: 0, y: usedLength, width: rollWidth, height: rollLength - usedLength });
+            }
+            return spaces;
+        };
+
+        const packPieceOrder = (orderedPieces, rollWidth, maxLaenge, rollLength, heuristic) => {
+            const bins = [];
+            orderedPieces.forEach(piece => {
+                let best = null;
+                bins.forEach((bin, binIndex) => {
+                    const candidate = findMaxRectsPlacement(bin, piece, rollWidth, maxLaenge, rollLength, heuristic);
+                    if (!candidate) return;
+                    const totalProjectedLength = bins.reduce((sum, item, index) =>
+                        sum + (index === binIndex ? Math.max(item.usedLength, candidate.freeRect.y + candidate.orientation.laenge) : item.usedLength), 0);
+                    const score = [totalProjectedLength, binIndex, ...candidate.score];
+                    if (!best || compareNumberArrays(score, best.score) < 0) {
+                        best = { bin, candidate, score };
+                    }
+                });
+                if (!best) {
+                    const bin = createMaxRectsBin(rollWidth, rollLength);
+                    bins.push(bin);
+                    const candidate = findMaxRectsPlacement(bin, piece, rollWidth, maxLaenge, rollLength, heuristic);
+                    if (!candidate) {
+                        throw new Error(`Der Zuschnitt "${piece.bezeichnung || 'ohne Bezeichnung'}" passt nicht auf die Rolle.`);
+                    }
+                    best = { bin, candidate };
                 }
+                insertMaxRectsPlacement(best.bin, piece, best.candidate);
+            });
+            return bins.map(bin => ({
+                width: bin.width,
+                length: bin.length,
+                placements: bin.placements,
+                freeRects: bin.freeRects,
+                usedLength: bin.usedLength
+            }));
+        };
 
-                let bestFit = null;
-                let bestFitScore = Infinity;
+        const addUniquePieceOrder = (orders, seen, pieces, limit) => {
+            if (orders.length >= limit) return;
+            const key = pieces.map(piece => `${piece.sourceIndex}:${piece.pieceIndex}`).join('|');
+            if (!seen.has(key)) {
+                seen.add(key);
+                orders.push(pieces.slice());
+            }
+        };
 
-                // Für jedes Rohblech und jeden freien Bereich die beste Passform finden
-                rohleOptimized.forEach((rohblech, rohIndex) => {
-                    if (!Array.isArray(rohblech.spaces)) return; // Sicherheitscheck
-                    
-                    rohblech.spaces.forEach((space, spaceIndex) => {
-                        orientations.forEach(orientation => {
-                            // Prüfen, ob das Teil in den freien Bereich passt
-                            if (orientation.breite <= space.width + EPSILON && 
-                                orientation.laenge <= space.height + EPSILON) {
-                                
-                                // Verschwendete Fläche berechnen
-                                const wasteArea = (space.width - orientation.breite) * orientation.laenge + 
-                                                 space.width * (space.height - orientation.laenge);
-                                
-                                // Komplexeres Scoring für bessere Passform
-                                // Kleinere Werte sind besser
-                                const score = wasteArea * 1.1 + (space.y * 0.1); // Bevorzuge tiefere Positionen leicht
-                                
-                                // Speichern, wenn es die bisher beste Passform ist
-                                if (bestFit === null || score < bestFitScore) {
-                                    bestFit = {
-                                        rohIndex,
-                                        spaceIndex,
-                                        orientation,
-                                        wasteArea
-                                    };
-                                    bestFitScore = score;
-                                }
-                                
-                                noPlacementPossible = false;
-                            }
-                        });
-                    });
+        const createPieceOrders = (pieces, rollWidth) => {
+            const tie = stablePieceCompare;
+            const comparators = [
+                (a, b) => b.breite * b.laenge - a.breite * a.laenge || tie(a, b),
+                (a, b) => b.laenge - a.laenge || b.breite - a.breite || tie(a, b),
+                (a, b) => b.breite - a.breite || b.laenge - a.laenge || tie(a, b),
+                (a, b) => Math.max(b.breite, b.laenge) - Math.max(a.breite, a.laenge) || tie(a, b),
+                (a, b) => Math.min(b.breite, b.laenge) - Math.min(a.breite, a.laenge) || tie(a, b),
+                (a, b) => (b.breite + b.laenge) - (a.breite + a.laenge) || tie(a, b),
+                (a, b) => Math.abs(a.breite - rollWidth / 2) - Math.abs(b.breite - rollWidth / 2) || b.laenge - a.laenge || tie(a, b),
+                (a, b) => a.breite - b.breite || b.laenge - a.laenge || tie(a, b)
+            ];
+            const orderLimit = pieces.length > 300 ? 12 : pieces.length > 80 ? 32 : 96;
+            const orders = [];
+            const seen = new Set();
+            comparators.forEach(comparator => {
+                const order = pieces.slice().sort(comparator);
+                addUniquePieceOrder(orders, seen, order, orderLimit);
+                addUniquePieceOrder(orders, seen, order.slice().reverse(), orderLimit);
+                for (let index = 0; index < order.length - 1 && orders.length < orderLimit; index++) {
+                    const swapped = order.slice();
+                    [swapped[index], swapped[index + 1]] = [swapped[index + 1], swapped[index]];
+                    addUniquePieceOrder(orders, seen, swapped, orderLimit);
+                }
+            });
+            return orders;
+        };
+
+        const forEachUniqueGeometryPermutation = (pieces, callback) => {
+            const grouped = new Map();
+            pieces.slice().sort(stablePieceCompare).forEach(piece => {
+                const key = `${piece.breite.toFixed(9)}:${piece.laenge.toFixed(9)}`;
+                if (!grouped.has(key)) grouped.set(key, []);
+                grouped.get(key).push(piece);
+            });
+            const groups = [...grouped.entries()].sort((left, right) => left[0].localeCompare(right[0]))
+                .map(([, items]) => ({ items, used: 0 }));
+            const permutation = [];
+            const visit = () => {
+                if (permutation.length === pieces.length) {
+                    callback(permutation);
+                    return;
+                }
+                groups.forEach(group => {
+                    if (group.used >= group.items.length) return;
+                    permutation.push(group.items[group.used]);
+                    group.used++;
+                    visit();
+                    group.used--;
+                    permutation.pop();
+                });
+            };
+            visit();
+        };
+
+        const solutionSignature = rohle => rohle.map(bin => bin.placements.map(placement =>
+            [placement.x, placement.y, placement.breite, placement.laenge, placement.bezeichnung || '', placement.rotated ? 1 : 0]
+                .join(':')).join('|')).join('||');
+
+        const solutionScore = rohle => {
+            const totalLength = rohle.reduce((sum, bin) => sum + bin.usedLength, 0);
+            const fragmentCount = rohle.reduce((sum, bin) => sum + (bin.freeRects || []).length, 0);
+            return [rohle.length, totalLength, fragmentCount];
+        };
+
+        const isBetterSolution = (candidate, best) => {
+            if (!best) return true;
+            const scoreComparison = compareNumberArrays(solutionScore(candidate), solutionScore(best));
+            if (scoreComparison !== 0) return scoreComparison < 0;
+            return solutionSignature(candidate) < solutionSignature(best);
+        };
+
+        const cloneMaxRectsBin = bin => ({
+            width: bin.width,
+            length: bin.length,
+            placements: bin.placements.map(placement => ({ ...placement })),
+            freeRects: bin.freeRects.map(rect => ({ ...rect })),
+            usedLength: bin.usedLength
+        });
+
+        const geometryKey = piece => `${piece.breite.toFixed(9)}:${piece.laenge.toFixed(9)}`;
+
+        const canonicalBinState = bin => bin.placements.map(placement => [
+            placement.x, placement.y, placement.breite, placement.laenge
+        ].map(value => value.toFixed(7)).join(':')).sort().join('|');
+
+        // Zwei Rechtecke teilen eine Rolle genau dann, wenn eine Orientierung sie
+        // nebeneinander oder übereinander unterbringen kann. Das ist ein sicherer
+        // notwendiger Test, den die begrenzte Suche zum frühen Ausschluss nutzt.
+        const canPiecesShareBin = (left, right, rollWidth, maxLaenge, rollLength) =>
+            getPieceOrientations(left, rollWidth, maxLaenge, rollLength).some(leftOrientation =>
+                getPieceOrientations(right, rollWidth, maxLaenge, rollLength).some(rightOrientation =>
+                    leftOrientation.breite + rightOrientation.breite <= rollWidth + EPSILON ||
+                    leftOrientation.laenge + rightOrientation.laenge <= rollLength + EPSILON
+                )
+            );
+
+        const findIncompatibleAnchorClique = (
+            pieces, targetRollCount, rollWidth, maxLaenge, rollLength
+        ) => {
+            if (targetRollCount < 2 || targetRollCount > pieces.length) return null;
+            const anchors = [];
+            const visit = startIndex => {
+                if (anchors.length === targetRollCount) return anchors.slice();
+                for (let index = startIndex; index < pieces.length; index++) {
+                    const candidate = pieces[index];
+                    if (anchors.every(anchor => !canPiecesShareBin(
+                        anchor, candidate, rollWidth, maxLaenge, rollLength
+                    ))) {
+                        anchors.push(candidate);
+                        const result = visit(index + 1);
+                        if (result) return result;
+                        anchors.pop();
+                    }
+                }
+                return null;
+            };
+            return visit(0);
+        };
+
+        // Vollständige MaxRects-Feasibility-Prüfung für die kleinen, durch Anker
+        // erzwungenen Gruppen. Sie liefert nur bei nachgewiesener Unmöglichkeit
+        // false; größere Gruppen bleiben bewusst "unbekannt" und werden gesucht.
+        const canPackSmallGroupInBin = (pieces, rollWidth, maxLaenge, rollLength) => {
+            if (pieces.length > 4) return null;
+            const bin = createMaxRectsBin(rollWidth, rollLength);
+            const memo = new Set();
+            const search = (currentBin, remainingPieces) => {
+                if (remainingPieces.length === 0) return true;
+                const stateKey = `${remainingPieces.map(geometryKey).sort().join(',')}#${canonicalBinState(currentBin)}`;
+                if (memo.has(stateKey)) return false;
+                memo.add(stateKey);
+                const choices = remainingPieces.map(piece => ({
+                    piece,
+                    options: listMaxRectsPlacements(
+                        currentBin, piece, rollWidth, maxLaenge, rollLength, 'strip'
+                    )
+                })).sort((left, right) =>
+                    left.options.length - right.options.length ||
+                    right.piece.breite * right.piece.laenge - left.piece.breite * left.piece.laenge ||
+                    stablePieceCompare(left.piece, right.piece)
+                );
+                if (choices.some(choice => choice.options.length === 0)) return false;
+                const seenGeometries = new Set();
+                for (const choice of choices) {
+                    if (seenGeometries.has(geometryKey(choice.piece))) continue;
+                    seenGeometries.add(geometryKey(choice.piece));
+                    const nextRemaining = remainingPieces.slice();
+                    nextRemaining.splice(nextRemaining.indexOf(choice.piece), 1);
+                    const seenNextStates = new Set();
+                    for (const option of choice.options) {
+                        const nextBin = cloneMaxRectsBin(currentBin);
+                        insertMaxRectsPlacement(nextBin, choice.piece, option);
+                        const nextState = canonicalBinState(nextBin);
+                        if (seenNextStates.has(nextState)) continue;
+                        seenNextStates.add(nextState);
+                        if (search(nextBin, nextRemaining)) return true;
+                    }
+                }
+                return false;
+            };
+            return search(bin, pieces.slice().sort(stablePieceCompare));
+        };
+
+        // Eine Clique mit genau targetRollCount inkompatiblen Ankerteilen belegt
+        // zwangsläufig je eine Rolle. Müssen zwei weitere zueinander inkompatible
+        // Teile beide zum selben Anker, ist die Zielanzahl mathematisch unmöglich.
+        const hasForcedAnchorConflict = (
+            pieces, targetRollCount, rollWidth, maxLaenge, rollLength
+        ) => {
+            if (targetRollCount < 2 || targetRollCount > pieces.length) return false;
+            const anchors = [];
+            const cliqueHasForcedConflict = () => {
+                const forcedByAnchor = anchors.map(() => []);
+                for (const piece of pieces) {
+                    if (anchors.includes(piece)) continue;
+                    const compatibleAnchors = anchors.map((anchor, index) =>
+                        canPiecesShareBin(anchor, piece, rollWidth, maxLaenge, rollLength) ? index : -1
+                    ).filter(index => index >= 0);
+                    if (compatibleAnchors.length === 0) return true;
+                    if (compatibleAnchors.length !== 1) continue;
+                    const forcedPieces = forcedByAnchor[compatibleAnchors[0]];
+                    if (forcedPieces.some(forcedPiece => !canPiecesShareBin(
+                        forcedPiece, piece, rollWidth, maxLaenge, rollLength
+                    ))) return true;
+                    forcedPieces.push(piece);
+                }
+                for (let index = 0; index < anchors.length; index++) {
+                    const forcedGroup = [anchors[index], ...forcedByAnchor[index]];
+                    if (forcedGroup.length > 2 && canPackSmallGroupInBin(
+                        forcedGroup, rollWidth, maxLaenge, rollLength
+                    ) === false) return true;
+                }
+                return false;
+            };
+            const visit = startIndex => {
+                if (anchors.length === targetRollCount) return cliqueHasForcedConflict();
+                for (let index = startIndex; index < pieces.length; index++) {
+                    const candidate = pieces[index];
+                    if (!anchors.every(anchor => !canPiecesShareBin(
+                        anchor, candidate, rollWidth, maxLaenge, rollLength
+                    ))) continue;
+                    anchors.push(candidate);
+                    if (visit(index + 1)) return true;
+                    anchors.pop();
+                }
+                return false;
+            };
+            return visit(0);
+        };
+
+        // Begrenzte Reparatursuche: wird nur bei kleinen Projekten und nur bei einer
+        // nachgewiesenen Lücke zwischen Flächenuntergrenze und Heuristik gestartet.
+        const findBoundedRollCountSolution = (
+            pieces, targetRollCount, rollWidth, maxLaenge, rollLength, searchBudget
+        ) => {
+            const binArea = rollWidth * rollLength;
+            const memo = new Set();
+
+            const search = (bins, remainingPieces) => {
+                if (searchBudget.remaining-- <= 0) return null;
+                if (remainingPieces.length === 0) return bins;
+
+                const remainingArea = remainingPieces.reduce((sum, piece) => sum + piece.breite * piece.laenge, 0);
+                const occupiedArea = bins.reduce((sum, bin) => sum + bin.placements.reduce(
+                    (binSum, placement) => binSum + placement.breite * placement.laenge, 0), 0);
+                const availableArea = targetRollCount * binArea - occupiedArea;
+                if (remainingArea > availableArea + EPSILON) return null;
+
+                const remainingKey = remainingPieces.map(geometryKey).sort().join(',');
+                const binsKey = bins.map(canonicalBinState).sort().join('||');
+                const stateKey = `${remainingKey}#${binsKey}`;
+                if (memo.has(stateKey)) return null;
+                memo.add(stateKey);
+
+                const uniquePieces = [];
+                const seenGeometry = new Set();
+                remainingPieces.slice().sort((left, right) =>
+                    right.breite * right.laenge - left.breite * left.laenge ||
+                    Math.max(right.breite, right.laenge) - Math.max(left.breite, left.laenge) ||
+                    stablePieceCompare(left, right)
+                ).forEach(piece => {
+                    const key = geometryKey(piece);
+                    if (!seenGeometry.has(key)) {
+                        seenGeometry.add(key);
+                        uniquePieces.push(piece);
+                    }
                 });
 
-                // Wenn eine passende Position gefunden wurde
-                if (bestFit) {
-                    const { rohIndex, spaceIndex, orientation } = bestFit;
-                    const rohblech = rohleOptimized[rohIndex];
-                    const space = rohblech.spaces[spaceIndex];
-
-                    // Platzierung des Teils
-                    const placement = {
-                        x: space.x,
-                        y: space.y,
-                        breite: orientation.breite,
-                        laenge: orientation.laenge,
-                        color: piece.color,
-                        bezeichnung: piece.bezeichnung,
-                        materialBezeichnung: piece.materialBezeichnung,
-                        rotated: orientation.rotated
-                    };
-                    rohblech.placements.push(placement);
-
-                    // Entfernen des genutzten Bereichs und Aktualisieren der freien Bereiche
-                    rohblech.spaces.splice(spaceIndex, 1);
-                    
-                    // Wenn noch Platz rechts vom Teil ist, neuen freien Bereich erstellen
-                    if ((space.width - orientation.breite) > 0.01) {
-                        rohblech.spaces.push({
-                            x: space.x + orientation.breite,
-                            y: space.y,
-                            width: space.width - orientation.breite,
-                            height: orientation.laenge
-                        });
+                const choices = uniquePieces.map(piece => {
+                    const options = [];
+                    const seenBinStates = new Set();
+                    bins.forEach((bin, binIndex) => {
+                        const binState = canonicalBinState(bin);
+                        if (seenBinStates.has(binState)) return;
+                        seenBinStates.add(binState);
+                        listMaxRectsPlacements(bin, piece, rollWidth, maxLaenge, rollLength, 'strip')
+                            .forEach(candidate => options.push({ binIndex, candidate, createsBin: false }));
+                    });
+                    if (bins.length < targetRollCount) {
+                        const emptyBin = createMaxRectsBin(rollWidth, rollLength);
+                        listMaxRectsPlacements(emptyBin, piece, rollWidth, maxLaenge, rollLength, 'strip')
+                            .forEach(candidate => options.push({
+                                binIndex: bins.length,
+                                candidate,
+                                createsBin: true
+                            }));
                     }
-                    
-                    // Wenn noch Platz unterhalb des Teils ist, neuen freien Bereich erstellen
-                    if ((space.height - orientation.laenge) > 0.01) {
-                        rohblech.spaces.push({
-                            x: space.x,
-                            y: space.y + orientation.laenge,
-                            width: space.width,
-                            height: space.height - orientation.laenge
-                        });
-                    }
+                    options.sort((left, right) =>
+                        Number(left.createsBin) - Number(right.createsBin) ||
+                        compareNumberArrays(left.candidate.score, right.candidate.score) ||
+                        left.binIndex - right.binIndex);
+                    return { piece, options };
+                }).filter(choice => choice.options.length > 0)
+                    .sort((left, right) =>
+                        left.options.length - right.options.length ||
+                        right.piece.breite * right.piece.laenge - left.piece.breite * left.piece.laenge ||
+                        stablePieceCompare(left.piece, right.piece));
 
-                    // Sortieren der Spaces nach Y-Position für bessere Packdichte
-                    rohblech.spaces.sort((a, b) => a.y - b.y);
-
-                    // Genutzte Länge des Rohblechs aktualisieren
-                    const bottom = placement.y + placement.laenge;
-                    if (bottom > rohblech.usedLength) {
-                        rohblech.usedLength = bottom;
+                if (choices.length === 0) return null;
+                for (const choice of choices) {
+                    const pieceIndex = remainingPieces.indexOf(choice.piece);
+                    const nextRemaining = remainingPieces.slice();
+                    nextRemaining.splice(pieceIndex, 1);
+                    for (const option of choice.options) {
+                        const nextBins = bins.map(cloneMaxRectsBin);
+                        if (option.createsBin) nextBins.push(createMaxRectsBin(rollWidth, rollLength));
+                        insertMaxRectsPlacement(nextBins[option.binIndex], choice.piece, option.candidate);
+                        const result = search(nextBins, nextRemaining);
+                        if (result) return result;
+                        if (searchBudget.remaining <= 0) return null;
                     }
-                } else if (noPlacementPossible) {
-                    // Kein Platz gefunden, neues Rohblech erstellen
-                    currentRohle = createNewRohblech(rollWidth, rollLength, rohleOptimized);
-                    
-                    // Teil wieder in die Liste einfügen
-                    allPieces.unshift(piece);
-                    
-                    // Reset der Flags, um mit dem neuen Rohblech zu versuchen
-                    noPlacementPossible = false;
+                }
+                return null;
+            };
+
+            return search([], pieces.slice().sort(stablePieceCompare));
+        };
+
+        // Funktion zur Durchführung der Optimierung
+        const performOptimization = (cuts, rollWidth, maxLaenge, rollLength) => {
+            if (!Array.isArray(cuts) || cuts.length === 0) throw new Error('Keine Zuschnitte vorhanden');
+            if (!Number.isFinite(rollWidth) || !Number.isFinite(maxLaenge) || !Number.isFinite(rollLength) ||
+                rollWidth <= 0 || maxLaenge <= 0 || rollLength <= 0) {
+                throw new Error('Ungültige Parameter für Optimierung');
+            }
+
+            const pieces = prepareOptimizationPieces(cuts, rollWidth, maxLaenge, rollLength);
+            const heuristics = pieces.length <= 7 || pieces.length > 300 ? ['strip', 'bottom'] :
+                pieces.length > 80 ? ['strip', 'bottom', 'short'] : ['strip', 'bottom', 'area', 'short', 'long'];
+            let bestRohle = null;
+            const evaluateOrder = order => {
+                heuristics.forEach(heuristic => {
+                    const candidate = packPieceOrder(order, rollWidth, maxLaenge, rollLength, heuristic);
+                    if (isBetterSolution(candidate, bestRohle)) bestRohle = candidate;
+                });
+            };
+
+            if (pieces.length <= 7) {
+                forEachUniqueGeometryPermutation(pieces, evaluateOrder);
+            } else {
+                createPieceOrders(pieces, rollWidth).forEach(evaluateOrder);
+            }
+
+            if (pieces.length <= 10 && bestRohle.length > 1) {
+                const totalPieceArea = pieces.reduce((sum, piece) => sum + piece.breite * piece.laenge, 0);
+                const lowerRollBound = Math.max(1, Math.ceil(totalPieceArea / (rollWidth * rollLength) - EPSILON));
+                const searchBudget = { remaining: 60000 };
+                for (let target = lowerRollBound;
+                    target < bestRohle.length && searchBudget.remaining > 0;
+                    target++) {
+                    if (hasForcedAnchorConflict(
+                        pieces, target, rollWidth, maxLaenge, rollLength
+                    )) continue;
+                    const repaired = findBoundedRollCountSolution(
+                        pieces, target, rollWidth, maxLaenge, rollLength, searchBudget
+                    );
+                    if (repaired && isBetterSolution(repaired, bestRohle)) {
+                        bestRohle = repaired;
+                        break;
+                    }
                 }
             }
 
-            // Berechnung des Verschnitts
-            const areas = calculateAreas(rohleOptimized, rollWidth);
-
-            return { 
-                rohle: rohleOptimized, 
-                totalWasteArea: areas.totalWasteArea, 
+            bestRohle.forEach(bin => {
+                bin.spaces = buildVisualizationSpaces(bin.placements, bin.width, bin.usedLength, bin.length);
+                delete bin.freeRects;
+            });
+            const areas = calculateAreas(bestRohle, rollWidth);
+            return {
+                rohle: bestRohle,
+                totalWasteArea: areas.totalWasteArea,
                 totalUsedArea: areas.totalUsedArea,
-                totalConsumedArea: areas.totalConsumedArea 
+                totalConsumedArea: areas.totalConsumedArea
             };
         };
 
