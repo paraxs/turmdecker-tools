@@ -40,6 +40,7 @@
       --warn-bg: rgba(250,204,21,.16);
       --danger-bg: rgba(251,113,133,.18);
       --info-bg: rgba(14,165,233,.16);
+      --review-bg: rgba(167,139,250,.18);
     }
 
     * { box-sizing: border-box; }
@@ -216,6 +217,34 @@
       letter-spacing: -.01em;
     }
 
+    .view-mode {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .view-mode button {
+      min-width: 0;
+    }
+
+    .view-mode button[aria-pressed="true"] {
+      background: var(--accent);
+      color: #171204;
+      border-color: transparent;
+    }
+
+    .view-mode-hint {
+      margin: 0 0 14px;
+      color: var(--muted);
+      font-size: .82rem;
+      line-height: 1.4;
+    }
+
+    .project-actions {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .badge {
       padding: 7px 10px;
       border-radius: 999px;
@@ -243,6 +272,9 @@
       font-weight: 900;
       color: #f8fafc;
       list-style-position: outside;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
       padding: 2px 0;
     }
 
@@ -251,6 +283,7 @@
 
     @media (max-width: 440px) {
       .cols { grid-template-columns: 1fr; }
+      .quick-buttons.profile-actions { grid-template-columns: 1fr; }
     }
 
     label {
@@ -260,6 +293,8 @@
       font-size: .84rem;
       font-weight: 850;
     }
+
+    [hidden] { display: none !important; }
 
     input,
     select {
@@ -314,10 +349,13 @@
       border: 0;
       border-radius: 15px;
       padding: 12px 10px;
+      min-height: 46px;
+      min-width: 0;
       cursor: pointer;
       font-weight: 950;
       color: #171204;
       background: var(--accent);
+      overflow-wrap: anywhere;
     }
 
     button.secondary {
@@ -378,6 +416,8 @@
     }
 
     .pill.ok { background: var(--green); color: #03170d; border-color: transparent; }
+    .pill.info { background: var(--blue); color: #03121a; border-color: transparent; }
+    .pill.review { background: var(--violet); color: #160b2e; border-color: transparent; }
     .pill.warn { background: var(--warn); color: #171204; border-color: transparent; }
     .pill.danger { background: var(--danger); color: #240007; border-color: transparent; }
 
@@ -461,6 +501,28 @@
       grid-column: 1 / -1;
     }
 
+    .table-scroll {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-scroll table {
+      min-width: 620px;
+    }
+
+    .result-details {
+      margin-top: 12px;
+    }
+
+    .result-details summary {
+      color: var(--muted);
+      font-size: .88rem;
+    }
+
+    .result-details .result-grid {
+      margin-top: 10px;
+    }
+
     .norm-list {
       display: grid;
       gap: 9px;
@@ -478,6 +540,7 @@
     }
 
     .norm-item.ok { border-left-color: var(--green); background: var(--good-bg); }
+    .norm-item.review { border-left-color: var(--violet); background: var(--review-bg); }
     .norm-item.warn { border-left-color: var(--warn); background: var(--warn-bg); }
     .norm-item.danger { border-left-color: var(--danger); background: var(--danger-bg); }
 
@@ -514,17 +577,20 @@
       line-height: 1.45;
     }
 
-    .print-title { display: none; }
+    .print-title,
+    .print-meta,
+    .print-sheet,
+    .print-status-section { display: none; }
 
     @page {
-      size: A4 landscape;
-      margin: 8mm;
+      size: A4 portrait;
+      margin: 10mm 9mm;
     }
 
     @media print {
       html, body {
-        width: 297mm;
-        min-height: 210mm;
+        width: auto;
+        min-height: auto;
         background: #fff !important;
         color: #000 !important;
         -webkit-print-color-adjust: exact;
@@ -537,7 +603,11 @@
       .controls,
       .toolbar,
       .button-row,
-      .hint {
+      .hint,
+      .visual > .result-grid,
+      .result-details,
+      #screenNormBlock,
+      #quantityBlock {
         display: none !important;
       }
 
@@ -560,53 +630,177 @@
       .print-title {
         display: block;
         color: #111827;
-        font-size: 14pt;
+        font-size: 15pt;
         font-weight: 950;
-        margin: 0 0 4mm;
+        line-height: 1.15;
+        margin: 0 0 1.5mm;
+        break-after: avoid;
+      }
+
+      .print-meta {
+        display: block;
+        color: #4b5563;
+        font-size: 8pt;
+        margin: 0 0 3mm;
+        break-after: avoid;
+      }
+
+      .print-sheet,
+      .print-status-section {
+        display: block;
+        color: #111827;
+      }
+
+      .print-context {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5mm 3mm;
+        padding: 2.5mm 3mm;
+        border: 1px solid #94a3b8;
+        background: #f8fafc !important;
+        font-size: 7.5pt;
+        break-inside: avoid;
+      }
+
+      .print-context-item {
+        min-width: 0;
+      }
+
+      .print-context-item span {
+        display: block;
+        color: #64748b;
+        font-size: 6.6pt;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: .03em;
+      }
+
+      .print-context-item strong {
+        display: block;
+        margin-top: .4mm;
+        color: #0f172a;
+        font-size: 7.7pt;
+        line-height: 1.2;
+        overflow-wrap: anywhere;
+      }
+
+      .print-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 2.5mm;
+        margin-top: 3mm;
+      }
+
+      .print-section {
+        min-width: 0;
+        padding: 2.5mm 3mm;
+        border: 1px solid #cbd5e1;
+        break-inside: avoid;
+      }
+
+      .print-section h3,
+      .print-status-section h3 {
+        margin: 0 0 1.5mm;
+        color: #0f172a;
+        font-size: 9pt;
+        line-height: 1.15;
+        break-after: avoid;
+      }
+
+      .print-data {
+        display: grid;
+        grid-template-columns: minmax(0, 43%) minmax(0, 57%);
+        margin: 0;
+        font-size: 7.2pt;
+        line-height: 1.25;
+      }
+
+      .print-data dt,
+      .print-data dd {
+        min-width: 0;
+        margin: 0;
+        padding: .55mm 0;
+        border-top: 1px solid #e2e8f0;
+        overflow-wrap: anywhere;
+      }
+
+      .print-data dt {
+        padding-right: 2mm;
+        color: #475569;
+        font-weight: 700;
+      }
+
+      .print-data dd {
+        color: #0f172a;
+        font-weight: 800;
+      }
+
+      .print-review { color: #6d28d9 !important; }
+      .print-warning { color: #a16207 !important; }
+      .print-error { color: #be123c !important; }
+
+      .print-status-section {
+        break-before: page;
+        margin-top: 0;
+      }
+
+      .print-status-list {
+        display: grid;
+        gap: 1.6mm;
+        break-inside: avoid;
+      }
+
+      .print-status-item {
+        padding: 1.5mm 2mm;
+        border: 1px solid #d1d5db;
+        border-left: 3px solid #64748b;
+        font-size: 7.5pt;
+        line-height: 1.3;
+        break-inside: avoid;
+      }
+
+      .print-status-item strong {
+        display: inline-block;
+        min-width: 18mm;
+      }
+
+      .print-status-item.danger { border-left-color: #be123c; }
+      .print-status-item.warn { border-left-color: #a16207; }
+      .print-status-item.review { border-left-color: #6d28d9; }
+      .print-status-item.info { border-left-color: #0369a1; }
+
+      .print-disclaimer {
+        margin: 2mm 0 0;
+        color: #475569;
+        font-size: 6.8pt;
+        line-height: 1.3;
       }
 
       .drawing-wrap {
+        margin-top: 3mm;
         padding: 0;
         border-radius: 0;
         box-shadow: none;
         overflow: visible;
         background: #fff !important;
+        break-inside: avoid;
       }
 
       svg {
-        width: 100%;
+        width: auto;
         min-width: 0 !important;
-        max-height: 118mm;
+        height: auto;
+        max-width: 100%;
+        max-height: 104mm;
+        margin: 0 auto;
       }
 
-      .result-grid {
-        grid-template-columns: repeat(5, 1fr);
-        gap: 3mm;
-        margin-top: 4mm;
-        page-break-inside: avoid;
-      }
-
-      .result {
-        background: #fff !important;
-        border: 1px solid #cbd5e1 !important;
-        border-radius: 3mm;
-        padding: 2.6mm;
-        color: #0f172a !important;
-      }
-
-      .result small {
-        color: #475569 !important;
-        font-size: 7.8pt;
-      }
-
-      .result strong {
-        color: #000 !important;
-        font-size: 12.5pt;
+      .table-scroll table {
+        min-width: 0;
       }
 
       .blocks {
-        grid-template-columns: 1fr 1fr;
-        gap: 4mm;
+        display: block;
         margin-top: 4mm;
       }
 
@@ -624,6 +818,26 @@
       .tablebox.full {
         grid-column: auto;
       }
+
+      #scharBlock {
+        display: block;
+        padding: 0;
+        border: 0 !important;
+        break-inside: auto;
+      }
+
+      #scharBlock th,
+      #scharBlock td {
+        overflow-wrap: anywhere;
+        white-space: normal;
+      }
+
+      #scharBlock th:nth-child(1), #scharBlock td:nth-child(1) { width: 13%; }
+      #scharBlock th:nth-child(2), #scharBlock td:nth-child(2) { width: 8%; }
+      #scharBlock th:nth-child(3), #scharBlock td:nth-child(3) { width: 18%; }
+      #scharBlock th:nth-child(4), #scharBlock td:nth-child(4) { width: 19%; }
+      #scharBlock th:nth-child(5), #scharBlock td:nth-child(5) { width: 17%; }
+      #scharBlock th:nth-child(6), #scharBlock td:nth-child(6) { width: 25%; }
 
       .block-title {
         color: #0f172a !important;
@@ -645,7 +859,8 @@
 
       table {
         color: #111827 !important;
-        font-size: 7.4pt;
+        font-size: 7.1pt;
+        table-layout: fixed;
       }
 
       th, td {
@@ -656,6 +871,17 @@
       th {
         color: #111827 !important;
         background: #eef2f7 !important;
+        font-size: 6.5pt;
+        line-height: 1.15;
+      }
+
+      thead {
+        display: table-header-group;
+      }
+
+      tr {
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
 
       .footer-note {
@@ -691,11 +917,46 @@
     <aside class="panel controls">
       <div class="head">
         <h2>Eingaben</h2>
-        <span class="badge">Profi v2</span>
+        <span class="badge" id="appVersionBadge"></span>
       </div>
 
+      <div class="view-mode" role="group" aria-label="Eingabeansicht">
+        <button id="quickModeBtn" type="button" aria-pressed="true">Schnellansicht</button>
+        <button id="proModeBtn" class="secondary" type="button" aria-pressed="false">Profimodus</button>
+      </div>
+      <p id="inputViewHint" class="view-mode-hint">Schnellansicht: Dach, Werkstoff, Profil und Einteilung. Erweiterte Regel- und Projektdaten sind im Profimodus erreichbar.</p>
+
       <details class="input-group" open>
-        <summary>1. Dachfläche und Einteilung</summary>
+        <summary>Projektverwaltung</summary>
+        <div class="grid">
+          <label>Projektname
+            <input id="projectName" type="text" maxlength="120" placeholder="z. B. Werkhalle Nord" />
+          </label>
+
+          <label>Gespeichertes Projekt
+            <select id="projectSelect">
+              <option value="" selected>– Projekt auswählen –</option>
+            </select>
+          </label>
+
+          <div class="quick-buttons project-actions">
+            <button id="projectNewBtn" class="secondary" type="button">Neues Projekt</button>
+            <button id="projectSaveBtn" type="button">Speichern</button>
+            <button id="projectLoadBtn" class="secondary" type="button" disabled>Laden</button>
+            <button id="projectDeleteBtn" class="secondary" type="button" disabled>Löschen</button>
+            <button id="projectExportBtn" class="secondary" type="button">JSON exportieren</button>
+            <button id="projectImportBtn" class="secondary" type="button">JSON importieren</button>
+          </div>
+
+          <input id="projectImportFile" type="file" accept=".json,application/json" hidden />
+          <div id="projectStatus" class="norm-item" role="status" aria-live="polite">
+            INFO: Projekte werden nur lokal im Browser oder als JSON-Datei gespeichert.
+          </div>
+        </div>
+      </details>
+
+      <details class="input-group" open>
+        <summary>1. Dach, Werkstoff und Einteilung</summary>
         <div class="grid">
           <div class="cols">
             <label>Dachbreite / Traufe in m
@@ -713,7 +974,43 @@
             <label>Einteilung
               <select id="mode">
                 <option value="sym" selected>Symmetrische Passscharen links/rechts</option>
-                <option value="max">Maximal viele Standardscharen, Rest prüfen</option>
+                <option value="asym">Asymmetrische Randscharen</option>
+                <option value="optimize">Automatische Optimierung</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Randschar links sichtbar in mm (optional)
+              <input id="leftEdgeWidth" type="number" min="0" step="0.1" placeholder="nicht vorgegeben" />
+            </label>
+            <label>Randschar rechts sichtbar in mm (optional)
+              <input id="rightEdgeWidth" type="number" min="0" step="0.1" placeholder="nicht vorgegeben" />
+            </label>
+          </div>
+
+          <label id="optimizationGoalRow" hidden>Optimierungsziel
+            <select id="optimizationGoal">
+              <option value="symmetry" selected>Gleiche Randscharen</option>
+              <option value="largeEdges">Größtmögliche minimale Randschar</option>
+              <option value="waste">Geringer Verschnitt</option>
+              <option value="fewSizes">Wenige Sondermaße</option>
+            </select>
+          </label>
+
+          <div class="cols">
+            <label>Werkstoff
+              <select id="material">
+                <option value="steel">Stahl verzinkt / beschichtet</option>
+                <option value="zinc">Titanzink / Zinkblech</option>
+                <option value="copper">Kupferblech</option>
+                <option value="alu">Aluminiumblech</option>
+                <option value="stainless">Edelstahl</option>
+              </select>
+            </label>
+            <label>Profil
+              <select id="profileSelect">
+                <option value="" selected>Freie Eingabe (kein Profil geladen)</option>
               </select>
             </label>
           </div>
@@ -722,52 +1019,103 @@
             <label>Coilbreite in mm
               <input id="coilWidth" type="number" min="100" step="1" value="670" />
             </label>
-            <label>Standard-Achsmaß in mm
+            <label>Legacy-Layoutbreite in mm
               <input id="axisWidth" type="number" min="80" step="1" value="590" />
             </label>
           </div>
 
-          <div class="cols">
-            <label>Falzverlust / Profilzugabe in mm
-              <input id="profileAllowance" type="number" min="0" step="1" value="80" />
-            </label>
-            <label>Mindest-Passschar sichtbar in mm
-              <input id="minPassVisible" type="number" min="0" step="1" value="180" />
-            </label>
-          </div>
+          <div class="grid" data-view="pro">
+            <div class="cols">
+              <label>Gesamt-Falzzugabe / Profilverlust in mm
+                <input id="profileAllowance" type="number" min="0" step="1" value="80" />
+              </label>
+              <label>Mindest-Passschar sichtbar in mm
+                <input id="minPassVisible" type="number" min="0" step="1" value="180" />
+              </label>
+            </div>
 
-          <div class="cols">
-            <label>Falzluft zwischen Scharen in mm
-              <input id="jointGap" type="number" min="0" step="0.1" value="2" />
-            </label>
-            <label>Schnittfuge bei Passschar-Teilung in mm
-              <input id="cutGap" type="number" min="0" step="0.1" value="3" />
-            </label>
-          </div>
+            <div class="cols">
+              <label>Falzluft zwischen Scharen in mm
+                <input id="jointGap" type="number" min="0" step="0.1" value="2" />
+              </label>
+              <label>Schnittfuge bei Passschar-Teilung in mm
+                <input id="cutGap" type="number" min="0" step="0.1" value="3" />
+              </label>
+            </div>
 
-          <div class="quick-buttons">
-            <button class="secondary mini" type="button" data-gap="1">Sommer 1 mm</button>
-            <button class="secondary mini" type="button" data-gap="2">Standard 2 mm</button>
-            <button class="secondary mini" type="button" data-gap="3">Kalt 3 mm</button>
-          </div>
+            <div class="quick-buttons">
+              <button class="secondary mini" type="button" data-gap="1">Sommer 1 mm</button>
+              <button class="secondary mini" type="button" data-gap="2">Standard 2 mm</button>
+              <button class="secondary mini" type="button" data-gap="3">Kalt 3 mm</button>
+            </div>
 
-          <button id="syncProfileBtn" class="secondary" type="button">Falzverlust = Coil − Achsmaß</button>
+            <button id="syncProfileBtn" class="secondary" type="button">Gesamt-Falzzugabe = Coil − Legacy-Layoutbreite</button>
+          </div>
         </div>
       </details>
 
-      <details class="input-group" open>
-        <summary>2. Material und Normprüfung</summary>
+      <details class="input-group" data-view="pro">
+        <summary>Maschinen-/Profilprofile</summary>
         <div class="grid">
+          <label>Profilname
+            <input id="profileName" type="text" maxlength="100" placeholder="Eigenes Profil" />
+          </label>
+
           <div class="cols">
-            <label>Material
-              <select id="material">
-                <option value="steel">Stahl verzinkt / beschichtet</option>
-                <option value="zinc">Titanzink / Zinkblech</option>
-                <option value="copper">Kupferblech</option>
-                <option value="alu">Aluminiumblech / PREFALZ</option>
-                <option value="stainless">Edelstahl</option>
+            <label>Unterfalz-Zugabe in mm
+              <input id="profileUnderSeamAllowance" type="number" min="0" step="0.1" placeholder="offen" />
+            </label>
+            <label>Überfalz-Zugabe in mm
+              <input id="profileOverSeamAllowance" type="number" min="0" step="0.1" placeholder="offen" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Scharenbreite in mm
+              <input id="profileScharWidth" type="number" min="0.1" step="0.1" placeholder="offen" />
+            </label>
+            <label>Achs-/Verlegemaß in mm
+              <input id="profileAxisMeasure" type="number" min="0.1" step="0.1" placeholder="offen" />
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Verlege-/Dehnungsfuge in mm
+              <input id="profileInstallationGap" type="number" min="0" step="0.1" placeholder="offen" />
+            </label>
+            <label>Fugenwirkung
+              <select id="profileGapMode">
+                <option value="unknown" selected>unknown — offen</option>
+                <option value="included">included — im Maß enthalten</option>
+                <option value="separate">separate — separat gerechnet</option>
               </select>
             </label>
+          </div>
+
+          <label>Profiliermaschine / System
+            <input id="profileMachineSystem" type="text" maxlength="250" placeholder="offen" />
+          </label>
+
+          <label>Quelle / Freigabestatus
+            <input id="profileSourceStatus" type="text" maxlength="250" placeholder="offen" />
+          </label>
+
+          <div class="quick-buttons profile-actions">
+            <button id="profileSaveBtn" type="button">Neu speichern</button>
+            <button id="profileUpdateBtn" class="secondary" type="button" disabled>Aktualisieren</button>
+            <button id="profileDeleteBtn" class="secondary" type="button" disabled>Löschen</button>
+          </div>
+
+          <div id="profileStatus" class="norm-item" role="status" aria-live="polite">
+            INFO: Freie Eingabe aktiv. Coilbreite und Gesamt-Falzzugabe aus Abschnitt 1 werden beim Speichern übernommen.
+          </div>
+        </div>
+      </details>
+
+      <details class="input-group" data-view="pro">
+        <summary>2. Regel-, System- und Projektdaten</summary>
+        <div class="grid">
+          <div class="cols">
             <label>Blechdicke in mm
               <input id="sheetThickness" type="number" min="0.1" step="0.05" value="0.70" />
             </label>
@@ -784,10 +1132,24 @@
             </label>
             <label>Prüfmodus Scharenbreite
               <select id="normRegime">
-                <option value="at2026" selected>AT aktuell: ÖNORM B 3521:2026 – 430 mm Warnlimit</option>
-                <option value="legacy">Alt/Fachregel 2012/2014 – vereinfachte Tabelle</option>
-                <option value="custom">Projekt-/Herstellerwert manuell</option>
+                <option value="at2026" selected>ÖNORM B 3521:2026 – Standardprüfung</option>
+                <option value="system">Hersteller-/Systemprüfung</option>
+                <option value="project">Projekt-/Sondernachweis</option>
               </select>
+            </label>
+          </div>
+
+          <div class="cols">
+            <label>Hersteller-/Systemauswahl
+              <select id="systemKey">
+                <option value="none" selected>Kein System gewählt</option>
+                <option value="prefalz">PREFALZ</option>
+                <option value="rheinzink">RHEINZINK Doppelstehfalz</option>
+                <option value="other">anderes / projektbezogen</option>
+              </select>
+            </label>
+            <label>Projekt-Grenzwert Scharenbreite in mm
+              <input id="projectMaxScharWidth" type="number" min="100" step="1" value="600" />
             </label>
           </div>
 
@@ -814,43 +1176,73 @@
                 <option value="no">ohne Unterdach / Trennlage</option>
               </select>
             </label>
-            <label>Manuelles Max-Achsmaß in mm
-              <input id="customMaxAxis" type="number" min="100" step="1" value="600" />
-            </label>
           </div>
 
-          <label class="check-row">
-            <input id="strictWarnings" type="checkbox" checked />
-            Aktuelle Norm-/Plausibilitätswarnungen deutlich markieren
-          </label>
         </div>
       </details>
 
-      <details class="input-group" open>
+      <details class="input-group" data-view="pro">
         <summary>3. Bestellung, Hafte und Falzgel</summary>
         <div class="grid">
           <div class="cols">
             <label>Zugabe Traufe + First je Schar in mm
               <input id="lengthAllowance" type="number" min="0" step="10" value="300" />
             </label>
-            <label>Verschnitt / Reserve in %
+            <label>Bestellreserve in %
               <input id="wastePercent" type="number" min="0" step="0.5" value="5" />
             </label>
           </div>
 
           <div class="cols">
-            <label>Haftabstand Regelbereich in mm
+            <label>Haftbemessungsmodus
+              <select id="clipMode">
+                <option value="legacy" selected>Legacy / Orientierung</option>
+                <option value="project">Projekt-/Bemessungswerte</option>
+              </select>
+            </label>
+            <label id="legacyClipSpacingLabel">Legacy-Haftabstand Regelbereich in mm
               <input id="clipSpacing" type="number" min="100" step="10" value="500" />
             </label>
-            <label>Festhaftbereich in m
-              <input id="fixedZoneM" type="number" min="1" max="3" step="0.1" value="2.0" />
+          </div>
+
+          <div id="projectClipInputs" class="grid" hidden>
+            <div class="cols">
+              <label>Erforderliche Hafte/m² Normalbereich
+                <input id="projectClipsPerM2Regular" type="number" min="0.1" step="0.1" placeholder="aus Bemessung" />
+              </label>
+              <label>Erforderliche Hafte/m² Randbereich
+                <input id="projectClipsPerM2Edge" type="number" min="0.1" step="0.1" placeholder="aus Bemessung" />
+              </label>
+            </div>
+
+            <div class="cols">
+              <label>Gewünschter/maximaler Haftabstand in mm (optional)
+                <input id="projectMaxClipSpacing" type="number" min="1" step="1" placeholder="offen" />
+              </label>
+              <label>Befestigungsmittel je Haft (manuell)
+                <input id="fastenersPerClip" type="number" min="1" step="1" placeholder="aus System-/Projektnachweis" />
+              </label>
+            </div>
+
+            <label>Untergrund
+              <select id="substrate">
+                <option value="unknown" selected>nicht festgelegt</option>
+                <option value="wood">Holz / Vollschalung</option>
+                <option value="other">anderer Untergrund</option>
+              </select>
             </label>
           </div>
 
           <div class="cols">
+            <label>Festhaftbereich in m
+              <input id="fixedZoneM" type="number" min="1" max="3" step="0.1" value="2.0" />
+            </label>
             <label>Rand-/Sicherheitszuschlag Hafte in %
               <input id="clipExtraPercent" type="number" min="0" step="1" value="10" />
             </label>
+          </div>
+
+          <div class="cols">
             <label>Temperaturspanne ΔT für Dehnung in K
               <input id="tempDeltaK" type="number" min="0" step="5" value="80" />
             </label>
@@ -889,8 +1281,7 @@
       </div>
 
       <div class="hint">
-        <strong>Wichtig:</strong> Die 2-mm-Falzluft wird als echte Zwischenfuge gerechnet.
-        Bei 23 Scharen gibt es 22 Fugen. Der Materialbedarf optimiert zusätzlich, ob beide Passscharen aus einer Coil-Länge geschnitten werden können.
+        <strong>Wichtig:</strong> Die Legacy-Layoutrechnung führt die eingestellte Falzluft weiterhin separat. Ob sie im späteren Achs-/Deckmaß enthalten ist, bleibt fachlich PRUEFUNG. Passschar-Zuschnittbreiten und Verschnitt werden ohne definiertes Randdetail nur als transparenter Legacy-Mengenansatz ausgewiesen; es wird keine Anschlusszugabe erfunden. Haft- und Befestigerwerte im Legacy-Modus dienen ausschließlich der Orientierung und sind keine aktuelle ÖNORM- oder Systemfreigabe.
       </div>
     </aside>
 
@@ -900,27 +1291,49 @@
         <div class="pills" id="statusPills"></div>
       </div>
 
-      <h2 class="print-title">Dach-Einteilung Doppelstehfalz – Ergebnisblatt</h2>
+      <h2 class="print-title" id="printTitle"></h2>
+      <p class="print-meta" id="printMeta"></p>
+
+      <section class="print-sheet" aria-label="Technische Projektdaten">
+        <div class="print-context" id="printContext"></div>
+        <div class="print-summary-grid" id="printSummary"></div>
+      </section>
 
       <div class="drawing-wrap">
         <svg id="roofSvg" viewBox="0 0 1500 920" role="img" aria-label="Dynamische Dach-Einteilung Doppelstehfalz"></svg>
       </div>
 
+      <section class="print-status-section" aria-label="Regel- und Prüfstatus">
+        <h3>Regel- und Prüfstatus</h3>
+        <div class="print-status-list" id="printStatusList"></div>
+        <p class="print-disclaimer">Das Tool ersetzt keine objektbezogene Windlastbemessung, aktuelle Normprüfung oder Herstellerfreigabe. Offene Fachangaben bleiben als PRUEFUNG gekennzeichnet.</p>
+      </section>
+
       <div class="result-grid">
         <div class="result"><small>Scharen gesamt</small><strong id="rTotal">–</strong></div>
         <div class="result"><small>Standardscharen</small><strong id="rFull">–</strong></div>
         <div class="result"><small>Passschar links/rechts</small><strong id="rSide">–</strong></div>
-        <div class="result"><small>Falzluft gesamt</small><strong id="rGap">–</strong></div>
-        <div class="result"><small>Bestellmenge Coil</small><strong id="rOrderLm">–</strong></div>
-        <div class="result"><small>Rohblechfläche / Gewicht</small><strong id="rAreaWeight">–</strong></div>
-        <div class="result"><small>Hafte gesamt</small><strong id="rClips">–</strong></div>
-        <div class="result"><small>Fest-/Schiebehafte</small><strong id="rClipSplit">–</strong></div>
-        <div class="result"><small>Befestigungsmittel</small><strong id="rFasteners">–</strong></div>
-        <div class="result"><small>Falzgel ca.</small><strong id="rSealant">–</strong></div>
+        <div class="result"><small>Netto + Reserve = Bestellung</small><strong id="rOrderLm">–</strong></div>
+        <div class="result"><small>Rohblech Bestellung / Gewicht</small><strong id="rAreaWeight">–</strong></div>
       </div>
 
+      <details class="result-details">
+        <summary>Weitere Mengen- und Ausführungsdetails</summary>
+        <div class="result-grid">
+        <div class="result"><small>Falzluft gesamt</small><strong id="rGap">–</strong></div>
+        <div class="result"><small>Zuschnittverschnitt (Legacy)</small><strong id="rWaste">–</strong></div>
+        <div class="result"><small>Hafte gesamt</small><strong id="rClips">–</strong></div>
+        <div class="result"><small>Fest-/Schiebehafte</small><strong id="rClipSplit">–</strong></div>
+        <div class="result"><small>Verwendeter Haftabstand</small><strong id="rClipSpacing">–</strong></div>
+        <div class="result"><small>Haftquelle / Modus</small><strong id="rClipSource">–</strong></div>
+        <div class="result"><small>Befestiger je Haft</small><strong id="rFastenersPerClip">–</strong></div>
+        <div class="result"><small>Befestiger gesamt</small><strong id="rFasteners">–</strong></div>
+        <div class="result"><small>Falzgel ca.</small><strong id="rSealant">–</strong></div>
+        </div>
+      </details>
+
       <div class="blocks">
-        <div class="normbox">
+        <div class="normbox" id="screenNormBlock">
           <h3 class="block-title">Ausführungs- und Normhinweise</h3>
           <div id="normList" class="norm-list"></div>
           <p class="footer-note">
@@ -929,28 +1342,32 @@
           </p>
         </div>
 
-        <div class="tablebox">
+        <div class="tablebox" id="quantityBlock">
           <h3 class="block-title">Material- und Mengenblatt</h3>
-          <table>
-            <tbody id="quantityTable"></tbody>
-          </table>
+          <div class="table-scroll">
+            <table>
+              <tbody id="quantityTable"></tbody>
+            </table>
+          </div>
         </div>
 
-        <div class="tablebox full">
+        <div class="tablebox full" id="scharBlock">
           <h3 class="block-title">Scharenliste</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Typ</th>
-                <th class="num">Anzahl</th>
-                <th class="num">Achsmaß sichtbar</th>
-                <th class="num">Rohbreite ca.</th>
-                <th class="num">Länge je Schar inkl. Zugabe</th>
-                <th>Bestelllogik</th>
-              </tr>
-            </thead>
-            <tbody id="scharTable"></tbody>
-          </table>
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Typ</th>
+                  <th class="num">Anzahl</th>
+                  <th class="num">Geometrische Breite sichtbar</th>
+                  <th class="num">Zuschnittbreite / Status</th>
+                  <th class="num">Länge je Schar inkl. Zugabe</th>
+                  <th>Bestelllogik</th>
+                </tr>
+              </thead>
+              <tbody id="scharTable"></tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
@@ -959,70 +1376,1153 @@
   <script>
   "use strict";
 
+  const APP_META = {
+    name: "Dach-Einteilung Doppelstehfalz",
+    version: "2.1.0",
+    ruleRevision: "3 — Regelregime und Projektprofil 670/590",
+    ruleVerified: "2026-08-31"
+  };
+
   const $ = (id) => document.getElementById(id);
 
+  function applyAppMeta() {
+    document.title = "Dach-Einteilung Doppelstehfalz | Turmdecker Tools";
+    $("appVersionBadge").textContent = `v${APP_META.version}`;
+    $("printTitle").textContent = `${APP_META.name} – Ergebnisblatt v${APP_META.version}`;
+    $("printMeta").textContent = `App-Version: ${APP_META.version} · Regelstand: ${APP_META.ruleRevision} · Regelprüfung: ${APP_META.ruleVerified}`;
+  }
+
   const MATERIALS = {
-    steel: {
-      label: "Stahl verzinkt / beschichtet",
-      short: "Stahl",
-      group: "cuznfe",
-      density: 7850,
-      defaultThickness: 0.70,
-      slideFromM: 6,
-      maxLengthM: 14,
-      alpha: 12,
-      color: "#475569",
-      minThickness: { h8: 0.55, h20: 0.55, h40: 0.55, h100: 0.60 }
-    },
-    zinc: {
-      label: "Titanzink / Zinkblech",
-      short: "Titanzink",
-      group: "cuznfe",
-      density: 7200,
-      defaultThickness: 0.70,
-      slideFromM: 3,
-      maxLengthM: 10,
-      alpha: 22,
-      color: "#7c8794",
-      minThickness: { h8: 0.70, h20: 0.70, h40: 0.70, h100: 0.80 }
-    },
     copper: {
+      key: "copper",
       label: "Kupferblech",
       short: "Kupfer",
-      group: "cuznfe",
-      density: 8930,
       defaultThickness: 0.60,
-      slideFromM: 3,
-      maxLengthM: 10,
-      alpha: 17,
-      color: "#b76e3c",
-      minThickness: { h8: 0.60, h20: 0.60, h40: 0.70, h100: 0.70 }
+      defaultThicknessStatus: "legacy_ui_default",
+      density: 8930,
+      thermalExpansion: 17,
+      source: "KME / TECU Architektur-Kupfer",
+      sourceDate: null,
+      status: "verified",
+      color: "#b76e3c"
     },
-    alu: {
-      label: "Aluminiumblech / PREFALZ",
+    aluminium: {
+      key: "aluminium",
+      label: "Aluminiumblech",
       short: "Alu",
-      group: "alunrs",
-      density: 2700,
       defaultThickness: 0.70,
-      slideFromM: 3,
-      maxLengthM: 12,
-      alpha: 24,
-      color: "#a3acb8",
-      minThickness: { h8: 0.70, h20: 0.70, h40: 0.70, h100: 1.00 }
+      defaultThicknessStatus: "legacy_ui_default",
+      density: 2700,
+      thermalExpansion: 23.1,
+      source: "PREFA EPD für Aluminiumblech; nur physikalische Referenz, kein PREFALZ-System",
+      sourceDate: null,
+      status: "verified_reference",
+      color: "#a3acb8"
     },
-    stainless: {
+    titaniumZinc: {
+      key: "titaniumZinc",
+      label: "Titanzink / Zinkblech",
+      short: "Titanzink",
+      defaultThickness: 0.70,
+      defaultThicknessStatus: "legacy_ui_default",
+      density: 7200,
+      thermalExpansion: 22,
+      source: "VMZINC / Titanzink nach EN-988-Kontext",
+      sourceDate: null,
+      status: "verified",
+      color: "#7c8794"
+    },
+    stainlessSteel: {
+      key: "stainlessSteel",
       label: "Edelstahl",
       short: "Edelstahl",
-      group: "alunrs",
-      density: 7900,
       defaultThickness: 0.50,
-      slideFromM: 6,
-      maxLengthM: 10,
-      alpha: 16,
-      color: "#7b8490",
-      minThickness: { h8: 0.40, h20: 0.40, h40: 0.50, h100: 0.50 }
+      defaultThicknessStatus: "legacy_ui_default",
+      density: 7900,
+      thermalExpansion: 16,
+      source: "Dichte ROOFINOX HFX EPD plus generische Architektur-Referenz für Edelstahl im Dach-/Fassadenbereich; keine ROOFINOX-Systemaktivierung",
+      sourceDate: null,
+      status: "reference_generic",
+      color: "#7b8490"
+    },
+    galvanizedSteel: {
+      key: "galvanizedSteel",
+      label: "Stahl verzinkt / beschichtet",
+      short: "Stahl",
+      defaultThickness: 0.70,
+      defaultThicknessStatus: "legacy_ui_default",
+      density: 7850,
+      thermalExpansion: 12,
+      source: "Stahlbasis; Beschichtungsmassen werden nicht separat gerechnet",
+      sourceDate: null,
+      status: "engineering_reference",
+      color: "#475569"
     }
   };
+
+  const LEGACY_MATERIAL_KEYS = {
+    steel: "galvanizedSteel",
+    zinc: "titaniumZinc",
+    copper: "copper",
+    alu: "aluminium",
+    stainless: "stainlessSteel"
+  };
+
+  const LEGACY_MATERIAL_RULES = {
+    copper: {
+      group: "cuznfe",
+      slideFromM: 3,
+      maxLengthM: 10,
+      minThickness: { h8: 0.60, h20: 0.60, h40: 0.70, h100: 0.70 },
+      status: "legacy"
+    },
+    aluminium: {
+      group: "alunrs",
+      slideFromM: 3,
+      maxLengthM: 12,
+      minThickness: { h8: 0.70, h20: 0.70, h40: 0.70, h100: 1.00 },
+      status: "legacy"
+    },
+    titaniumZinc: {
+      group: "cuznfe",
+      slideFromM: 3,
+      maxLengthM: 10,
+      minThickness: { h8: 0.70, h20: 0.70, h40: 0.70, h100: 0.80 },
+      status: "legacy"
+    },
+    stainlessSteel: {
+      group: "alunrs",
+      slideFromM: 6,
+      maxLengthM: 10,
+      minThickness: { h8: 0.40, h20: 0.40, h40: 0.50, h100: 0.50 },
+      status: "legacy"
+    },
+    galvanizedSteel: {
+      group: "cuznfe",
+      slideFromM: 6,
+      maxLengthM: 14,
+      minThickness: { h8: 0.55, h20: 0.55, h40: 0.55, h100: 0.60 },
+      status: "legacy"
+    }
+  };
+
+  function canonicalMaterialKey(key) {
+    if (Object.prototype.hasOwnProperty.call(MATERIALS, key)) return key;
+    return LEGACY_MATERIAL_KEYS[key] || null;
+  }
+
+  function resolveMaterial(key) {
+    return MATERIALS[canonicalMaterialKey(key)] || MATERIALS.galvanizedSteel;
+  }
+
+  function legacyMaterialRulesFor(input) {
+    const key = canonicalMaterialKey(input.canonicalMaterialKey || input.materialKey)
+      || canonicalMaterialKey(input.material && input.material.key)
+      || "galvanizedSteel";
+    return input.materialRules || LEGACY_MATERIAL_RULES[key];
+  }
+
+  const STATUS = Object.freeze({
+    INFO: "INFO",
+    OK: "OK",
+    PRUEFUNG: "PRUEFUNG",
+    WARNUNG: "WARNUNG",
+    FEHLER: "FEHLER"
+  });
+
+  const STATUS_CLASS = Object.freeze({
+    [STATUS.INFO]: "info",
+    [STATUS.OK]: "ok",
+    [STATUS.PRUEFUNG]: "review",
+    [STATUS.WARNUNG]: "warn",
+    [STATUS.FEHLER]: "danger"
+  });
+
+  function statusMessage(status, text) {
+    return { status, type: STATUS_CLASS[status], text };
+  }
+
+  function countStatuses(messages) {
+    return messages.reduce((counts, message) => {
+      counts[message.status] = (counts[message.status] || 0) + 1;
+      return counts;
+    }, { INFO: 0, OK: 0, PRUEFUNG: 0, WARNUNG: 0, FEHLER: 0 });
+  }
+
+  function statusSummaryText(counts, short = false) {
+    const parts = short
+      ? [
+          counts.FEHLER ? `${counts.FEHLER} F` : null,
+          counts.PRUEFUNG ? `${counts.PRUEFUNG} P` : null,
+          counts.WARNUNG ? `${counts.WARNUNG} W` : null
+        ]
+      : [
+          counts.FEHLER ? `${counts.FEHLER} Fehler` : null,
+          counts.PRUEFUNG ? `${counts.PRUEFUNG} ${counts.PRUEFUNG === 1 ? "Prüfung" : "Prüfungen"}` : null,
+          counts.WARNUNG ? `${counts.WARNUNG} ${counts.WARNUNG === 1 ? "Warnung" : "Warnungen"}` : null
+        ];
+    return parts.filter(Boolean).join(" · ") || "OK";
+  }
+
+  const GEOMETRY_GAP_MODES = ["included", "separate", "unknown"];
+
+  const PROJECT_PROFILE_670_590 = Object.freeze({
+    id: "builtin:project-670-590",
+    key: "project-670-590",
+    name: "Referenzprofil 670/590 (unveränderlich)",
+    label: "Referenzprofil 670/590 (unveränderlich)",
+    bandWidth: 670,
+    underSeamAllowance: 35,
+    overSeamAllowance: 45,
+    totalSeamAllowance: 80,
+    scharWidth: 590,
+    axisMeasure: null,
+    installationGap: null,
+    effectiveCoverWidth: null,
+    gapMode: "unknown",
+    machineSystem: "Projekt-/Maschinenprofil; Herstellerfreigabe offen",
+    sourceStatus: "Projekt-/Handwerksvorgabe 31.08.2026; keine Herstellerfreigabe",
+    status: "verified_project"
+  });
+
+  const PROFILE_STORAGE_KEY = "dachEinteilungDoppelstehfalz.machineProfiles.v1";
+  const PROFILE_SCHEMA_VERSION = 1;
+
+  function optionalProfileNumber(value) {
+    if (value === null || value === undefined || (typeof value === "string" && value.trim() === "")) return null;
+    const number = Number(value);
+    return Number.isFinite(number) && number >= 0 ? number : null;
+  }
+
+  function cleanProfileText(value, maxLength) {
+    return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+  }
+
+  function sanitizeStoredProfile(profile) {
+    if (!profile || typeof profile !== "object") return null;
+    const id = cleanProfileText(profile.id, 120);
+    const name = cleanProfileText(profile.name, 100);
+    if (!id || id === PROJECT_PROFILE_670_590.id || !name) return null;
+    const sanitized = {
+      id,
+      name,
+      bandWidth: optionalProfileNumber(profile.bandWidth),
+      underSeamAllowance: optionalProfileNumber(profile.underSeamAllowance),
+      overSeamAllowance: optionalProfileNumber(profile.overSeamAllowance),
+      totalSeamAllowance: optionalProfileNumber(profile.totalSeamAllowance),
+      scharWidth: optionalProfileNumber(profile.scharWidth),
+      axisMeasure: optionalProfileNumber(profile.axisMeasure),
+      installationGap: optionalProfileNumber(profile.installationGap),
+      gapMode: GEOMETRY_GAP_MODES.includes(profile.gapMode) ? profile.gapMode : "unknown",
+      machineSystem: cleanProfileText(profile.machineSystem, 250),
+      sourceStatus: cleanProfileText(profile.sourceStatus, 250)
+    };
+    return profileValidationError(sanitized) ? null : sanitized;
+  }
+
+  function readCustomProfiles() {
+    try {
+      const stored = localStorage.getItem(PROFILE_STORAGE_KEY);
+      if (!stored) return { profiles: [], warning: null };
+      const data = JSON.parse(stored);
+      if (!data || data.schemaVersion !== PROFILE_SCHEMA_VERSION || !Array.isArray(data.profiles)) {
+        return { profiles: [], warning: "Gespeicherte Profildaten haben ein unbekanntes Schema und wurden nicht geladen." };
+      }
+      const seenIds = new Set();
+      const profiles = data.profiles
+        .map(sanitizeStoredProfile)
+        .filter(profile => {
+          if (!profile || seenIds.has(profile.id)) return false;
+          seenIds.add(profile.id);
+          return true;
+        });
+      const warning = profiles.length === data.profiles.length
+        ? null
+        : "Ungültige oder doppelte gespeicherte Profile wurden ignoriert.";
+      return { profiles, warning };
+    } catch (error) {
+      return { profiles: [], warning: "Gespeicherte Profildaten sind ungültig oder nicht lesbar und wurden ignoriert." };
+    }
+  }
+
+  let customProfiles = [];
+
+  function setProfileStatus(status, text) {
+    const statusElement = $("profileStatus");
+    statusElement.className = `norm-item ${STATUS_CLASS[status]}`;
+    statusElement.textContent = `${status}: ${text}`;
+  }
+
+  function writeCustomProfiles() {
+    try {
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify({
+        schemaVersion: PROFILE_SCHEMA_VERSION,
+        profiles: customProfiles
+      }));
+      return true;
+    } catch (error) {
+      setProfileStatus(STATUS.FEHLER, "Profile konnten nicht lokal gespeichert werden.");
+      return false;
+    }
+  }
+
+  function refreshProfileSelect(selectedId = $("profileSelect").value) {
+    const select = $("profileSelect");
+    select.replaceChildren();
+
+    const manualOption = document.createElement("option");
+    manualOption.value = "";
+    manualOption.textContent = "Freie Eingabe (kein Profil geladen)";
+    select.append(manualOption);
+
+    const builtInOption = document.createElement("option");
+    builtInOption.value = PROJECT_PROFILE_670_590.id;
+    builtInOption.textContent = PROJECT_PROFILE_670_590.name;
+    select.append(builtInOption);
+
+    customProfiles.forEach(profile => {
+      const option = document.createElement("option");
+      option.value = profile.id;
+      option.textContent = profile.name;
+      select.append(option);
+    });
+
+    select.value = Array.from(select.options).some(option => option.value === selectedId) ? selectedId : "";
+    syncProfileActionState();
+  }
+
+  function selectedProfile() {
+    const id = $("profileSelect").value;
+    if (id === PROJECT_PROFILE_670_590.id) return PROJECT_PROFILE_670_590;
+    return customProfiles.find(profile => profile.id === id) || null;
+  }
+
+  function selectedCustomProfile() {
+    const id = $("profileSelect").value;
+    return customProfiles.find(profile => profile.id === id) || null;
+  }
+
+  function syncProfileActionState() {
+    const customSelected = Boolean(selectedCustomProfile());
+    $("profileUpdateBtn").disabled = !customSelected;
+    $("profileDeleteBtn").disabled = !customSelected;
+  }
+
+  function setOptionalProfileInput(id, value) {
+    $(id).value = Number.isFinite(value) ? String(value) : "";
+  }
+
+  function profileOpenFields(profile) {
+    const openFields = [];
+    if (profile.bandWidth === null) openFields.push("Bandbreite");
+    if (profile.underSeamAllowance === null) openFields.push("Unterfalz-Zugabe");
+    if (profile.overSeamAllowance === null) openFields.push("Überfalz-Zugabe");
+    if (profile.totalSeamAllowance === null) openFields.push("Gesamt-Falzzugabe");
+    if (profile.scharWidth === null) openFields.push("Scharenbreite");
+    if (profile.axisMeasure === null) openFields.push("Achsmaß");
+    if (profile.installationGap === null) openFields.push("Verlegefuge");
+    if (profile.gapMode === "unknown") openFields.push("Fugenwirkung");
+    if (!profile.sourceStatus) openFields.push("Quelle/Freigabestatus");
+    return openFields;
+  }
+
+  function loadSelectedProfile() {
+    const profile = selectedProfile();
+    syncProfileActionState();
+    if (!profile) {
+      setProfileStatus(STATUS.INFO, "Freie Eingabe aktiv; bestehende Eingabewerte bleiben unverändert.");
+      return;
+    }
+
+    $("profileName").value = profile.name;
+    setOptionalProfileInput("coilWidth", profile.bandWidth);
+    setOptionalProfileInput("profileAllowance", profile.totalSeamAllowance);
+    setOptionalProfileInput("profileUnderSeamAllowance", profile.underSeamAllowance);
+    setOptionalProfileInput("profileOverSeamAllowance", profile.overSeamAllowance);
+    setOptionalProfileInput("profileScharWidth", profile.scharWidth);
+    setOptionalProfileInput("profileAxisMeasure", profile.axisMeasure);
+    setOptionalProfileInput("profileInstallationGap", profile.installationGap);
+    $("profileGapMode").value = GEOMETRY_GAP_MODES.includes(profile.gapMode) ? profile.gapMode : "unknown";
+    $("profileMachineSystem").value = profile.machineSystem || "";
+    $("profileSourceStatus").value = profile.sourceStatus || "";
+
+    const openFields = profileOpenFields(profile);
+    if (openFields.length) {
+      setProfileStatus(STATUS.PRUEFUNG, `${profile.name} geladen. Offen: ${openFields.join(", ")}. Legacy-Layoutbreite und Legacy-Falzluft bleiben unverändert.`);
+    } else {
+      setProfileStatus(STATUS.INFO, `${profile.name} geladen. Legacy-Layoutbreite und Legacy-Falzluft bleiben unverändert.`);
+    }
+    render();
+  }
+
+  function profileNumberFromInput(id) {
+    const value = $(id).value.trim();
+    return value === "" ? null : Number(value);
+  }
+
+  function captureProfile(id) {
+    return {
+      id,
+      name: cleanProfileText($("profileName").value, 100),
+      bandWidth: profileNumberFromInput("coilWidth"),
+      underSeamAllowance: profileNumberFromInput("profileUnderSeamAllowance"),
+      overSeamAllowance: profileNumberFromInput("profileOverSeamAllowance"),
+      totalSeamAllowance: profileNumberFromInput("profileAllowance"),
+      scharWidth: profileNumberFromInput("profileScharWidth"),
+      axisMeasure: profileNumberFromInput("profileAxisMeasure"),
+      installationGap: profileNumberFromInput("profileInstallationGap"),
+      gapMode: GEOMETRY_GAP_MODES.includes($("profileGapMode").value) ? $("profileGapMode").value : "unknown",
+      machineSystem: cleanProfileText($("profileMachineSystem").value, 250),
+      sourceStatus: cleanProfileText($("profileSourceStatus").value, 250)
+    };
+  }
+
+  function profileValidationError(profile) {
+    if (!profile.name) return "Profilname fehlt.";
+    const numericFields = [
+      ["Bandbreite", profile.bandWidth, true],
+      ["Unterfalz-Zugabe", profile.underSeamAllowance, false],
+      ["Überfalz-Zugabe", profile.overSeamAllowance, false],
+      ["Gesamt-Falzzugabe", profile.totalSeamAllowance, false],
+      ["Scharenbreite", profile.scharWidth, true],
+      ["Achsmaß", profile.axisMeasure, true],
+      ["Verlegefuge", profile.installationGap, false]
+    ];
+    for (const [label, value, mustBePositive] of numericFields) {
+      if (value !== null && (!Number.isFinite(value) || value < 0 || (mustBePositive && value === 0))) {
+        return `${label} ist ungültig.`;
+      }
+    }
+
+    const allowanceValues = [profile.underSeamAllowance, profile.overSeamAllowance, profile.totalSeamAllowance];
+    if (allowanceValues.every(Number.isFinite)
+        && Math.abs(profile.underSeamAllowance + profile.overSeamAllowance - profile.totalSeamAllowance) > 0.001) {
+      return "Unterfalz-Zugabe + Überfalz-Zugabe muss der Gesamt-Falzzugabe entsprechen.";
+    }
+
+    const widthValues = [profile.bandWidth, profile.totalSeamAllowance, profile.scharWidth];
+    if (widthValues.every(Number.isFinite)
+        && Math.abs(profile.bandWidth - profile.totalSeamAllowance - profile.scharWidth) > 0.001) {
+      return "Bandbreite − Gesamt-Falzzugabe muss der Scharenbreite entsprechen.";
+    }
+    return null;
+  }
+
+  function createProfileId() {
+    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+      return `user:${globalThis.crypto.randomUUID()}`;
+    }
+    return `user:${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  function persistProfile(profile, successText) {
+    const error = profileValidationError(profile);
+    if (error) {
+      setProfileStatus(STATUS.FEHLER, error);
+      return false;
+    }
+    if (!writeCustomProfiles()) return false;
+    refreshProfileSelect(profile.id);
+    const openFields = profileOpenFields(profile);
+    setProfileStatus(
+      openFields.length ? STATUS.PRUEFUNG : STATUS.INFO,
+      openFields.length ? `${successText} Offen: ${openFields.join(", ")}.` : successText
+    );
+    return true;
+  }
+
+  function saveNewProfile() {
+    const profile = captureProfile(createProfileId());
+    customProfiles.push(profile);
+    if (!persistProfile(profile, `Eigenes Profil „${profile.name}“ gespeichert.`)) {
+      customProfiles.pop();
+    }
+  }
+
+  function updateSelectedProfile() {
+    const current = selectedCustomProfile();
+    if (!current) {
+      setProfileStatus(STATUS.FEHLER, "Nur ein ausgewähltes eigenes Profil kann aktualisiert werden.");
+      return;
+    }
+    const updated = captureProfile(current.id);
+    const index = customProfiles.findIndex(profile => profile.id === current.id);
+    const previous = customProfiles[index];
+    customProfiles[index] = updated;
+    if (!persistProfile(updated, `Eigenes Profil „${updated.name}“ aktualisiert.`)) {
+      customProfiles[index] = previous;
+    }
+  }
+
+  function deleteSelectedProfile() {
+    const current = selectedCustomProfile();
+    if (!current) {
+      setProfileStatus(STATUS.FEHLER, "Das Referenzprofil und die freie Eingabe können nicht gelöscht werden.");
+      return;
+    }
+    if (!window.confirm(`Eigenes Profil „${current.name}“ wirklich löschen?`)) return;
+    const previousProfiles = customProfiles;
+    customProfiles = customProfiles.filter(profile => profile.id !== current.id);
+    if (!writeCustomProfiles()) {
+      customProfiles = previousProfiles;
+      return;
+    }
+    refreshProfileSelect("");
+    setProfileStatus(STATUS.INFO, `Eigenes Profil „${current.name}“ gelöscht. Eingabewerte bleiben als freie Eingabe erhalten.`);
+  }
+
+  function initializeProfileManagement() {
+    const stored = readCustomProfiles();
+    customProfiles = stored.profiles;
+    refreshProfileSelect(PROJECT_PROFILE_670_590.id);
+    loadSelectedProfile();
+    if (stored.warning) setProfileStatus(STATUS.WARNUNG, stored.warning);
+  }
+
+  const PROJECT_FORMAT_VERSION = "1.0";
+  const PROJECT_STORE_SCHEMA_VERSION = 1;
+  const PROJECT_STORAGE_KEY = "dachEinteilungDoppelstehfalz.projects.v1";
+  const PROJECT_INPUT_IDS = Object.freeze([
+    "roofWidthM", "roofLengthM", "pitchDeg", "mode", "leftEdgeWidth", "rightEdgeWidth",
+    "optimizationGoal", "material", "profileSelect", "coilWidth", "axisWidth", "profileAllowance",
+    "minPassVisible", "jointGap", "cutGap", "profileName", "profileUnderSeamAllowance",
+    "profileOverSeamAllowance", "profileScharWidth", "profileAxisMeasure", "profileInstallationGap",
+    "profileGapMode", "profileMachineSystem", "profileSourceStatus", "sheetThickness", "buildingHeight",
+    "normRegime", "systemKey", "projectMaxScharWidth", "windClass", "roofZone", "hasUnderlay",
+    "lengthAllowance", "wastePercent", "clipMode", "clipSpacing", "projectClipsPerM2Regular",
+    "projectClipsPerM2Edge", "projectMaxClipSpacing", "fastenersPerClip", "substrate", "fixedZoneM",
+    "clipExtraPercent", "tempDeltaK", "sealantMode", "sealantMlPerM", "sealantWastePercent",
+    "contrastMode"
+  ]);
+  const PROJECT_OPTIONAL_NUMBER_IDS = new Set([
+    "leftEdgeWidth", "rightEdgeWidth", "profileUnderSeamAllowance", "profileOverSeamAllowance",
+    "profileScharWidth", "profileAxisMeasure", "profileInstallationGap", "projectClipsPerM2Regular",
+    "projectClipsPerM2Edge", "projectMaxClipSpacing", "fastenersPerClip"
+  ]);
+
+  let savedProjects = [];
+  let currentProjectId = null;
+  let availableProjectStorage = null;
+  let projectDefaults = null;
+  let activeProjectProfileSnapshot = null;
+  let activeMissingProfileId = null;
+
+  function isPlainObject(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  }
+
+  function cleanProjectName(value) {
+    return typeof value === "string" ? value.trim().slice(0, 120) : "";
+  }
+
+  function createProjectId() {
+    if (globalThis.crypto && typeof globalThis.crypto.randomUUID === "function") {
+      return `project:${globalThis.crypto.randomUUID()}`;
+    }
+    return `project:${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+  }
+
+  function setProjectStatus(status, text) {
+    const statusElement = $("projectStatus");
+    statusElement.className = `norm-item ${STATUS_CLASS[status]}`;
+    statusElement.textContent = `${status}: ${text}`;
+  }
+
+  function currentInputView() {
+    return $("proModeBtn").getAttribute("aria-pressed") === "true" ? "pro" : "quick";
+  }
+
+  function captureProjectValues() {
+    const values = {};
+    PROJECT_INPUT_IDS.forEach((id) => {
+      values[id] = $(id).value;
+    });
+    if (activeMissingProfileId) values.profileSelect = activeMissingProfileId;
+    return values;
+  }
+
+  function projectProfileSnapshot(profile) {
+    if (!profile) return null;
+    return {
+      id: cleanProfileText(profile.id, 120),
+      key: profile.key ? cleanProfileText(profile.key, 120) : null,
+      name: cleanProfileText(profile.name, 100),
+      bandWidth: optionalProfileNumber(profile.bandWidth),
+      underSeamAllowance: optionalProfileNumber(profile.underSeamAllowance),
+      overSeamAllowance: optionalProfileNumber(profile.overSeamAllowance),
+      totalSeamAllowance: optionalProfileNumber(profile.totalSeamAllowance),
+      scharWidth: optionalProfileNumber(profile.scharWidth),
+      axisMeasure: optionalProfileNumber(profile.axisMeasure),
+      installationGap: optionalProfileNumber(profile.installationGap),
+      gapMode: GEOMETRY_GAP_MODES.includes(profile.gapMode) ? profile.gapMode : "unknown",
+      machineSystem: cleanProfileText(profile.machineSystem, 250),
+      sourceStatus: cleanProfileText(profile.sourceStatus, 250)
+    };
+  }
+
+  function activeProfileSnapshot() {
+    return projectProfileSnapshot(activeProjectProfileSnapshot || selectedProfile());
+  }
+
+  function captureProjectInputs() {
+    return {
+      values: captureProjectValues(),
+      inputView: currentInputView(),
+      profileSnapshot: activeProfileSnapshot()
+    };
+  }
+
+  function projectDocument(projectId, projectName, savedAt = new Date().toISOString()) {
+    return {
+      projectFormatVersion: PROJECT_FORMAT_VERSION,
+      appVersion: APP_META.version,
+      projectId,
+      projectName,
+      savedAt,
+      inputs: captureProjectInputs()
+    };
+  }
+
+  function validateProjectProfileSnapshot(snapshot, expectedId) {
+    if (!isPlainObject(snapshot)) return { ok: false, error: "Profilreferenz enthält keine gültigen Profilwerte." };
+    const allowedKeys = new Set([
+      "id", "key", "name", "bandWidth", "underSeamAllowance", "overSeamAllowance",
+      "totalSeamAllowance", "scharWidth", "axisMeasure", "installationGap", "gapMode",
+      "machineSystem", "sourceStatus"
+    ]);
+    if (Object.keys(snapshot).some(key => !allowedKeys.has(key))) {
+      return { ok: false, error: "Profilreferenz enthält unbekannte Felder." };
+    }
+    if (typeof snapshot.id !== "string" || snapshot.id !== expectedId || !snapshot.id || snapshot.id.length > 120) {
+      return { ok: false, error: "Profilreferenz passt nicht zur gespeicherten Profilauswahl." };
+    }
+    if (snapshot.key !== null && (typeof snapshot.key !== "string" || snapshot.key.length > 120)) {
+      return { ok: false, error: "Profilreferenz enthält einen ungültigen Profilschlüssel." };
+    }
+    if (typeof snapshot.name !== "string" || !snapshot.name || snapshot.name.length > 100) {
+      return { ok: false, error: "Profilreferenz enthält keinen gültigen Profilnamen." };
+    }
+    const numericFields = [
+      "bandWidth", "underSeamAllowance", "overSeamAllowance", "totalSeamAllowance",
+      "scharWidth", "axisMeasure", "installationGap"
+    ];
+    for (const field of numericFields) {
+      const value = snapshot[field];
+      if (value !== null && (!Number.isFinite(value) || value < 0)) {
+        return { ok: false, error: `Profilreferenz enthält einen ungültigen Wert für ${field}.` };
+      }
+    }
+    if (!GEOMETRY_GAP_MODES.includes(snapshot.gapMode)) {
+      return { ok: false, error: "Profilreferenz enthält eine ungültige Fugenwirkung." };
+    }
+    if (typeof snapshot.machineSystem !== "string" || snapshot.machineSystem.length > 250
+        || typeof snapshot.sourceStatus !== "string" || snapshot.sourceStatus.length > 250) {
+      return { ok: false, error: "Profilreferenz enthält ungültige Textwerte." };
+    }
+    const validationError = profileValidationError(snapshot);
+    return validationError
+      ? { ok: false, error: `Profilreferenz ungültig: ${validationError}` }
+      : { ok: true, value: { ...snapshot } };
+  }
+
+  function validateProjectInputValues(values) {
+    if (!isPlainObject(values)) return "Projekt-Eingaben fehlen oder sind ungültig.";
+    const allowedIds = new Set(PROJECT_INPUT_IDS);
+    if (Object.keys(values).some(id => !allowedIds.has(id))) return "Projekt-Eingaben enthalten unbekannte Felder.";
+    for (const id of PROJECT_INPUT_IDS) {
+      if (!Object.prototype.hasOwnProperty.call(values, id) || typeof values[id] !== "string") {
+        return `Projekt-Eingabe „${id}“ fehlt oder hat einen ungültigen Typ.`;
+      }
+      const value = values[id];
+      const element = $(id);
+      const maxLength = element && Number(element.maxLength) > 0 ? Number(element.maxLength) : 300;
+      if (!element || value.length > maxLength) {
+        return `Projekt-Eingabe „${id}“ ist zu lang oder nicht bekannt.`;
+      }
+      if (id === "profileSelect") {
+        if (value.length > 120) return "Die gespeicherte Profilreferenz ist zu lang.";
+        continue;
+      }
+      if (element.tagName === "SELECT") {
+        if (!Array.from(element.options).some(option => option.value === value)) {
+          return `Projekt-Eingabe „${id}“ enthält eine unbekannte Auswahl.`;
+        }
+        continue;
+      }
+      if (element.type === "number") {
+        if (value === "" && PROJECT_OPTIONAL_NUMBER_IDS.has(id)) continue;
+        const number = Number(value);
+        if (value === "" || !Number.isFinite(number)) return `Projekt-Eingabe „${id}“ ist keine gültige Zahl.`;
+        if (element.min !== "" && number < Number(element.min)) return `Projekt-Eingabe „${id}“ unterschreitet den Mindestwert.`;
+        if (element.max !== "" && number > Number(element.max)) return `Projekt-Eingabe „${id}“ überschreitet den Höchstwert.`;
+      }
+    }
+    return null;
+  }
+
+  function validateProjectDocument(candidate) {
+    if (!isPlainObject(candidate)) return { ok: false, error: "Projektdatei enthält keine gültige Grundstruktur." };
+    const allowedTopLevel = new Set(["projectFormatVersion", "appVersion", "projectId", "projectName", "savedAt", "inputs"]);
+    if (Object.keys(candidate).some(key => !allowedTopLevel.has(key))) {
+      return { ok: false, error: "Projektdatei enthält unbekannte Felder." };
+    }
+    if (candidate.projectFormatVersion !== PROJECT_FORMAT_VERSION) {
+      return { ok: false, error: `Projektformat „${String(candidate.projectFormatVersion ?? "fehlt")}“ wird nicht unterstützt.` };
+    }
+    if (typeof candidate.appVersion !== "string" || !candidate.appVersion || candidate.appVersion.length > 40) {
+      return { ok: false, error: "App-Version im Projekt fehlt oder ist ungültig." };
+    }
+    if (typeof candidate.projectId !== "string" || !candidate.projectId || candidate.projectId.length > 120) {
+      return { ok: false, error: "Projekt-ID fehlt oder ist ungültig." };
+    }
+    if (typeof candidate.projectName !== "string" || candidate.projectName !== candidate.projectName.trim()
+        || !candidate.projectName || candidate.projectName.length > 120) {
+      return { ok: false, error: "Projektname fehlt oder ist ungültig." };
+    }
+    if (typeof candidate.savedAt !== "string" || !Number.isFinite(Date.parse(candidate.savedAt))) {
+      return { ok: false, error: "Speicherzeitpunkt fehlt oder ist ungültig." };
+    }
+    if (!isPlainObject(candidate.inputs)) return { ok: false, error: "Projekt-Eingaben fehlen." };
+    const allowedInputKeys = new Set(["values", "inputView", "profileSnapshot"]);
+    if (Object.keys(candidate.inputs).some(key => !allowedInputKeys.has(key))) {
+      return { ok: false, error: "Projekt-Eingaben enthalten eine unbekannte Struktur." };
+    }
+    if (!Object.prototype.hasOwnProperty.call(candidate.inputs, "values")
+        || !Object.prototype.hasOwnProperty.call(candidate.inputs, "inputView")
+        || !Object.prototype.hasOwnProperty.call(candidate.inputs, "profileSnapshot")) {
+      return { ok: false, error: "Projekt-Eingaben sind unvollständig." };
+    }
+    const inputError = validateProjectInputValues(candidate.inputs.values);
+    if (inputError) return { ok: false, error: inputError };
+    if (!["quick", "pro"].includes(candidate.inputs.inputView)) {
+      return { ok: false, error: "Gespeicherter Schnell-/Profimodus ist ungültig." };
+    }
+    const profileId = candidate.inputs.values.profileSelect;
+    let profileSnapshotValue = null;
+    if (profileId) {
+      const profileValidation = validateProjectProfileSnapshot(candidate.inputs.profileSnapshot, profileId);
+      if (!profileValidation.ok) return profileValidation;
+      profileSnapshotValue = profileValidation.value;
+    } else if (candidate.inputs.profileSnapshot !== null) {
+      return { ok: false, error: "Projekt enthält Profilwerte ohne Profilreferenz." };
+    }
+    return {
+      ok: true,
+      project: {
+        projectFormatVersion: candidate.projectFormatVersion,
+        appVersion: candidate.appVersion,
+        projectId: candidate.projectId,
+        projectName: candidate.projectName,
+        savedAt: candidate.savedAt,
+        inputs: {
+          values: { ...candidate.inputs.values },
+          inputView: candidate.inputs.inputView,
+          profileSnapshot: profileSnapshotValue
+        }
+      }
+    };
+  }
+
+  function parseProjectJson(text) {
+    let candidate;
+    try {
+      candidate = JSON.parse(text);
+    } catch (error) {
+      return { ok: false, error: "JSON ist beschädigt oder syntaktisch ungültig." };
+    }
+    return validateProjectDocument(candidate);
+  }
+
+  function serializeProjectJson(project) {
+    return `${JSON.stringify(project, null, 2)}\n`;
+  }
+
+  function projectStorageAccess(storageCandidate = null) {
+    try {
+      const storage = storageCandidate || window.localStorage;
+      if (!storage || typeof storage.getItem !== "function" || typeof storage.setItem !== "function") {
+        throw new Error("Storage API fehlt");
+      }
+      const probeKey = `${PROJECT_STORAGE_KEY}.probe`;
+      storage.setItem(probeKey, "1");
+      storage.removeItem(probeKey);
+      return { ok: true, storage };
+    } catch (error) {
+      return { ok: false, storage: null, error: "Lokaler Komfortspeicher ist nicht verfügbar. JSON Export/Import bleibt verwendbar." };
+    }
+  }
+
+  function readProjectStore(storage) {
+    if (!storage) return { ok: false, projects: [], error: "Lokaler Komfortspeicher ist nicht verfügbar." };
+    try {
+      const raw = storage.getItem(PROJECT_STORAGE_KEY);
+      if (!raw) return { ok: true, projects: [] };
+      const store = JSON.parse(raw);
+      if (!isPlainObject(store) || store.schemaVersion !== PROJECT_STORE_SCHEMA_VERSION || !Array.isArray(store.projects)) {
+        return { ok: false, projects: [], error: "Gespeicherte Projektdaten haben ein unbekanntes Schema." };
+      }
+      const projects = [];
+      const ids = new Set();
+      for (const candidate of store.projects) {
+        const validation = validateProjectDocument(candidate);
+        if (!validation.ok) return { ok: false, projects: [], error: `Gespeicherte Projektdaten sind ungültig: ${validation.error}` };
+        if (ids.has(validation.project.projectId)) {
+          return { ok: false, projects: [], error: "Gespeicherte Projektdaten enthalten doppelte Projekt-IDs." };
+        }
+        ids.add(validation.project.projectId);
+        projects.push(validation.project);
+      }
+      return { ok: true, projects };
+    } catch (error) {
+      return { ok: false, projects: [], error: "Gespeicherte Projektdaten sind beschädigt oder nicht lesbar." };
+    }
+  }
+
+  function writeProjectStore(storage, projects) {
+    if (!storage) return { ok: false, error: "Lokaler Komfortspeicher ist nicht verfügbar." };
+    try {
+      storage.setItem(PROJECT_STORAGE_KEY, JSON.stringify({
+        schemaVersion: PROJECT_STORE_SCHEMA_VERSION,
+        projects
+      }));
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: "Projekte konnten nicht lokal gespeichert werden. JSON Export bleibt verwendbar." };
+    }
+  }
+
+  function refreshProjectSelect(selectedId = $("projectSelect").value) {
+    const select = $("projectSelect");
+    select.replaceChildren();
+    const emptyOption = document.createElement("option");
+    emptyOption.value = "";
+    emptyOption.textContent = "– Projekt auswählen –";
+    select.append(emptyOption);
+    savedProjects
+      .slice()
+      .sort((a, b) => a.projectName.localeCompare(b.projectName, "de"))
+      .forEach(project => {
+        const option = document.createElement("option");
+        option.value = project.projectId;
+        option.textContent = project.projectName;
+        select.append(option);
+      });
+    select.value = Array.from(select.options).some(option => option.value === selectedId) ? selectedId : "";
+    syncProjectActionState();
+  }
+
+  function syncProjectActionState() {
+    const selected = savedProjects.some(project => project.projectId === $("projectSelect").value);
+    $("projectLoadBtn").disabled = !selected;
+    $("projectDeleteBtn").disabled = !selected;
+  }
+
+  function applyProjectInputs(inputs) {
+    const profileId = inputs.values.profileSelect;
+    const profileExists = !profileId || profileId === PROJECT_PROFILE_670_590.id
+      || customProfiles.some(profile => profile.id === profileId);
+
+    activeProjectProfileSnapshot = null;
+    activeMissingProfileId = null;
+    PROJECT_INPUT_IDS.forEach((id) => {
+      if (id !== "profileSelect") $(id).value = inputs.values[id];
+    });
+
+    if (profileExists) {
+      $("profileSelect").value = profileId;
+    } else {
+      $("profileSelect").value = "";
+      activeProjectProfileSnapshot = { ...inputs.profileSnapshot };
+      activeMissingProfileId = profileId;
+      setProfileStatus(
+        STATUS.PRUEFUNG,
+        `Gespeichertes Profil „${inputs.profileSnapshot.name}“ ist nicht mehr vorhanden. Die im Projekt gesicherten Profilwerte werden verwendet; es wurde kein neues Profil angelegt.`
+      );
+    }
+
+    $("sheetThickness").dataset.userChanged = "1";
+    syncProfileActionState();
+    setInputView(inputs.inputView);
+    render();
+    return profileExists;
+  }
+
+  function applyProjectDocument(project, sourceLabel) {
+    const profileExists = applyProjectInputs(project.inputs);
+    $("projectName").value = project.projectName;
+    setProjectStatus(
+      profileExists ? STATUS.OK : STATUS.PRUEFUNG,
+      `${sourceLabel} „${project.projectName}“ geladen${profileExists ? "." : "; gespeicherte Profilwerte dienen als Fallback."}`
+    );
+    return { profileExists };
+  }
+
+  function saveCurrentProject() {
+    const projectName = cleanProjectName($("projectName").value);
+    if (!projectName) {
+      setProjectStatus(STATUS.FEHLER, "Bitte einen Projektnamen eingeben.");
+      return false;
+    }
+    if (!availableProjectStorage) {
+      setProjectStatus(STATUS.PRUEFUNG, "Lokaler Komfortspeicher ist nicht verfügbar. Bitte das Projekt als JSON exportieren.");
+      return false;
+    }
+    const existingIndex = currentProjectId
+      ? savedProjects.findIndex(project => project.projectId === currentProjectId)
+      : -1;
+    const projectId = existingIndex >= 0 ? currentProjectId : createProjectId();
+    const candidate = projectDocument(projectId, projectName);
+    const validation = validateProjectDocument(candidate);
+    if (!validation.ok) {
+      setProjectStatus(STATUS.FEHLER, validation.error);
+      return false;
+    }
+    const nextProjects = savedProjects.slice();
+    if (existingIndex >= 0) nextProjects[existingIndex] = validation.project;
+    else nextProjects.push(validation.project);
+    const writeResult = writeProjectStore(availableProjectStorage, nextProjects);
+    if (!writeResult.ok) {
+      setProjectStatus(STATUS.FEHLER, writeResult.error);
+      return false;
+    }
+    savedProjects = nextProjects;
+    currentProjectId = projectId;
+    $("projectName").value = projectName;
+    refreshProjectSelect(projectId);
+    setProjectStatus(STATUS.OK, `Projekt „${projectName}“ lokal gespeichert.`);
+    return true;
+  }
+
+  function loadSelectedProject() {
+    const project = savedProjects.find(candidate => candidate.projectId === $("projectSelect").value);
+    if (!project) {
+      setProjectStatus(STATUS.FEHLER, "Bitte ein gespeichertes Projekt auswählen.");
+      return false;
+    }
+    currentProjectId = project.projectId;
+    applyProjectDocument(project, "Projekt");
+    return true;
+  }
+
+  function deleteSelectedProject() {
+    const project = savedProjects.find(candidate => candidate.projectId === $("projectSelect").value);
+    if (!project) {
+      setProjectStatus(STATUS.FEHLER, "Bitte ein gespeichertes Projekt auswählen.");
+      return false;
+    }
+    if (!window.confirm(`Projekt „${project.projectName}“ wirklich löschen?`)) return false;
+    if (!availableProjectStorage) {
+      setProjectStatus(STATUS.PRUEFUNG, "Lokaler Komfortspeicher ist nicht verfügbar; das Projekt wurde nicht gelöscht.");
+      return false;
+    }
+    const nextProjects = savedProjects.filter(candidate => candidate.projectId !== project.projectId);
+    const writeResult = writeProjectStore(availableProjectStorage, nextProjects);
+    if (!writeResult.ok) {
+      setProjectStatus(STATUS.FEHLER, writeResult.error);
+      return false;
+    }
+    savedProjects = nextProjects;
+    if (currentProjectId === project.projectId) currentProjectId = null;
+    refreshProjectSelect("");
+    setProjectStatus(STATUS.INFO, `Projekt „${project.projectName}“ gelöscht. Aktuelle Eingaben bleiben erhalten.`);
+    return true;
+  }
+
+  function newProject() {
+    if (!projectDefaults) return false;
+    currentProjectId = null;
+    applyProjectInputs(projectDefaults);
+    $("projectName").value = "";
+    $("projectSelect").value = "";
+    $("sheetThickness").removeAttribute("data-user-changed");
+    syncProjectActionState();
+    setProjectStatus(STATUS.INFO, "Neues Projekt mit Standardwerten begonnen. Gespeicherte Projekte und Profile bleiben erhalten.");
+    return true;
+  }
+
+  function safeProjectFilePart(projectName) {
+    return projectName
+      .normalize("NFKC")
+      .replace(/[<>:"/\\|?*\u0000-\u001f]/g, "_")
+      .replace(/\s+/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "")
+      .slice(0, 80) || "Projekt";
+  }
+
+  function createProjectExport(savedAt = new Date().toISOString()) {
+    const projectName = cleanProjectName($("projectName").value);
+    if (!projectName) return { ok: false, error: "Bitte vor dem Export einen Projektnamen eingeben." };
+    const candidate = projectDocument(currentProjectId || createProjectId(), projectName, savedAt);
+    const validation = validateProjectDocument(candidate);
+    if (!validation.ok) return validation;
+    return {
+      ok: true,
+      project: validation.project,
+      json: serializeProjectJson(validation.project),
+      fileName: `Doppelstehfalz_${safeProjectFilePart(projectName)}_${savedAt.slice(0, 10)}.json`
+    };
+  }
+
+  function exportCurrentProject() {
+    const exported = createProjectExport();
+    if (!exported.ok) {
+      setProjectStatus(STATUS.FEHLER, exported.error);
+      return false;
+    }
+    try {
+      const blob = new Blob([exported.json], { type: "application/json;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = exported.fileName;
+      document.body.append(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 0);
+      setProjectStatus(STATUS.OK, `JSON „${exported.fileName}“ exportiert.`);
+      return true;
+    } catch (error) {
+      setProjectStatus(STATUS.FEHLER, "JSON-Datei konnte nicht erstellt werden.");
+      return false;
+    }
+  }
+
+  async function importProjectFile(event) {
+    const input = event.currentTarget;
+    const file = input.files && input.files[0];
+    if (!file) return false;
+    try {
+      const parsed = parseProjectJson(await file.text());
+      if (!parsed.ok) {
+        setProjectStatus(STATUS.FEHLER, parsed.error);
+        return false;
+      }
+      currentProjectId = null;
+      $("projectSelect").value = "";
+      applyProjectDocument(parsed.project, "JSON-Projekt");
+      setProjectStatus(
+        activeMissingProfileId ? STATUS.PRUEFUNG : STATUS.OK,
+        `JSON-Projekt „${parsed.project.projectName}“ importiert und neu berechnet. Für lokale Speicherung bitte „Speichern“ wählen${activeMissingProfileId ? "; Profilreferenz fehlt, Projektwerte werden verwendet." : "."}`
+      );
+      return true;
+    } catch (error) {
+      setProjectStatus(STATUS.FEHLER, "JSON-Datei konnte nicht gelesen werden.");
+      return false;
+    } finally {
+      input.value = "";
+    }
+  }
+
+  function initializeProjectManagement(storageCandidate = null) {
+    projectDefaults = captureProjectInputs();
+    const access = projectStorageAccess(storageCandidate);
+    availableProjectStorage = access.storage;
+    if (!access.ok) {
+      savedProjects = [];
+      refreshProjectSelect("");
+      setProjectStatus(STATUS.INFO, access.error);
+      return;
+    }
+    const stored = readProjectStore(availableProjectStorage);
+    if (!stored.ok) {
+      savedProjects = [];
+      availableProjectStorage = null;
+      refreshProjectSelect("");
+      setProjectStatus(STATUS.FEHLER, `${stored.error} Vorhandene Daten werden nicht überschrieben; JSON Export/Import bleibt verwendbar.`);
+      return;
+    }
+    savedProjects = stored.projects;
+    refreshProjectSelect("");
+    setProjectStatus(
+      STATUS.INFO,
+      `${savedProjects.length} ${savedProjects.length === 1 ? "lokales Projekt" : "lokale Projekte"} verfügbar. JSON Export/Import dient als portable Sicherung.`
+    );
+  }
+
+  const LEGACY_GEOMETRY_MODEL = {
+    profileKey: null,
+    underSeamAllowance: null,
+    overSeamAllowance: null,
+    totalSeamAllowance: null,
+    scharWidth: null,
+    axisMeasure: null,
+    installationGap: null,
+    legacyInstallationGap: null,
+    effectiveCoverWidth: null,
+    gapMode: "separate",
+    legacyGapMode: "separate",
+    status: "PRUEFUNG",
+    fieldStatus: {
+      bandWidth: "legacy",
+      underSeamAllowance: "PRUEFUNG",
+      overSeamAllowance: "PRUEFUNG",
+      totalSeamAllowance: "PRUEFUNG",
+      profileLoss: "PRUEFUNG",
+      scharWidth: "PRUEFUNG",
+      axisMeasure: "PRUEFUNG",
+      installationGap: "PRUEFUNG",
+      legacyInstallationGap: "legacy",
+      gapMode: "PRUEFUNG",
+      legacyGapMode: "legacy",
+      effectiveCoverWidth: "PRUEFUNG",
+      legacyLayoutWidth: "legacy"
+    }
+  };
+
+  function isProjectProfile670590(input) {
+    return input.profileKey === PROJECT_PROFILE_670_590.key;
+  }
+
+  function createLegacyGeometry(input) {
+    const projectProfile = isProjectProfile670590(input) ? PROJECT_PROFILE_670_590 : null;
+    const requestedGapMode = GEOMETRY_GAP_MODES.includes(input.gapMode) ? input.gapMode : null;
+    const requestedLegacyGapMode = GEOMETRY_GAP_MODES.includes(input.legacyGapMode) ? input.legacyGapMode : null;
+    return {
+      ...LEGACY_GEOMETRY_MODEL,
+      profileKey: projectProfile ? projectProfile.key : (input.profileKey ?? null),
+      bandWidth: input.bandWidth ?? input.coil ?? null,
+      profileLoss: input.profileLoss ?? input.profileAllowance ?? null,
+      underSeamAllowance: input.underSeamAllowance ?? projectProfile?.underSeamAllowance ?? null,
+      overSeamAllowance: input.overSeamAllowance ?? projectProfile?.overSeamAllowance ?? null,
+      totalSeamAllowance: input.totalSeamAllowance ?? projectProfile?.totalSeamAllowance ?? null,
+      scharWidth: input.scharWidth ?? projectProfile?.scharWidth ?? null,
+      axisMeasure: input.axisMeasure ?? null,
+      installationGap: input.installationGap ?? projectProfile?.installationGap ?? null,
+      legacyInstallationGap: input.legacyInstallationGap ?? input.jointGap ?? null,
+      effectiveCoverWidth: input.effectiveCoverWidth ?? null,
+      legacyLayoutWidth: input.legacyLayoutWidth ?? input.axis ?? null,
+      gapMode: requestedGapMode ?? projectProfile?.gapMode ?? LEGACY_GEOMETRY_MODEL.gapMode,
+      legacyGapMode: requestedLegacyGapMode ?? LEGACY_GEOMETRY_MODEL.legacyGapMode,
+      fieldStatus: projectProfile
+        ? {
+            ...LEGACY_GEOMETRY_MODEL.fieldStatus,
+            underSeamAllowance: "verified_project",
+            overSeamAllowance: "verified_project",
+            totalSeamAllowance: "verified_project",
+            scharWidth: "verified_project"
+          }
+        : { ...LEGACY_GEOMETRY_MODEL.fieldStatus }
+    };
+  }
+
+  function geometryForInput(input) {
+    return input.geometry || createLegacyGeometry(input);
+  }
+
+  function projectProfileGeometryCheck(geometry) {
+    if (geometry.profileKey !== PROJECT_PROFILE_670_590.key) {
+      return { applies: false, allowanceIdentity: null, widthIdentity: null, valid: null };
+    }
+    const allowanceIdentity = geometry.underSeamAllowance + geometry.overSeamAllowance === geometry.totalSeamAllowance;
+    const widthIdentity = geometry.bandWidth - geometry.totalSeamAllowance === geometry.scharWidth;
+    return {
+      applies: true,
+      allowanceIdentity,
+      widthIdentity,
+      valid: allowanceIdentity && widthIdentity
+    };
+  }
 
   const LEGACY_WIDTHS = {
     regular: {
@@ -1049,33 +2549,76 @@
   const fmtM2 = (n, digits = 2) => `${fmt(n, digits)} m²`;
   const fmtKg = (n, digits = 0) => `${fmt(n, digits)} kg`;
 
+  // Reine Floating-Point-Toleranz; keine fachliche Maß- oder Schnittzugabe.
+  const FLOATING_TOLERANCE_MM = 1e-7;
+
+  function passPairFitsInCoil(leftRawWidth, rightRawWidth, cutGap, bandWidth) {
+    const values = [leftRawWidth, rightRawWidth, cutGap, bandWidth];
+    if (!values.every(Number.isFinite)) return false;
+    return leftRawWidth + rightRawWidth + cutGap <= bandWidth + FLOATING_TOLERANCE_MM;
+  }
+
   function getInputs() {
-    const materialKey = $("material").value;
-    const material = MATERIALS[materialKey] || MATERIALS.steel;
+    const optionalNumber = (id) => {
+      const raw = $(id).value.trim();
+      return raw === "" ? null : Number(raw);
+    };
+    const legacyMaterialKey = $("material").value;
+    const materialKey = canonicalMaterialKey(legacyMaterialKey) || "galvanizedSteel";
+    const material = resolveMaterial(materialKey);
+    const materialRules = LEGACY_MATERIAL_RULES[materialKey];
+    const activeProfile = selectedProfile() || activeProjectProfileSnapshot;
+    const geometry = createLegacyGeometry({
+      coil: Number($("coilWidth").value || 0),
+      axis: Number($("axisWidth").value || 0),
+      profileAllowance: Number($("profileAllowance").value || 0),
+      legacyInstallationGap: Number($("jointGap").value || 0),
+      legacyGapMode: "separate",
+      profileKey: activeProfile ? (activeProfile.key || activeProfile.id) : null,
+      underSeamAllowance: activeProfile?.underSeamAllowance ?? null,
+      overSeamAllowance: activeProfile?.overSeamAllowance ?? null,
+      totalSeamAllowance: activeProfile?.totalSeamAllowance ?? null,
+      scharWidth: activeProfile?.scharWidth ?? null,
+      axisMeasure: activeProfile?.axisMeasure ?? null,
+      installationGap: activeProfile?.installationGap ?? null,
+      gapMode: activeProfile?.gapMode ?? null
+    });
     return {
       widthM: Number($("roofWidthM").value || 0),
       lengthM: Number($("roofLengthM").value || 0),
       pitch: Number($("pitchDeg").value || 0),
       mode: $("mode").value,
-      coil: Number($("coilWidth").value || 0),
-      axis: Number($("axisWidth").value || 0),
-      profileAllowance: Number($("profileAllowance").value || 0),
+      leftEdgeWidth: optionalNumber("leftEdgeWidth"),
+      rightEdgeWidth: optionalNumber("rightEdgeWidth"),
+      optimizationGoal: $("optimizationGoal").value,
+      coil: geometry.bandWidth,
+      axis: geometry.legacyLayoutWidth,
+      profileAllowance: geometry.profileLoss,
       minPassVisible: Number($("minPassVisible").value || 0),
-      jointGap: Number($("jointGap").value || 0),
+      jointGap: geometry.legacyInstallationGap,
       cutGap: Number($("cutGap").value || 0),
       materialKey,
+      legacyMaterialKey,
       material,
+      materialRules,
+      geometry,
       sheetThickness: Number($("sheetThickness").value || material.defaultThickness),
       buildingHeight: $("buildingHeight").value,
       normRegime: $("normRegime").value,
+      systemKey: $("systemKey").value,
+      projectMaxScharWidth: Number($("projectMaxScharWidth").value || 0),
       windClass: $("windClass").value,
       roofZone: $("roofZone").value,
       hasUnderlay: $("hasUnderlay").value,
-      customMaxAxis: Number($("customMaxAxis").value || 0),
-      strictWarnings: $("strictWarnings").checked,
       lengthAllowance: Number($("lengthAllowance").value || 0),
       wastePercent: Number($("wastePercent").value || 0),
+      clipMode: $("clipMode").value,
       clipSpacing: Number($("clipSpacing").value || 0),
+      projectClipsPerM2Regular: optionalNumber("projectClipsPerM2Regular"),
+      projectClipsPerM2Edge: optionalNumber("projectClipsPerM2Edge"),
+      projectMaxClipSpacing: optionalNumber("projectMaxClipSpacing"),
+      fastenersPerClipManual: optionalNumber("fastenersPerClip"),
+      substrate: $("substrate").value,
       fixedZoneM: Number($("fixedZoneM").value || 2),
       clipExtraPercent: Number($("clipExtraPercent").value || 0),
       tempDeltaK: Number($("tempDeltaK").value || 0),
@@ -1086,10 +2629,78 @@
     };
   }
 
-  function maxAxisForInput(input) {
-    if (input.normRegime === "at2026") return 430;
-    if (input.normRegime === "custom") return input.customMaxAxis || Infinity;
-    return LEGACY_WIDTHS[input.roofZone][input.material.group][input.windClass][input.hasUnderlay];
+  function evaluateWidthRegime(input, geometry = geometryForInput(input)) {
+    const scharWidth = Number.isFinite(geometry.scharWidth) && geometry.scharWidth > 0
+      ? geometry.scharWidth
+      : null;
+
+    if (input.normRegime === "at2026") {
+      if (scharWidth === null) {
+        return statusMessage(
+          STATUS.PRUEFUNG,
+          "ÖNORM B 3521:2026 – Standardprüfung: Scharenbreite ist für das gewählte Profil nicht bekannt. Fachliche Profilzuordnung erforderlich."
+        );
+      }
+      if (scharWidth <= 430) {
+        return statusMessage(
+          STATUS.OK,
+          `ÖNORM B 3521:2026 – Standardprüfung: Scharenbreite ${fmtMm(scharWidth)} erfüllt die hinterlegte Standardgrenze von ${fmtMm(430)}.`
+        );
+      }
+      return statusMessage(
+        STATUS.FEHLER,
+        `ÖNORM B 3521:2026 – Standardprüfung: Scharenbreite ${fmtMm(scharWidth)} überschreitet die hinterlegte Standardgrenze von ${fmtMm(430)}. Das ist eine Abweichung im gewählten Norm-Prüfregime; Hersteller-/System- oder objektbezogene Nachweise sind separat zu bewerten.`
+      );
+    }
+
+    if (input.normRegime === "system") {
+      if (!input.systemKey || input.systemKey === "none") {
+        return statusMessage(
+          STATUS.PRUEFUNG,
+          "Hersteller-/Systemprüfung: Kein System gewählt. Ein vollständiger Systemdatensatz und die objektbezogene Bewertung fehlen."
+        );
+      }
+      if (input.systemKey === "prefalz") {
+        return statusMessage(
+          STATUS.PRUEFUNG,
+          "Hersteller-/Systemprüfung PREFALZ: Herstellerinformationen unterscheiden Band-, Scharen- und Achsmaß. Ohne vollständige Wind- und Objektbewertung keine pauschale Gesamtfreigabe."
+        );
+      }
+      if (input.systemKey === "rheinzink") {
+        return statusMessage(
+          STATUS.PRUEFUNG,
+          "Hersteller-/Systemprüfung RHEINZINK Doppelstehfalz: Herstellerinformationen ersetzen weder die nationale Normprüfung noch den objektbezogenen Nachweis. Separat prüfen."
+        );
+      }
+      return statusMessage(
+        STATUS.PRUEFUNG,
+        "Hersteller-/Systemprüfung: Für das gewählte andere bzw. projektbezogene System liegt kein vollständiger freigegebener Regelsatz vor."
+      );
+    }
+
+    if (input.normRegime === "project") {
+      const projectLimit = Number.isFinite(input.projectMaxScharWidth) && input.projectMaxScharWidth > 0
+        ? input.projectMaxScharWidth
+        : null;
+      if (scharWidth === null || projectLimit === null) {
+        return statusMessage(
+          STATUS.PRUEFUNG,
+          "Projekt-/Sondernachweis: Scharenbreite oder verwertbarer Projekt-Grenzwert fehlt."
+        );
+      }
+      if (scharWidth <= projectLimit) {
+        return statusMessage(
+          STATUS.OK,
+          `Projekt-/Sonderwert erfüllt: Scharenbreite ${fmtMm(scharWidth)} liegt innerhalb des Projekt-Grenzwerts von ${fmtMm(projectLimit)}. Keine Aussage zur ÖNORM-Konformität.`
+        );
+      }
+      return statusMessage(
+        STATUS.FEHLER,
+        `Projekt-/Sonderwert überschritten: Scharenbreite ${fmtMm(scharWidth)} überschreitet den Projekt-Grenzwert von ${fmtMm(projectLimit)}. Der projektspezifische Nachweis ist nicht erfüllt.`
+      );
+    }
+
+    return statusMessage(STATUS.PRUEFUNG, "Prüfregime ist nicht eindeutig gewählt.");
   }
 
   function fixedPointInfo(input) {
@@ -1117,99 +2728,368 @@
   }
 
   function calculateLayout(input) {
+    const geometry = geometryForInput(input);
     const total = input.widthM * 1000;
-    const axis = input.axis;
-    const gap = input.jointGap;
+    const axis = geometry.legacyLayoutWidth;
+    const calculationGapMode = geometry.legacyGapMode ?? geometry.gapMode;
+    const gap = calculationGapMode === "separate" ? geometry.legacyInstallationGap : 0;
     const minSide = input.minPassVisible;
-
-    let best = null;
+    const tolerance = FLOATING_TOLERANCE_MM;
+    const requestedMode = input.mode || "sym";
+    const mode = requestedMode === "max" ? "max" : requestedMode;
+    const leftPreset = input.leftEdgeWidth ?? null;
+    const rightPreset = input.rightEdgeWidth ?? null;
+    const hasLeft = leftPreset !== null;
+    const hasRight = rightPreset !== null;
     const safeDenom = Math.max(1, axis + gap);
     const rough = Math.max(0, Math.floor(total / safeDenom));
+    const maxFull = rough + 4;
 
-    const candidate = (full) => {
-      const fields = full + 2;
-      const joints = fields - 1;
-      const rest = total - full * axis - joints * gap;
-      const side = rest / 2;
-      return {
-        method: input.mode === "max" ? "Maximalvariante" : "symmetrische Passscharen",
-        full,
-        side,
-        fields,
-        joints,
-        validSide: side >= minSide && side <= axis && rest >= 0
-      };
-    };
-
-    if (input.mode === "max") {
-      for (let full = rough + 4; full >= 0; full--) {
-        const c = candidate(full);
-        if (c.side >= 0 && c.side <= axis) { best = c; break; }
-      }
-    } else {
-      for (let full = rough + 4; full >= 0; full--) {
-        const c = candidate(full);
-        if (c.validSide) { best = c; break; }
-      }
-    }
-
-    if (!best) {
-      best = candidate(Math.max(0, rough - 1));
-      best.method = "Notlösung prüfen";
-    }
-
-    const standardTotal = best.full * axis;
-    const jointTotal = best.joints * gap;
-    const passTotal = 2 * best.side;
-
-    return {
-      ...best,
+    const base = {
       widthMm: total,
       lengthMm: input.lengthM * 1000,
       minSide,
       axis,
       gap,
-      standardTotal,
-      jointTotal,
-      passTotal,
-      totalScharen: best.fields,
-      standardRawWidth: axis + input.profileAllowance,
-      passRawWidth: best.side + input.profileAllowance,
-      sumCheck: standardTotal + jointTotal + passTotal
+      standardRawWidth: axis + geometry.profileLoss
+    };
+
+    const invalidLayout = (error) => ({
+      ...base,
+      valid: false,
+      validSide: false,
+      error,
+      method: "Einteilung ungültig",
+      full: 0,
+      fields: 0,
+      joints: 0,
+      totalScharen: 0,
+      leftSide: null,
+      rightSide: null,
+      side: null,
+      leftPassRawWidth: null,
+      rightPassRawWidth: null,
+      passRawWidth: null,
+      standardTotal: 0,
+      jointTotal: 0,
+      passTotal: 0,
+      sumCheck: 0,
+      candidateCount: 0,
+      candidateSummaries: [],
+      selectedReason: null,
+      metrics: null
+    });
+
+    if (!Number.isFinite(total) || total <= 0 || !Number.isFinite(axis) || axis <= 0 || !Number.isFinite(gap) || gap < 0) {
+      return invalidLayout("Dachbreite, Legacy-Layoutbreite und separate Fuge ergeben keine gültige Rechenbasis.");
+    }
+
+    const makeCandidate = (full, leftSide, rightSide, method) => {
+      const fields = full + 2;
+      const joints = full + 1;
+      const standardTotal = full * axis;
+      const jointTotal = joints * gap;
+      const passTotal = leftSide + rightSide;
+      const sumCheck = standardTotal + jointTotal + passTotal;
+      const invariantDelta = Math.abs(sumCheck - total);
+      const edgesFinite = Number.isFinite(leftSide) && Number.isFinite(rightSide);
+      const edgesInRange = edgesFinite
+        && leftSide >= minSide && leftSide <= axis
+        && rightSide >= minSide && rightSide <= axis;
+      const geometryValid = Number.isInteger(full) && full >= 0 && edgesFinite
+        && leftSide >= 0 && rightSide >= 0 && invariantDelta <= tolerance;
+      const valid = geometryValid && edgesInRange;
+      const equalEdges = edgesFinite && Math.abs(leftSide - rightSide) <= tolerance;
+      const leftPassRawWidth = edgesFinite ? leftSide + geometry.profileLoss : null;
+      const rightPassRawWidth = edgesFinite ? rightSide + geometry.profileLoss : null;
+      const pairRawTotal = edgesFinite ? leftPassRawWidth + rightPassRawWidth + input.cutGap : Infinity;
+      const pairFits = passPairFitsInCoil(leftPassRawWidth, rightPassRawWidth, input.cutGap, geometry.bandWidth);
+      const wasteMm = pairFits
+        ? Math.max(0, geometry.bandWidth - pairRawTotal)
+        : Math.max(0, geometry.bandWidth - leftPassRawWidth) + Math.max(0, geometry.bandWidth - rightPassRawWidth);
+      const metrics = {
+        symmetryDelta: edgesFinite ? Math.abs(leftSide - rightSide) : Infinity,
+        minEdge: edgesFinite ? Math.min(leftSide, rightSide) : -Infinity,
+        pairFits,
+        wasteMm,
+        distinctSpecialWidths: equalEdges ? 1 : 2
+      };
+
+      return {
+        ...base,
+        valid,
+        geometryValid,
+        validSide: edgesInRange,
+        method,
+        full,
+        fields,
+        joints,
+        totalScharen: fields,
+        leftSide,
+        rightSide,
+        side: equalEdges ? leftSide : null,
+        leftPassRawWidth,
+        rightPassRawWidth,
+        passRawWidth: equalEdges ? leftPassRawWidth : null,
+        standardTotal,
+        jointTotal,
+        passTotal,
+        sumCheck,
+        invariantDelta,
+        metrics,
+        candidateCount: 1,
+        selectedReason: null
+      };
+    };
+
+    const symmetricCandidate = (full, method = "symmetrische Passscharen") => {
+      const joints = full + 1;
+      const rest = total - full * axis - joints * gap;
+      return makeCandidate(full, rest / 2, rest / 2, method);
+    };
+
+    const presetRangeError = () => {
+      const invalidLeft = hasLeft && (!Number.isFinite(leftPreset) || leftPreset < minSide || leftPreset > axis);
+      const invalidRight = hasRight && (!Number.isFinite(rightPreset) || rightPreset < minSide || rightPreset > axis);
+      if (!invalidLeft && !invalidRight) return null;
+      const sides = [invalidLeft ? "links" : null, invalidRight ? "rechts" : null].filter(Boolean).join(" und ");
+      return `Vorgegebene Randschar ${sides} muss zwischen ${fmtMm(minSide)} und ${fmtMm(axis)} liegen.`;
+    };
+
+    if (mode === "sym" || mode === "max") {
+      for (let full = maxFull; full >= 0; full--) {
+        const c = symmetricCandidate(full, mode === "max" ? "Maximalvariante (Legacy)" : "symmetrische Passscharen");
+        if (mode === "max" ? c.geometryValid && c.leftSide <= axis : c.valid) return c;
+      }
+      return invalidLayout("Für Dachbreite, Legacy-Layoutbreite, Fuge und Mindest-Randschar wurde keine gültige symmetrische Einteilung gefunden.");
+    }
+
+    if (mode === "asym") {
+      if (!hasLeft && !hasRight) {
+        return invalidLayout("Asymmetrische Einteilung benötigt mindestens eine vorgegebene Randschar links oder rechts.");
+      }
+      const rangeError = presetRangeError();
+      if (rangeError) return invalidLayout(rangeError);
+
+      if (hasLeft && hasRight) {
+        const fullExact = (total - leftPreset - rightPreset - gap) / (axis + gap);
+        const full = Math.round(fullExact);
+        if (full < 0 || Math.abs(fullExact - full) > tolerance) {
+          return invalidLayout("Beide Randschar-Vorgaben widersprechen der Dachbreite; eine ganzzahlige Anzahl Standardscharen ist nicht möglich.");
+        }
+        const c = makeCandidate(full, leftPreset, rightPreset, "asymmetrisch, beide Randscharen vorgegeben");
+        return c.valid ? c : invalidLayout("Beide Randschar-Vorgaben erfüllen die geometrische Kontrollsumme nicht exakt.");
+      }
+
+      for (let full = maxFull; full >= 0; full--) {
+        const jointTotal = (full + 1) * gap;
+        const remaining = total - full * axis - jointTotal;
+        const leftSide = hasLeft ? leftPreset : remaining - rightPreset;
+        const rightSide = hasRight ? rightPreset : remaining - leftPreset;
+        const c = makeCandidate(full, leftSide, rightSide, hasLeft
+          ? "asymmetrisch, Randschar rechts aus Rest abgeleitet"
+          : "asymmetrisch, Randschar links aus Rest abgeleitet");
+        if (c.valid) return c;
+      }
+      return invalidLayout("Aus der vorgegebenen Randschar lässt sich keine gültige gegenüberliegende Randschar ableiten.");
+    }
+
+    if (mode !== "optimize") {
+      return invalidLayout(`Unbekannter Einteilungsmodus „${requestedMode}“.`);
+    }
+
+    const rangeError = presetRangeError();
+    if (rangeError) return invalidLayout(rangeError);
+    const candidates = [];
+
+    if (hasLeft && hasRight) {
+      const fullExact = (total - leftPreset - rightPreset - gap) / (axis + gap);
+      const full = Math.round(fullExact);
+      if (full >= 0 && Math.abs(fullExact - full) <= tolerance) {
+        const c = makeCandidate(full, leftPreset, rightPreset, "optimierte Einteilung mit beiden Vorgaben");
+        if (c.valid) candidates.push(c);
+      }
+    } else {
+      for (let full = maxFull; full >= 0; full--) {
+        const remaining = total - full * axis - (full + 1) * gap;
+        const leftSide = hasLeft ? leftPreset : (hasRight ? remaining - rightPreset : remaining / 2);
+        const rightSide = hasRight ? rightPreset : (hasLeft ? remaining - leftPreset : remaining / 2);
+        const c = makeCandidate(full, leftSide, rightSide, "automatisch optimierte Einteilung");
+        if (c.valid) candidates.push(c);
+      }
+    }
+
+    if (!candidates.length) {
+      return invalidLayout("Für die Optimierung wurde kein gültiger Kandidat mit korrekter Kontrollsumme gefunden.");
+    }
+
+    const goal = ["symmetry", "largeEdges", "waste", "fewSizes"].includes(input.optimizationGoal)
+      ? input.optimizationGoal
+      : "symmetry";
+    const score = (c) => {
+      if (goal === "largeEdges") return [-c.metrics.minEdge, -c.full, c.metrics.symmetryDelta, c.leftSide, c.rightSide];
+      if (goal === "waste") return [c.metrics.pairFits ? 0 : 1, c.metrics.wasteMm, c.metrics.symmetryDelta, -c.full, c.leftSide, c.rightSide];
+      if (goal === "fewSizes") return [c.metrics.distinctSpecialWidths, c.metrics.symmetryDelta, -c.full, c.leftSide, c.rightSide];
+      return [c.metrics.symmetryDelta, -c.full, c.leftSide, c.rightSide];
+    };
+    const compareLexicographic = (a, b) => {
+      const aa = score(a);
+      const bb = score(b);
+      for (let i = 0; i < aa.length; i++) {
+        if (Math.abs(aa[i] - bb[i]) > tolerance) return aa[i] - bb[i];
+      }
+      return 0;
+    };
+    candidates.sort(compareLexicographic);
+    const best = candidates[0];
+    const reasonByGoal = {
+      symmetry: `kleinste Links-/Rechts-Abweichung ${fmtMm(best.metrics.symmetryDelta, best.metrics.symmetryDelta % 1 ? 1 : 0)}; bei Gleichstand mehr Standardscharen (${best.full})`,
+      largeEdges: `größte minimale Randschar ${fmtMm(best.metrics.minEdge, best.metrics.minEdge % 1 ? 1 : 0)}; bei Gleichstand mehr Standardscharen (${best.full})`,
+      waste: `${best.metrics.pairFits ? "beide Passscharen passen in eine Coilbreite" : "zwei Coil-Längen erforderlich"}; bewerteter Rest ${fmtMm(best.metrics.wasteMm, best.metrics.wasteMm % 1 ? 1 : 0)}; bei Gleichstand kleinste Links-/Rechts-Abweichung und mehr Standardscharen (${best.full})`,
+      fewSizes: `${best.metrics.distinctSpecialWidths} unterschiedliches sichtbares Sondermaß; bei Gleichstand kleinste Links-/Rechts-Abweichung und mehr Standardscharen (${best.full})`
+    };
+    return {
+      ...best,
+      candidateCount: candidates.length,
+      candidateSummaries: candidates.map(c => ({
+        full: c.full,
+        leftSide: c.leftSide,
+        rightSide: c.rightSide,
+        joints: c.joints,
+        sumCheck: c.sumCheck,
+        invariantDelta: c.invariantDelta,
+        metrics: { ...c.metrics }
+      })),
+      optimizationGoal: goal,
+      selectedReason: reasonByGoal[goal]
     };
   }
 
-  function calculateQuantities(input, layout) {
-    const lengthWithAllowanceM = input.lengthM + input.lengthAllowance / 1000;
-    const fullLm = layout.full * lengthWithAllowanceM;
-
-    const bothPassFitOneCoil = (2 * layout.passRawWidth + input.cutGap) <= input.coil;
-    const passLm = bothPassFitOneCoil ? lengthWithAllowanceM : 2 * lengthWithAllowanceM;
-    const netCoilLm = fullLm + passLm;
-    const orderCoilLm = netCoilLm * (1 + input.wastePercent / 100);
-
-    const rawAreaM2 = orderCoilLm * input.coil / 1000;
-    const visibleAreaM2 = input.widthM * input.lengthM;
-    const weightKg = rawAreaM2 * (input.sheetThickness / 1000) * input.material.density;
-
-    const maxRegularSpacing = 500;
-    const maxFixedSpacing = 330;
-    const spacingUsed = Math.min(input.clipSpacing || maxRegularSpacing, maxRegularSpacing);
-    const fixedSpacingUsed = Math.min(spacingUsed, maxFixedSpacing);
-
+  function calculateClipPlan(input, layout, visibleAreaM2) {
+    const geometry = geometryForInput(input);
+    const materialRules = legacyMaterialRulesFor(input);
+    const clipMode = input.clipMode === "project" ? "project" : "legacy";
+    const clipModeLabel = clipMode === "legacy" ? "Legacy / Orientierung" : "Projekt-/Bemessungswerte";
+    const substrate = ["wood", "other"].includes(input.substrate) ? input.substrate : "unknown";
+    const substrateLabel = {
+      wood: "Holz / Vollschalung",
+      other: "anderer Untergrund",
+      unknown: "nicht festgelegt"
+    }[substrate];
     const fixedZoneM = Math.min(Math.max(input.fixedZoneM, 1), 3, input.lengthM);
-    const fixedPerSeam = Math.max(1, Math.ceil((fixedZoneM * 1000) / fixedSpacingUsed) + 1);
     const outsideM = Math.max(0, input.lengthM - fixedZoneM);
+    const clipExtraFactor = 1 + input.clipExtraPercent / 100;
+
+    let requiredClipsPerM2;
+    let densitySpacingMm = null;
+    let spacingUsed;
+    let fixedSpacingUsed;
+    let clipSource;
+    let clipCalculationStatus;
+    let clipCalculationNote;
+    let manufacturerClipLimitsApplied = false;
+    let maxFixedSpacingLimit = null;
+    let maxSlidingSpacingLimit = null;
+
+    if (clipMode === "legacy") {
+      const legacyMaxSlidingSpacing = 500;
+      const legacyMaxFixedSpacing = 330;
+      spacingUsed = Math.min(input.clipSpacing || legacyMaxSlidingSpacing, legacyMaxSlidingSpacing);
+      fixedSpacingUsed = Math.min(spacingUsed, legacyMaxFixedSpacing);
+      requiredClipsPerM2 = MIN_CLIPS_PER_M2[input.roofZone][input.windClass];
+      clipSource = "Legacy / Orientierung (V2-Altwerte)";
+      clipCalculationStatus = STATUS.WARNUNG;
+      clipCalculationNote = "Keine Aussage zur ÖNORM-2026-Konformität; objektbezogene Bemessung fehlt.";
+      maxFixedSpacingLimit = legacyMaxFixedSpacing;
+      maxSlidingSpacingLimit = legacyMaxSlidingSpacing;
+    } else {
+      requiredClipsPerM2 = input.roofZone === "edge"
+        ? input.projectClipsPerM2Edge
+        : input.projectClipsPerM2Regular;
+      const scharWidth = Number.isFinite(geometry.scharWidth) && geometry.scharWidth > 0
+        ? geometry.scharWidth
+        : null;
+      const densityValid = Number.isFinite(requiredClipsPerM2) && requiredClipsPerM2 > 0;
+      const spacingInputValid = input.projectMaxClipSpacing === null
+        || (Number.isFinite(input.projectMaxClipSpacing) && input.projectMaxClipSpacing > 0);
+      const canCalculate = densityValid && scharWidth !== null && spacingInputValid;
+      const isPrefalz = input.systemKey === "prefalz";
+
+      clipSource = isPrefalz
+        ? "Projektwerte + ausdrücklich gewählte PREFALZ-Grenzabstände"
+        : "Projekt-/Bemessungswerte";
+      manufacturerClipLimitsApplied = isPrefalz;
+
+      if (!canCalculate) {
+        return {
+          clipMode,
+          clipModeLabel,
+          clipSource,
+          clipCalculationStatus: STATUS.PRUEFUNG,
+          clipCalculationNote: !densityValid
+            ? `Erforderliche Hafte/m² für ${input.roofZone === "edge" ? "Randbereich" : "Normalbereich"} fehlen.`
+            : scharWidth === null
+              ? "Scharenbreite für die Umrechnung in einen Haftabstand fehlt."
+              : "Der optionale maximale Haftabstand ist ungültig.",
+          requiredClipsPerM2: densityValid ? requiredClipsPerM2 : null,
+          densitySpacingMm: null,
+          spacingUsed: null,
+          fixedSpacingUsed: null,
+          maxFixedSpacingLimit: isPrefalz ? 330 : null,
+          maxSlidingSpacingLimit: isPrefalz ? 500 : null,
+          manufacturerClipLimitsApplied,
+          fixedZoneM,
+          fixedPerSeam: null,
+          slidingPerSeam: null,
+          clipsBySpacing: null,
+          minClipsPerM2: densityValid ? requiredClipsPerM2 : null,
+          clipsByArea: null,
+          clipsBeforeExtra: null,
+          clipsTotal: null,
+          fixedClips: null,
+          slidingClips: null,
+          slidingRequired: null,
+          fastenersPerClip: Number.isInteger(input.fastenersPerClipManual) && input.fastenersPerClipManual > 0
+            ? input.fastenersPerClipManual
+            : null,
+          fasteners: null,
+          fastenerCalculationStatus: STATUS.PRUEFUNG,
+          fastenerSource: "Projektwert unvollständig",
+          substrate,
+          substrateLabel
+        };
+      }
+
+      densitySpacingMm = 1000000 / (scharWidth * requiredClipsPerM2);
+      const projectSpacingLimit = input.projectMaxClipSpacing === null
+        ? densitySpacingMm
+        : Math.min(densitySpacingMm, input.projectMaxClipSpacing);
+      if (isPrefalz) {
+        maxFixedSpacingLimit = 330;
+        maxSlidingSpacingLimit = 500;
+        fixedSpacingUsed = Math.min(projectSpacingLimit, maxFixedSpacingLimit);
+        spacingUsed = Math.min(projectSpacingLimit, maxSlidingSpacingLimit);
+      } else {
+        fixedSpacingUsed = projectSpacingLimit;
+        spacingUsed = projectSpacingLimit;
+      }
+
+      clipCalculationStatus = substrate === "wood" ? STATUS.OK : STATUS.PRUEFUNG;
+      clipCalculationNote = substrate === "wood"
+        ? "Projektwerte rechnerisch angewendet; keine Tragfähigkeitsberechnung."
+        : `Untergrund ${substrateLabel}; Befestigung und Tragfähigkeit objektbezogen prüfen.`;
+    }
+
+    const fixedPerSeam = Math.max(1, Math.ceil((fixedZoneM * 1000) / fixedSpacingUsed) + 1);
     const slidingPerSeam = Math.max(0, Math.ceil((outsideM * 1000) / spacingUsed));
     const clipsBySpacing = layout.joints * (fixedPerSeam + slidingPerSeam);
-
-    const minClipsPerM2 = MIN_CLIPS_PER_M2[input.roofZone][input.windClass];
-    const clipsByArea = Math.ceil(visibleAreaM2 * minClipsPerM2);
+    const clipsByArea = Math.ceil(visibleAreaM2 * requiredClipsPerM2);
     const clipsBeforeExtra = Math.max(clipsBySpacing, clipsByArea);
-    const clipsTotal = Math.ceil(clipsBeforeExtra * (1 + input.clipExtraPercent / 100));
-
-    const slidingRequired = input.lengthM >= input.material.slideFromM;
-    let fixedClips = Math.ceil(layout.joints * fixedPerSeam * (1 + input.clipExtraPercent / 100));
+    const clipsTotal = Math.ceil(clipsBeforeExtra * clipExtraFactor);
+    const slidingRequired = clipMode === "legacy"
+      ? input.lengthM >= materialRules.slideFromM
+      : outsideM > 0;
+    let fixedClips = Math.ceil(layout.joints * fixedPerSeam * clipExtraFactor);
     fixedClips = Math.min(fixedClips, clipsTotal);
     let slidingClips = slidingRequired ? Math.max(0, clipsTotal - fixedClips) : 0;
     if (!slidingRequired) {
@@ -1217,39 +3097,256 @@
       slidingClips = 0;
     }
 
-    const fasteners = clipsTotal * 2;
-    const seamMeters = layout.joints * input.lengthM;
-    const sealantRequired = input.sealantMode === "always" || (input.sealantMode === "auto" && input.pitch < 7);
-    const sealantNetLiters = sealantRequired ? seamMeters * input.sealantMlPerM / 1000 : 0;
-    const sealantOrderLiters = sealantNetLiters * (1 + input.sealantWastePercent / 100);
-
-    const expansionMm = input.lengthM * input.material.alpha * input.tempDeltaK / 1000;
-    const fp = fixedPointInfo(input);
+    const manualFastenersValid = Number.isInteger(input.fastenersPerClipManual)
+      && input.fastenersPerClipManual > 0;
+    const fastenersPerClip = clipMode === "legacy"
+      ? 2
+      : manualFastenersValid ? input.fastenersPerClipManual : null;
+    const fasteners = fastenersPerClip === null ? null : Math.ceil(clipsTotal * fastenersPerClip);
+    const fastenerCalculationStatus = clipMode === "legacy"
+      ? STATUS.WARNUNG
+      : manualFastenersValid && substrate === "wood" ? STATUS.OK : STATUS.PRUEFUNG;
+    const fastenerSource = clipMode === "legacy"
+      ? "Legacy-Annahme: 2 je Haft"
+      : manualFastenersValid
+        ? "manuelle System-/Projektvorgabe"
+        : "System-/Projektwert fehlt";
 
     return {
-      lengthWithAllowanceM,
-      fullLm,
-      bothPassFitOneCoil,
-      passLm,
-      netCoilLm,
-      orderCoilLm,
-      rawAreaM2,
-      visibleAreaM2,
-      weightKg,
+      clipMode,
+      clipModeLabel,
+      clipSource,
+      clipCalculationStatus,
+      clipCalculationNote,
+      requiredClipsPerM2,
+      densitySpacingMm,
       spacingUsed,
       fixedSpacingUsed,
+      maxFixedSpacingLimit,
+      maxSlidingSpacingLimit,
+      manufacturerClipLimitsApplied,
       fixedZoneM,
       fixedPerSeam,
       slidingPerSeam,
       clipsBySpacing,
-      minClipsPerM2,
+      minClipsPerM2: requiredClipsPerM2,
       clipsByArea,
       clipsBeforeExtra,
       clipsTotal,
       fixedClips,
       slidingClips,
       slidingRequired,
+      fastenersPerClip,
       fasteners,
+      fastenerCalculationStatus,
+      fastenerSource,
+      substrate,
+      substrateLabel
+    };
+  }
+
+  function calculateQuantities(input, layout) {
+    const geometry = geometryForInput(input);
+    const lengthWithAllowanceM = input.lengthM + input.lengthAllowance / 1000;
+    if (!layout.valid) {
+      return {
+        valid: false,
+        lengthWithAllowanceM,
+        standard: null,
+        pass: null,
+        standardNetCoilLm: 0,
+        standardNetRawAreaM2: 0,
+        leftPassVisibleWidth: null,
+        rightPassVisibleWidth: null,
+        leftPassLegacyCutWidth: null,
+        rightPassLegacyCutWidth: null,
+        leftPassActualCutWidth: null,
+        rightPassActualCutWidth: null,
+        fullLm: 0,
+        bothPassFitOneCoil: false,
+        passLm: 0,
+        passNetCoilLm: 0,
+        passNetRawAreaM2: 0,
+        netCoilLm: 0,
+        reservePercent: 0,
+        reserveCoilLm: 0,
+        orderCoilLm: 0,
+        netRawAreaM2: 0,
+        reserveAreaM2: 0,
+        orderRawAreaM2: 0,
+        rawAreaM2: 0,
+        visibleAreaM2: 0,
+        legacyStandardCutWasteM2: 0,
+        legacyPassCutWasteM2: 0,
+        legacyCutWasteM2: 0,
+        legacyCutWastePercent: 0,
+        legacyPassCutWastePercent: 0,
+        rawToVisibleDifferenceM2: 0,
+        rawToVisibleDifferencePercent: 0,
+        weightKg: 0,
+        clipMode: input.clipMode === "project" ? "project" : "legacy",
+        clipModeLabel: input.clipMode === "project" ? "Projekt-/Bemessungswerte" : "Legacy / Orientierung",
+        clipSource: "Einteilung ungültig",
+        clipCalculationStatus: STATUS.PRUEFUNG,
+        clipCalculationNote: "Keine Haftberechnung bei ungültiger Einteilung.",
+        requiredClipsPerM2: null,
+        densitySpacingMm: null,
+        spacingUsed: null,
+        fixedSpacingUsed: null,
+        maxFixedSpacingLimit: null,
+        maxSlidingSpacingLimit: null,
+        manufacturerClipLimitsApplied: false,
+        fixedZoneM: null,
+        fixedPerSeam: null,
+        slidingPerSeam: null,
+        clipsBySpacing: null,
+        minClipsPerM2: null,
+        clipsByArea: null,
+        clipsBeforeExtra: null,
+        clipsTotal: null,
+        fixedClips: null,
+        slidingClips: null,
+        slidingRequired: null,
+        fastenersPerClip: null,
+        fasteners: null,
+        fastenerCalculationStatus: STATUS.PRUEFUNG,
+        fastenerSource: "Einteilung ungültig",
+        substrate: input.substrate || "unknown",
+        substrateLabel: "nicht auswertbar",
+        seamMeters: 0,
+        sealantRequired: false,
+        sealantNetLiters: 0,
+        sealantOrderLiters: 0,
+        expansionMm: 0,
+        fixedPoint: fixedPointInfo(input)
+      };
+    }
+    const standardNetCoilLm = layout.full * lengthWithAllowanceM;
+    const fullLm = standardNetCoilLm;
+    const leftPassVisibleWidth = layout.leftSide;
+    const rightPassVisibleWidth = layout.rightSide;
+    const leftPassLegacyCutWidth = layout.leftPassRawWidth;
+    const rightPassLegacyCutWidth = layout.rightPassRawWidth;
+
+    // Ohne definiertes Rand-/Anschlussdetail ist keine tatsächliche
+    // Passschar-Zuschnittbreite bekannt. Der Legacy-Wert bleibt ausschließlich
+    // als transparenter Mengenansatz erhalten; es wird keine Zugabe ergänzt.
+    const leftPassActualCutWidth = null;
+    const rightPassActualCutWidth = null;
+
+    const bothPassFitOneCoil = passPairFitsInCoil(
+      leftPassLegacyCutWidth,
+      rightPassLegacyCutWidth,
+      input.cutGap,
+      geometry.bandWidth
+    );
+    const passNetCoilLm = bothPassFitOneCoil ? lengthWithAllowanceM : 2 * lengthWithAllowanceM;
+    const passLm = passNetCoilLm;
+    const netCoilLm = standardNetCoilLm + passNetCoilLm;
+    const orderCoilLm = netCoilLm * (1 + input.wastePercent / 100);
+    const reserveCoilLm = orderCoilLm - netCoilLm;
+
+    const standardNetRawAreaM2 = standardNetCoilLm * geometry.bandWidth / 1000;
+    const passNetRawAreaM2 = passNetCoilLm * geometry.bandWidth / 1000;
+    const netRawAreaM2 = netCoilLm * geometry.bandWidth / 1000;
+    const reserveAreaM2 = reserveCoilLm * geometry.bandWidth / 1000;
+    const orderRawAreaM2 = orderCoilLm * geometry.bandWidth / 1000;
+    const rawAreaM2 = orderRawAreaM2;
+    const visibleAreaM2 = input.widthM * input.lengthM;
+    const legacyStandardCutWasteM2 = standardNetCoilLm
+      * Math.max(0, geometry.bandWidth - layout.standardRawWidth) / 1000;
+    const passSourceWidthMm = (bothPassFitOneCoil ? 1 : 2) * geometry.bandWidth;
+    const legacyPassCutWasteWidthMm = Math.max(
+      0,
+      passSourceWidthMm - leftPassLegacyCutWidth - rightPassLegacyCutWidth
+    );
+    const legacyPassCutWasteM2 = legacyPassCutWasteWidthMm * lengthWithAllowanceM / 1000;
+    const legacyCutWasteM2 = legacyStandardCutWasteM2 + legacyPassCutWasteM2;
+    const legacyCutWastePercent = netRawAreaM2 > 0 ? legacyCutWasteM2 / netRawAreaM2 * 100 : 0;
+    const legacyPassCutWastePercent = passNetRawAreaM2 > 0
+      ? legacyPassCutWasteM2 / passNetRawAreaM2 * 100
+      : 0;
+    const rawToVisibleDifferenceM2 = orderRawAreaM2 - visibleAreaM2;
+    const rawToVisibleDifferencePercent = orderRawAreaM2 > 0
+      ? rawToVisibleDifferenceM2 / orderRawAreaM2 * 100
+      : 0;
+    const weightKg = orderRawAreaM2 * (input.sheetThickness / 1000) * input.material.density;
+
+    const standard = {
+      count: layout.full,
+      geometricWidth: layout.axis,
+      knownCutWidth: layout.standardRawWidth,
+      cutWidthStatus: "known_from_profile_or_manual_input",
+      netCoilLm: standardNetCoilLm,
+      netRawAreaM2: standardNetRawAreaM2,
+      legacyCutWasteM2: legacyStandardCutWasteM2
+    };
+    const pass = {
+      left: {
+        count: 1,
+        geometricWidth: leftPassVisibleWidth,
+        actualCutWidth: leftPassActualCutWidth,
+        legacyCutWidth: leftPassLegacyCutWidth,
+        cutWidthStatus: "unknown_without_edge_detail"
+      },
+      right: {
+        count: 1,
+        geometricWidth: rightPassVisibleWidth,
+        actualCutWidth: rightPassActualCutWidth,
+        legacyCutWidth: rightPassLegacyCutWidth,
+        cutWidthStatus: "unknown_without_edge_detail"
+      },
+      bothFitOneCoil: bothPassFitOneCoil,
+      netCoilLm: passNetCoilLm,
+      netRawAreaM2: passNetRawAreaM2,
+      legacyCutWasteM2: legacyPassCutWasteM2
+    };
+
+    const clipPlan = calculateClipPlan(input, layout, visibleAreaM2);
+    const seamMeters = layout.joints * input.lengthM;
+    const sealantRequired = input.sealantMode === "always" || (input.sealantMode === "auto" && input.pitch < 7);
+    const sealantNetLiters = sealantRequired ? seamMeters * input.sealantMlPerM / 1000 : 0;
+    const sealantOrderLiters = sealantNetLiters * (1 + input.sealantWastePercent / 100);
+
+    const expansionMm = input.lengthM * input.material.thermalExpansion * input.tempDeltaK / 1000;
+    const fp = fixedPointInfo(input);
+
+    return {
+      valid: true,
+      lengthWithAllowanceM,
+      standard,
+      pass,
+      standardNetCoilLm,
+      standardNetRawAreaM2,
+      leftPassVisibleWidth,
+      rightPassVisibleWidth,
+      leftPassLegacyCutWidth,
+      rightPassLegacyCutWidth,
+      leftPassActualCutWidth,
+      rightPassActualCutWidth,
+      fullLm,
+      bothPassFitOneCoil,
+      passLm,
+      passNetCoilLm,
+      passNetRawAreaM2,
+      netCoilLm,
+      reservePercent: input.wastePercent,
+      reserveCoilLm,
+      orderCoilLm,
+      netRawAreaM2,
+      reserveAreaM2,
+      orderRawAreaM2,
+      rawAreaM2,
+      visibleAreaM2,
+      legacyStandardCutWasteM2,
+      legacyPassCutWasteM2,
+      legacyCutWasteM2,
+      legacyCutWastePercent,
+      legacyPassCutWastePercent,
+      rawToVisibleDifferenceM2,
+      rawToVisibleDifferencePercent,
+      weightKg,
+      ...clipPlan,
       seamMeters,
       sealantRequired,
       sealantNetLiters,
@@ -1260,119 +3357,174 @@
   }
 
   function normMessages(input, layout, qty) {
+    const geometry = geometryForInput(input);
+    const materialRules = legacyMaterialRulesFor(input);
     const messages = [];
-    const maxAxis = maxAxisForInput(input);
-    const minThickness = input.material.minThickness[input.buildingHeight];
-    const rawDiff = input.coil - input.axis;
+    const minThickness = materialRules.minThickness[input.buildingHeight];
+    const rawDiff = geometry.bandWidth - geometry.legacyLayoutWidth;
+    const profileCheck = projectProfileGeometryCheck(geometry);
 
     if (input.widthM <= 0 || input.lengthM <= 0) {
-      messages.push({ type: "danger", text: "Dachbreite und Scharenlänge müssen größer als 0 sein." });
+      messages.push(statusMessage(STATUS.FEHLER, "Dachbreite und Scharenlänge müssen größer als 0 sein."));
+    }
+
+    if (!layout.valid) {
+      messages.push(statusMessage(STATUS.FEHLER, layout.error || "Die Einteilung ist geometrisch ungültig."));
+      return messages;
     }
 
     if (input.pitch < 3) {
-      messages.push({ type: "danger", text: "Dachneigung unter 3°: normale Doppelstehfalz-Planung nicht sauber ansetzen. Sonderdetail/Systemnachweis erforderlich." });
+      messages.push(statusMessage(STATUS.FEHLER, "Dachneigung unter 3°: normale Doppelstehfalz-Planung nicht sauber ansetzen. Sonderdetail/Systemnachweis erforderlich."));
     } else if (input.pitch < 5) {
-      messages.push({ type: "danger", text: "Dachneigung 3° bis unter 5°: nur als streng begrenzter Sonderfall mit Unterdach, ohne problematische Ichsen/Durchführungen und mit Detailfreigabe bewerten." });
+      messages.push(statusMessage(STATUS.FEHLER, "Dachneigung 3° bis unter 5°: nur als streng begrenzter Sonderfall mit Unterdach, ohne problematische Ichsen/Durchführungen und mit Detailfreigabe bewerten."));
     } else if (input.pitch < 7) {
-      messages.push({ type: "warn", text: "Dachneigung unter 7°: niedriger Neigungsbereich. Falzdichtung/Falzgel, Unterdach, Querfalze und Durchdringungen streng prüfen." });
+      messages.push(statusMessage(STATUS.WARNUNG, "Dachneigung unter 7°: niedriger Neigungsbereich. Falzdichtung/Falzgel, Unterdach, Querfalze und Durchdringungen streng prüfen."));
     } else {
-      messages.push({ type: "ok", text: "Dachneigung ab 7°: für Doppelstehfalz deutlich unkritischer, Detailprüfung bleibt notwendig." });
+      messages.push(statusMessage(STATUS.OK, "Dachneigung ab 7°: für Doppelstehfalz deutlich unkritischer, Detailprüfung bleibt notwendig."));
     }
 
-    if (input.normRegime === "at2026") {
-      messages.push({
-        type: input.axis <= maxAxis ? "ok" : "danger",
-        text: `Prüfmodus AT 2026: hinterlegtes Warnlimit ${fmtMm(maxAxis)}. Eingestelltes Achsmaß ${fmtMm(input.axis)} ${input.axis <= maxAxis ? "liegt darunter." : "überschreitet dieses Limit."}`
-      });
-    } else if (input.normRegime === "legacy") {
-      messages.push({
-        type: input.axis <= maxAxis ? "ok" : "danger",
-        text: `Alt-/Fachregel-Tabelle: max. Scharenbreite für Material/Wind/Bereich ${fmtMm(maxAxis)}. Eingestellt: ${fmtMm(input.axis)}.`
-      });
+    if (profileCheck.applies) {
+      messages.push(profileCheck.valid
+        ? statusMessage(
+            STATUS.INFO,
+            `Projektprofil 670/590: ${fmtMm(geometry.bandWidth)} − Unterfalz ${fmtMm(geometry.underSeamAllowance)} − Überfalz ${fmtMm(geometry.overSeamAllowance)} = Scharenbreite ${fmtMm(geometry.scharWidth)}; Gesamt-Falzzugabe ${fmtMm(geometry.totalSeamAllowance)}. Achsmaß und Fugenwirkung bleiben PRUEFUNG.`
+          )
+        : statusMessage(
+            STATUS.FEHLER,
+            "Projektprofil 670/590: Falzzugaben- oder Scharenbreitenidentität ist verletzt."
+          ));
+    }
+
+    messages.push(evaluateWidthRegime(input, geometry));
+
+    messages.push(statusMessage(
+      input.sheetThickness >= minThickness ? STATUS.OK : STATUS.FEHLER,
+      `${input.material.short}: eingestellte Dicke ${fmt(input.sheetThickness, 2)} mm, hinterlegte Mindestdicke für Gebäudehöhe ${fmt(minThickness, 2)} mm.`
+    ));
+
+    if (layout.standardRawWidth > geometry.bandWidth) {
+      messages.push(statusMessage(
+        STATUS.FEHLER,
+        `Rohbreite Standardschar ${fmtMm(layout.standardRawWidth)} ist größer als Coil ${fmtMm(geometry.bandWidth)}. Legacy-Layoutbreite, Coil oder Falzverlust korrigieren.`
+      ));
     } else {
-      messages.push({
-        type: input.axis <= maxAxis ? "ok" : "warn",
-        text: `Manueller Projektwert: max. ${fmtMm(maxAxis)}. Nur verwenden, wenn Herstellerfreigabe/Projektvorgabe vorliegt.`
-      });
+      messages.push(statusMessage(
+        STATUS.OK,
+        `Rohbreite Standardschar ${fmtMm(layout.standardRawWidth)} passt in Coil ${fmtMm(geometry.bandWidth)}.`
+      ));
     }
 
-    messages.push({
-      type: input.sheetThickness >= minThickness ? "ok" : "danger",
-      text: `${input.material.short}: eingestellte Dicke ${fmt(input.sheetThickness, 2)} mm, hinterlegte Mindestdicke für Gebäudehöhe ${fmt(minThickness, 2)} mm.`
-    });
+    if (Math.abs(rawDiff - geometry.profileLoss) > 3) {
+      messages.push(statusMessage(
+        STATUS.WARNUNG,
+        `Coil − Legacy-Layoutbreite ergibt ${fmtMm(rawDiff)}. Eingestellter Profilverlust ist ${fmtMm(geometry.profileLoss)}. Abweichung prüfen, sonst stimmt die Passschar-/Materiallogik nicht.`
+      ));
+    }
 
-    if (layout.standardRawWidth > input.coil) {
-      messages.push({
-        type: "danger",
-        text: `Rohbreite Standardschar ${fmtMm(layout.standardRawWidth)} ist größer als Coil ${fmtMm(input.coil)}. Achsmaß, Coil oder Falzverlust korrigieren.`
-      });
+    messages.push(statusMessage(
+      STATUS.OK,
+      `Randscharen sichtbar: links ${fmtMm(layout.leftSide, layout.leftSide % 1 ? 1 : 0)}, rechts ${fmtMm(layout.rightSide, layout.rightSide % 1 ? 1 : 0)}; beide erfüllen ${fmtMm(input.minPassVisible)} bis ${fmtMm(layout.axis)}.`
+    ));
+
+    messages.push(statusMessage(
+      STATUS.PRUEFUNG,
+      `Rand-/Anschlussdetails sind offen: Tatsächliche Zuschnittbreiten der Passscharen sind nicht bekannt. Für die Mengenregression gelten transparent nur die Legacy-Zuschnittbreiten links ${fmtMm(qty.leftPassLegacyCutWidth, qty.leftPassLegacyCutWidth % 1 ? 1 : 0)} und rechts ${fmtMm(qty.rightPassLegacyCutWidth, qty.rightPassLegacyCutWidth % 1 ? 1 : 0)}; es wurde keine Anschlusszugabe ergänzt.`
+    ));
+
+    messages.push(statusMessage(
+      STATUS.INFO,
+      `Mengenschema: Netto ${fmtM(qty.netCoilLm)} + Bestellreserve ${fmtM(qty.reserveCoilLm)} = Bestellung ${fmtM(qty.orderCoilLm)}. Die Reserve wird genau einmal auf die Netto-Coilmenge angewendet.`
+    ));
+
+    messages.push(statusMessage(
+      STATUS.PRUEFUNG,
+      `Zuschnittverschnitt ${fmtM2(qty.legacyCutWasteM2)} (${fmt(qty.legacyCutWastePercent, 1)} %) ist ein Rechenwert aus den Legacy-Zuschnittbreiten. Nach Festlegung der Randdetails neu prüfen.`
+    ));
+
+    if (input.mode === "optimize") {
+      messages.push(statusMessage(
+        STATUS.INFO,
+        `Automatische Optimierung: ${layout.candidateCount} gültige Kandidaten geprüft; gewählt wegen ${layout.selectedReason}.`
+      ));
+    } else if (input.mode === "asym") {
+      messages.push(statusMessage(STATUS.INFO, `Asymmetrische Einteilung: ${layout.method}.`));
+    }
+
+    if (input.lengthM > materialRules.maxLengthM) {
+      messages.push(statusMessage(
+        STATUS.FEHLER,
+        `${input.material.short}: Scharenlänge ${fmtM(input.lengthM)} überschreitet hinterlegte Länge ohne Sondermaßnahmen (${fmtM(materialRules.maxLengthM, 0)}). Dehnungs-/Querstoßlösung planen.`
+      ));
     } else {
-      messages.push({
-        type: "ok",
-        text: `Rohbreite Standardschar ${fmtMm(layout.standardRawWidth)} passt in Coil ${fmtMm(input.coil)}.`
-      });
+      messages.push(statusMessage(
+        STATUS.OK,
+        `${input.material.short}: Scharenlänge liegt unter hinterlegter Maximal-Länge ohne Sondermaßnahmen (${fmtM(materialRules.maxLengthM, 0)}).`
+      ));
     }
 
-    if (Math.abs(rawDiff - input.profileAllowance) > 3) {
-      messages.push({
-        type: "warn",
-        text: `Coil − Achsmaß ergibt ${fmtMm(rawDiff)}. Eingestellter Falzverlust ist ${fmtMm(input.profileAllowance)}. Abweichung prüfen, sonst stimmt die Passschar-/Materiallogik nicht.`
-      });
-    }
-
-    messages.push({
-      type: layout.validSide ? "ok" : "danger",
-      text: layout.validSide
-        ? `Passschar sichtbar ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)} erfüllt Mindestmaß ${fmtMm(input.minPassVisible)}.`
-        : `Passschar sichtbar ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)} unterschreitet Mindestmaß oder überschreitet Standardschar. Einteilung ändern.`
-    });
-
-    if (input.lengthM > input.material.maxLengthM) {
-      messages.push({
-        type: "danger",
-        text: `${input.material.short}: Scharenlänge ${fmtM(input.lengthM)} überschreitet hinterlegte Länge ohne Sondermaßnahmen (${fmtM(input.material.maxLengthM, 0)}). Dehnungs-/Querstoßlösung planen.`
-      });
+    if (qty.clipMode === "legacy") {
+      messages.push(statusMessage(
+        STATUS.WARNUNG,
+        `Haftbemessung: ${qty.clipSource}. Ergebnis ${qty.clipsTotal} Hafte mit Legacy-Abständen Festhaft ${fmtMm(qty.fixedSpacingUsed)} / Schiebehaft ${fmtMm(qty.spacingUsed)}. Keine Aussage „ÖNORM 2026-konform“; objektbezogene Bemessung erforderlich.`
+      ));
+      messages.push(statusMessage(
+        qty.slidingRequired ? STATUS.WARNUNG : STATUS.OK,
+        qty.slidingRequired
+          ? `Legacy-Orientierung ${input.material.short}: ab ${fmtM(materialRules.slideFromM, 0)} Scharenlänge Schiebehafte berücksichtigt.`
+          : `Legacy-Orientierung ${input.material.short}: unter ${fmtM(materialRules.slideFromM, 0)}; Schiebehaftbedarf objektbezogen prüfen.`
+      ));
+      if (input.clipSpacing > 500) {
+        messages.push(statusMessage(
+          STATUS.WARNUNG,
+          "Legacy-Haftabstand über 500 mm eingegeben; der Legacy-Rechenweg begrenzt auf 500 mm. Dies ist keine allgemeine aktuelle Systemregel."
+        ));
+      }
+      messages.push(statusMessage(
+        STATUS.WARNUNG,
+        `Befestigungsmittel: ${qty.fastenersPerClip} je Haft und ${qty.fasteners} gesamt gelten ausschließlich als Legacy-Annahme, nicht als allgemeine ÖNORM- oder Systemregel.`
+      ));
     } else {
-      messages.push({
-        type: "ok",
-        text: `${input.material.short}: Scharenlänge liegt unter hinterlegter Maximal-Länge ohne Sondermaßnahmen (${fmtM(input.material.maxLengthM, 0)}).`
-      });
+      const zoneLabel = input.roofZone === "edge" ? "Randbereich" : "Normalbereich";
+      messages.push(statusMessage(
+        qty.clipCalculationStatus,
+        qty.clipsTotal === null
+          ? `Haftbemessung Projektwerte (${zoneLabel}): ${qty.clipCalculationNote}`
+          : `Haftbemessung Projektwerte (${zoneLabel}): ${fmt(qty.requiredClipsPerM2, 2)} Hafte/m² × Scharenbreite ${fmtMm(geometry.scharWidth)} ergibt ${fmtMm(qty.densitySpacingMm, 1)} rechnerischen Abstand. Verwendet Festhaft ${fmtMm(qty.fixedSpacingUsed, 1)} / Schiebehaft ${fmtMm(qty.spacingUsed, 1)}; ${qty.clipsTotal} Hafte gesamt. ${qty.clipCalculationNote}`
+      ));
+
+      if (qty.manufacturerClipLimitsApplied) {
+        messages.push(statusMessage(
+          qty.clipsTotal === null ? STATUS.PRUEFUNG : STATUS.OK,
+          `PREFALZ ausdrücklich gewählt: Grenzabstände max. ${fmtMm(qty.maxFixedSpacingLimit)} im Festhaftbereich und ${fmtMm(qty.maxSlidingSpacingLimit)} im Schiebehaftbereich werden angewendet. Eine erforderliche Haftdichte wird daraus nicht abgeleitet.`
+        ));
+      }
+
+      messages.push(statusMessage(
+        qty.fastenerCalculationStatus,
+        qty.fasteners === null
+          ? `Befestigungsmittel: belastbare Anzahl je Haft fehlt oder Untergrund ist ${qty.substrateLabel}. Gesamtzahl bleibt PRUEFUNG.`
+          : `Befestigungsmittel: ${qty.fastenersPerClip} je Haft aus manueller System-/Projektvorgabe × ${qty.clipsTotal} Hafte = ${qty.fasteners} gesamt; Untergrund ${qty.substrateLabel}. Keine Tragfähigkeitsberechnung.`
+      ));
     }
 
-    messages.push({
-      type: qty.slidingRequired ? "warn" : "ok",
-      text: qty.slidingRequired
-        ? `${input.material.short}: ab ${fmtM(input.material.slideFromM, 0)} Scharenlänge Schiebehafte berücksichtigen. Berechnung trennt Fest-/Schiebehafte.`
-        : `${input.material.short}: unter ${fmtM(input.material.slideFromM, 0)}; Schiebehaftbedarf objektbezogen prüfen.`
-    });
-
-    if (input.clipSpacing > 500) {
-      messages.push({ type: "danger", text: "Haftabstand über 500 mm eingegeben. Das Tool begrenzt die Berechnung auf 500 mm; Eingabe fachlich korrigieren." });
-    }
-
-    messages.push({
-      type: qty.clipsByArea > qty.clipsBySpacing ? "warn" : "ok",
-      text: qty.clipsByArea > qty.clipsBySpacing
-        ? `Mindesthaftanzahl nach m² (${qty.clipsByArea} Stk.) ist höher als Abstandszählung (${qty.clipsBySpacing} Stk.). Maßgebend wurde m²-Ansatz.`
-        : `Haftzählung über Abstand ist maßgebend (${qty.clipsBySpacing} Stk. vor Zuschlag).`
-    });
-
-    messages.push({
-      type: qty.sealantRequired ? "warn" : "ok",
-      text: qty.sealantRequired
+    messages.push(statusMessage(
+      qty.sealantRequired ? STATUS.WARNUNG : STATUS.OK,
+      qty.sealantRequired
         ? `Falzgel/Dichtmittel wird gerechnet: ${fmt(qty.seamMeters, 1)} Falzmeter × ${fmt(input.sealantMlPerM, 1)} ml/m plus Reserve.`
         : "Falzgel wird nach aktuellem Modus nicht gerechnet."
-    });
+    ));
 
-    messages.push({
-      type: "ok",
-      text: `Festhaftbereich: ${qty.fixedPoint.label}, ca. ${fmtM(qty.fixedPoint.fromTraufeM)} von der Traufe; Breite ${fmtM(qty.fixedZoneM, 1)}.`
-    });
+    messages.push(statusMessage(
+      qty.clipsTotal === null ? STATUS.PRUEFUNG : qty.clipCalculationStatus,
+      qty.clipsTotal === null
+        ? `Fest-/Schiebehaftaufteilung: ${qty.fixedPoint.label}, Breite ${fmtM(qty.fixedZoneM, 1)}; Anzahl mangels vollständiger Haftbemessung offen.`
+        : `Festhaftbereich: ${qty.fixedPoint.label}, ca. ${fmtM(qty.fixedPoint.fromTraufeM)} von der Traufe; Breite ${fmtM(qty.fixedZoneM, 1)}. Aufteilung ${qty.fixedClips} Festhafte / ${qty.slidingClips} Schiebehafte.`
+    ));
 
-    messages.push({
-      type: "warn",
-      text: `Thermische Längenänderung grob: ${fmtMm(qty.expansionMm, 1)} bei ΔT ${fmt(input.tempDeltaK, 0)} K. Bewegungsräume an Anschlüssen nicht vergessen.`
-    });
+    messages.push(statusMessage(
+      STATUS.WARNUNG,
+      `Thermische Längenänderung grob: ${fmtMm(qty.expansionMm, 1)} bei ΔT ${fmt(input.tempDeltaK, 0)} K. Bewegungsräume an Anschlüssen nicht vergessen.`
+    ));
 
     return messages;
   }
@@ -1426,11 +3578,19 @@
 
     txt("Dach-Einteilung Doppelstehfalz", 46, 42, { anchor: "start", size: 28, weight: 950 });
     txt(
-      `Breite ${fmtM(input.widthM)} · Länge ${fmtM(input.lengthM)} · DN ${fmt(input.pitch, 1)}° · ${input.material.label} · ${layout.totalScharen} Scharen`,
+      `Breite ${fmtM(input.widthM)} · Länge ${fmtM(input.lengthM)} · DN ${fmt(input.pitch, 1)}° · ${input.material.label} · ${layout.valid ? `${layout.totalScharen} Scharen` : "Einteilung ungültig"}`,
       46,
       74,
       { anchor: "start", size: 16, weight: 750, fill: "#475569" }
     );
+
+    if (!layout.valid) {
+      makeSvgEl("rect", { x: 90, y: 150, width: 1320, height: 300, rx: 24, fill: "#fff1f2", stroke: "#be123c", "stroke-width": 3 }, svg);
+      txt("Einteilung nicht berechenbar", 750, 245, { size: 34, weight: 950, fill: "#be123c" });
+      txt(layout.error || "Geometrisch ungültige Eingabe", 750, 320, { size: 18, weight: 800, fill: "#881337" });
+      txt("Es werden keine Mengen oder Scharen als Ergebnis ausgegeben.", 750, 370, { size: 17, weight: 750, fill: "#475569" });
+      return;
+    }
 
     const roofX = 170;
     const roofY = 128;
@@ -1457,9 +3617,9 @@
       "stroke-width": 2
     }, svg);
 
-    const fields = [{ type: "pass", width: layout.side, label: "Pass links" }];
+    const fields = [{ type: "pass", width: layout.leftSide, label: "Pass links" }];
     for (let i = 0; i < layout.full; i++) fields.push({ type: "std", width: layout.axis, label: `Standard ${i + 1}` });
-    fields.push({ type: "pass", width: layout.side, label: "Pass rechts" });
+    fields.push({ type: "pass", width: layout.rightSide, label: "Pass rechts" });
 
     const totalCalc = layout.sumCheck;
 
@@ -1546,7 +3706,7 @@
     );
 
     txt(
-      `2 × ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)} Passschar = ${fmtMm(layout.passTotal, layout.passTotal % 1 ? 1 : 0)} · Kontrollsumme ${fmtMm(layout.sumCheck, layout.sumCheck % 1 ? 1 : 0)}`,
+      `Pass links ${fmtMm(layout.leftSide, layout.leftSide % 1 ? 1 : 0)} + rechts ${fmtMm(layout.rightSide, layout.rightSide % 1 ? 1 : 0)} = ${fmtMm(layout.passTotal, layout.passTotal % 1 ? 1 : 0)} · Kontrollsumme ${fmtMm(layout.sumCheck, layout.sumCheck % 1 ? 1 : 0)}`,
       750,
       dimY1 + 31,
       { size: 17, weight: 850, fill: "#334155" }
@@ -1558,15 +3718,20 @@
     }, svg);
     txt(fmtMm(layout.widthMm), 750, dimY2 + 40, { size: 32, weight: 950 });
 
-    const okCount = messages.filter(m => m.type === "ok").length;
-    const warnCount = messages.filter(m => m.type === "warn").length;
-    const dangerCount = messages.filter(m => m.type === "danger").length;
+    const statusCounts = countStatuses(messages);
+    const statusColor = statusCounts.FEHLER
+      ? "#be123c"
+      : statusCounts.PRUEFUNG
+        ? "#6d28d9"
+        : statusCounts.WARNUNG
+          ? "#a16207"
+          : "#15803d";
 
     const cards = [
       { label: "Coil", value: fmtM(qty.orderCoilLm), color: "#0f766e" },
-      { label: "Hafte", value: `${qty.clipsTotal} Stk.`, color: "#075985" },
+      { label: "Hafte", value: qty.clipsTotal === null ? "PRUEFUNG" : `${qty.clipsTotal} Stk.`, color: qty.clipsTotal === null ? "#6d28d9" : "#075985" },
       { label: "Falzgel", value: `${fmt(qty.sealantOrderLiters, 2)} l`, color: "#92400e" },
-      { label: "Status", value: `${dangerCount} Fehler · ${warnCount} Warn.`, color: dangerCount ? "#be123c" : warnCount ? "#a16207" : "#15803d" }
+      { label: "Status", value: statusSummaryText(statusCounts, true), color: statusColor }
     ];
 
     cards.forEach((card, i) => {
@@ -1583,83 +3748,300 @@
     if (el) el.textContent = value;
   }
 
+  function escapeHtml(value) {
+    return String(value ?? "")
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  function selectedOptionText(id, fallback) {
+    const select = $(id);
+    const label = select?.selectedOptions?.[0]?.textContent?.trim();
+    return label || fallback;
+  }
+
+  function printValueRows(rows) {
+    return `<dl class="print-data">${rows.map(row => {
+      const valueClass = row.valueClass ? ` class="${escapeHtml(row.valueClass)}"` : "";
+      return `<dt>${escapeHtml(row.label)}</dt><dd${valueClass}>${escapeHtml(row.value)}</dd>`;
+    }).join("")}</dl>`;
+  }
+
+  function renderPrintSheet(input, geometry, layout, qty, messages) {
+    const projectName = cleanProjectName($("projectName").value) || "Unbenanntes Projekt";
+    const printDate = new Intl.DateTimeFormat("de-AT").format(new Date());
+    const chosenProfile = selectedProfile();
+    const profileLabel = chosenProfile?.name
+      || activeProjectProfileSnapshot?.name
+      || (activeMissingProfileId ? `Fehlendes Profil ${activeMissingProfileId} – Projektwerte verwendet` : "Freie Eingabe");
+    const regimeLabel = selectedOptionText("normRegime", "Prüfregime offen");
+    const systemLabel = input.systemKey && input.systemKey !== "none"
+      ? selectedOptionText("systemKey", input.systemKey)
+      : "kein Herstellersystem gewählt";
+    const knownMm = (value, digits = 0) => Number.isFinite(value)
+      ? fmtMm(value, digits)
+      : "PRUEFUNG – offen";
+    const geometryValueClass = value => Number.isFinite(value) ? "" : "print-review";
+    const gapStatus = geometry.gapMode === "included"
+      ? `${knownMm(geometry.installationGap)} · im Systemmaß enthalten`
+      : geometry.gapMode === "separate"
+        ? `${knownMm(geometry.installationGap)} · separat gerechnet`
+        : `PRUEFUNG – Fugenwirkung offen; Legacy-Layoutfuge ${fmtMm(input.jointGap, input.jointGap % 1 ? 1 : 0)} separat`;
+    const modeLabel = selectedOptionText("mode", input.mode);
+    const optimizationLabel = input.mode === "optimize"
+      ? selectedOptionText("optimizationGoal", input.optimizationGoal)
+      : "nicht angewendet";
+
+    $("printTitle").textContent = `${projectName} – Technisches Ergebnisblatt`;
+    $("printMeta").textContent = `Datum: ${printDate} · App-Version: ${APP_META.version} · Regelstand: ${APP_META.ruleRevision} · geprüft: ${APP_META.ruleVerified}`;
+
+    const contextItems = [
+      ["Projekt", projectName],
+      ["Datum", printDate],
+      ["App-Version", APP_META.version],
+      ["Regelstand", APP_META.ruleRevision],
+      ["Werkstoff", `${input.material.label} · ${fmt(input.sheetThickness, 2)} mm`],
+      ["Profil", profileLabel],
+      ["Prüfregime", regimeLabel],
+      ["Herstellersystem", systemLabel]
+    ];
+    $("printContext").innerHTML = contextItems.map(([label, value]) => (
+      `<div class="print-context-item"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong></div>`
+    )).join("");
+
+    const geometryRows = [
+      { label: "Dachbreite", value: fmtM(input.widthM) },
+      { label: "Scharenlänge", value: fmtM(input.lengthM) },
+      { label: "Dachneigung", value: `${fmt(input.pitch, 1)}°` },
+      { label: "Bandbreite", value: knownMm(geometry.bandWidth), valueClass: geometryValueClass(geometry.bandWidth) },
+      { label: "Unterfalz", value: knownMm(geometry.underSeamAllowance), valueClass: geometryValueClass(geometry.underSeamAllowance) },
+      { label: "Überfalz", value: knownMm(geometry.overSeamAllowance), valueClass: geometryValueClass(geometry.overSeamAllowance) },
+      { label: "Gesamt-Falzzugabe", value: knownMm(geometry.totalSeamAllowance), valueClass: geometryValueClass(geometry.totalSeamAllowance) },
+      { label: "Scharenbreite", value: knownMm(geometry.scharWidth), valueClass: geometryValueClass(geometry.scharWidth) },
+      { label: "Achsmaß", value: Number.isFinite(geometry.axisMeasure) ? fmtMm(geometry.axisMeasure) : "PRUEFUNG – offen", valueClass: geometryValueClass(geometry.axisMeasure) },
+      { label: "Verlege-/Fugenstatus", value: gapStatus, valueClass: geometry.gapMode === "unknown" ? "print-review" : "" }
+    ];
+
+    const layoutRows = layout.valid ? [
+      { label: "Scharen gesamt", value: `${layout.totalScharen}` },
+      { label: "Standardscharen", value: `${layout.full} × ${fmtMm(layout.axis)}` },
+      { label: "Randschar links", value: fmtMm(layout.leftSide, layout.leftSide % 1 ? 1 : 0) },
+      { label: "Randschar rechts", value: fmtMm(layout.rightSide, layout.rightSide % 1 ? 1 : 0) },
+      { label: "Einteilungsmodus", value: modeLabel },
+      { label: "Optimierungsziel", value: optimizationLabel },
+      { label: "Legacy-Fugen", value: `${layout.joints} × ${fmtMm(layout.gap, layout.gap % 1 ? 1 : 0)} = ${fmtMm(layout.jointTotal, layout.jointTotal % 1 ? 1 : 0)}` },
+      { label: "Kontrollsumme", value: `${fmtMm(layout.sumCheck, layout.sumCheck % 1 ? 1 : 0)} = Dachbreite`, valueClass: "" }
+    ] : [
+      { label: "Einteilung", value: `FEHLER – ${layout.error || "geometrisch ungültig"}`, valueClass: "print-error" }
+    ];
+
+    const quantityRows = layout.valid ? [
+      { label: "Netto-Coil", value: fmtM(qty.netCoilLm) },
+      { label: `Reserve (${fmt(qty.reservePercent, qty.reservePercent % 1 ? 1 : 0)} %)`, value: fmtM(qty.reserveCoilLm) },
+      { label: "Bestell-Coil", value: `${fmtM(qty.netCoilLm)} + ${fmtM(qty.reserveCoilLm)} = ${fmtM(qty.orderCoilLm)}` },
+      { label: "Rohblechfläche Bestellung", value: fmtM2(qty.orderRawAreaM2) },
+      { label: "Sichtbare Dachfläche", value: fmtM2(qty.visibleAreaM2) },
+      { label: "Gewicht", value: fmtKg(qty.weightKg) },
+      { label: "Zuschnittverschnitt", value: `${fmtM2(qty.legacyCutWasteM2)} / ${fmt(qty.legacyCutWastePercent, 1)} % · PRUEFUNG (Legacy-Breiten)`, valueClass: "print-review" },
+      { label: "Passschar-Paarung", value: `Legacy-Mengenansatz: ${qty.bothPassFitOneCoil ? "beide aus einer Coil-Länge" : "zwei Coil-Längen"}; tatsächliche Zuschnittbreiten offen`, valueClass: "print-review" }
+    ] : [
+      { label: "Mengenermittlung", value: "Keine Ausgabe bei ungültiger Einteilung", valueClass: "print-error" }
+    ];
+
+    const clipRows = layout.valid ? [
+      { label: "Bemessungsmodus", value: `${qty.clipModeLabel} · ${qty.clipSource}`, valueClass: qty.clipMode === "legacy" ? "print-warning" : "" },
+      { label: "Hafte gesamt", value: qty.clipsTotal === null ? "PRUEFUNG – offen" : `${qty.clipsTotal} Stk.`, valueClass: qty.clipsTotal === null ? "print-review" : "" },
+      { label: "Festhafte", value: qty.fixedClips === null ? "PRUEFUNG – offen" : `${qty.fixedClips} Stk.`, valueClass: qty.fixedClips === null ? "print-review" : "" },
+      { label: "Schiebehafte", value: qty.slidingClips === null ? "PRUEFUNG – offen" : `${qty.slidingClips} Stk.`, valueClass: qty.slidingClips === null ? "print-review" : "" },
+      { label: "Verwendeter Haftabstand", value: qty.spacingUsed === null ? "PRUEFUNG – offen" : `Fest ${fmtMm(qty.fixedSpacingUsed, 1)} / Schiebe ${fmtMm(qty.spacingUsed, 1)}`, valueClass: qty.spacingUsed === null ? "print-review" : "" },
+      { label: "Befestiger je Haft", value: qty.fastenersPerClip === null ? "PRUEFUNG – offen" : `${qty.fastenersPerClip} · ${qty.fastenerSource}`, valueClass: qty.fastenersPerClip === null ? "print-review" : "" },
+      { label: "Befestiger gesamt", value: qty.fasteners === null ? "PRUEFUNG – nicht belastbar" : `${qty.fasteners} Stk.`, valueClass: qty.fasteners === null ? "print-review" : "" },
+      { label: "Status", value: `${qty.clipCalculationStatus} · ${qty.clipCalculationNote}`, valueClass: qty.clipCalculationStatus === STATUS.PRUEFUNG ? "print-review" : qty.clipCalculationStatus === STATUS.WARNUNG ? "print-warning" : "" }
+    ] : [
+      { label: "Haftbemessung", value: "PRUEFUNG – keine Ausgabe bei ungültiger Einteilung", valueClass: "print-review" }
+    ];
+
+    $("printSummary").innerHTML = [
+      ["Dach / Geometrie", geometryRows],
+      ["Einteilung", layoutRows],
+      ["Mengenermittlung", quantityRows],
+      ["Hafte / Befestigung", clipRows]
+    ].map(([title, rows]) => `<section class="print-section"><h3>${escapeHtml(title)}</h3>${printValueRows(rows)}</section>`).join("");
+
+    const relevantInfoPattern = /Projektprofil|Mengenschema|Optimierung|Asymmetrische Einteilung/i;
+    const printableMessages = messages
+      .filter(message => [STATUS.FEHLER, STATUS.WARNUNG, STATUS.PRUEFUNG].includes(message.status)
+        || (message.status === STATUS.INFO && relevantInfoPattern.test(message.text)));
+    const shownMessages = [
+      ...printableMessages.filter(message => message.status === STATUS.FEHLER).slice(0, 2),
+      ...printableMessages.filter(message => message.status === STATUS.WARNUNG).slice(0, 2),
+      ...printableMessages.filter(message => message.status === STATUS.PRUEFUNG).slice(0, 2),
+      ...printableMessages.filter(message => message.status === STATUS.INFO).slice(0, 1)
+    ];
+    if (!shownMessages.length) {
+      shownMessages.push(statusMessage(STATUS.OK, "Keine offenen Fehler, Warnungen oder Prüfhinweise in der aktuellen Auswertung."));
+    }
+    $("printStatusList").innerHTML = shownMessages.map(message => (
+      `<div class="print-status-item ${message.type}"><strong>${escapeHtml(message.status)}</strong>${escapeHtml(message.text)}</div>`
+    )).join("") + (printableMessages.length > shownMessages.length
+      ? `<div class="print-status-item info"><strong>INFO</strong>${printableMessages.length - shownMessages.length} weitere Meldung(en) sind in der Bildschirmansicht verfügbar.</div>`
+      : "");
+  }
+
   function renderTables(input, layout, qty) {
     const tbody = $("quantityTable");
+    if (!layout.valid) {
+      tbody.innerHTML = `<tr><th>Mengenermittlung</th><td>Keine Ausgabe – Einteilung ist ungültig.</td></tr>`;
+      $("scharTable").innerHTML = `<tr><td colspan="6">Keine Scharenliste – ${layout.error || "Einteilung ist ungültig."}</td></tr>`;
+      return;
+    }
     tbody.innerHTML = [
       ["Scharenlänge inkl. Zugabe", fmtM(qty.lengthWithAllowanceM)],
-      ["Standardscharen-Laufmeter", fmtM(qty.fullLm)],
-      ["Passschar-Laufmeter", `${fmtM(qty.passLm)} (${qty.bothPassFitOneCoil ? "2 Passscharen aus 1 Coil-Länge" : "2 getrennte Coil-Längen"})`],
-      ["Netto-Coil vor Reserve", fmtM(qty.netCoilLm)],
-      ["Bestell-Coil inkl. Reserve", fmtM(qty.orderCoilLm)],
-      ["Rohblechfläche", fmtM2(qty.rawAreaM2)],
+      ["Standardscharen – Anzahl / geometrische Breite", `${layout.full} × ${fmtMm(layout.axis)}`],
+      ["Standardscharen – bekannte Zuschnittbreite", `${fmtMm(layout.standardRawWidth)} (Profil-/Eingabewert)`],
+      ["Standardscharen – Netto-Coil", fmtM(qty.standardNetCoilLm)],
+      ["Passschar links – geometrische Breite", fmtMm(qty.leftPassVisibleWidth, qty.leftPassVisibleWidth % 1 ? 1 : 0)],
+      ["Passschar links – tatsächliche Zuschnittbreite", "offen – Rand-/Anschlussdetail nicht definiert"],
+      ["Passschar links – Legacy-Zuschnittbreite", `${fmtMm(qty.leftPassLegacyCutWidth, qty.leftPassLegacyCutWidth % 1 ? 1 : 0)} (nur Mengenansatz)`],
+      ["Passschar rechts – geometrische Breite", fmtMm(qty.rightPassVisibleWidth, qty.rightPassVisibleWidth % 1 ? 1 : 0)],
+      ["Passschar rechts – tatsächliche Zuschnittbreite", "offen – Rand-/Anschlussdetail nicht definiert"],
+      ["Passschar rechts – Legacy-Zuschnittbreite", `${fmtMm(qty.rightPassLegacyCutWidth, qty.rightPassLegacyCutWidth % 1 ? 1 : 0)} (nur Mengenansatz)`],
+      ["Passscharen – Netto-Coil", `${fmtM(qty.passNetCoilLm)} (${qty.bothPassFitOneCoil ? "beide aus einer Coil-Länge" : "zwei getrennte Coil-Längen"})`],
+      ["Netto-Coil", fmtM(qty.netCoilLm)],
+      [`Bestellreserve ${fmt(qty.reservePercent, qty.reservePercent % 1 ? 1 : 0)} %`, fmtM(qty.reserveCoilLm)],
+      ["Bestell-Coil: Netto + Reserve", `${fmtM(qty.netCoilLm)} + ${fmtM(qty.reserveCoilLm)} = ${fmtM(qty.orderCoilLm)}`],
+      ["Netto-Rohblechfläche", fmtM2(qty.netRawAreaM2)],
+      ["Reservefläche", fmtM2(qty.reserveAreaM2)],
+      ["Rohblechfläche Bestellung", `${fmtM2(qty.netRawAreaM2)} + ${fmtM2(qty.reserveAreaM2)} = ${fmtM2(qty.orderRawAreaM2)}`],
       ["Sichtbare Dachfläche", fmtM2(qty.visibleAreaM2)],
-      ["Gewicht ca.", fmtKg(qty.weightKg)],
+      ["Zuschnittverschnitt nach Legacy-Breiten", `${fmtM2(qty.legacyCutWasteM2)} (${fmt(qty.legacyCutWastePercent, 1)} % der Netto-Rohblechfläche; PRUEFUNG)`],
+      ["Rohblech Bestellung − sichtbare Dachfläche", `${fmtM2(qty.rawToVisibleDifferenceM2)} (${fmt(qty.rawToVisibleDifferencePercent, 1)} %; kein reiner Verschnitt)`],
+      ["Gewicht aus Rohblechfläche Bestellung", `${fmtM2(qty.orderRawAreaM2)} × ${fmt(input.sheetThickness, 2)} mm × ${fmt(input.material.density, 0)} kg/m³ = ${fmtKg(qty.weightKg)}`],
       ["Falzmeter längs", fmtM(qty.seamMeters, 1)],
-      ["Haftabstand gerechnet", `${fmtMm(qty.spacingUsed)} / Festhaftbereich ${fmtMm(qty.fixedSpacingUsed)}`],
-      ["Mindesthaftanzahl m²-Ansatz", `${qty.clipsByArea} Stk. (${fmt(qty.minClipsPerM2, 1)} /m²)`],
+      ["Haftbemessungsmodus / Quelle", `${qty.clipModeLabel} · ${qty.clipSource} · ${qty.clipCalculationStatus}`],
+      ["Erforderliche Hafte/m²", qty.requiredClipsPerM2 === null ? "offen – PRUEFUNG" : `${fmt(qty.requiredClipsPerM2, 2)} /m² (${input.roofZone === "edge" ? "Randbereich" : "Normalbereich"})`],
+      ["Haftabstand aus Scharenbreite", qty.densitySpacingMm === null ? "im Legacy-Modus nicht als Projektwert abgeleitet" : `${fmtMm(qty.densitySpacingMm, 1)} rechnerisch`],
+      ["Verwendeter Haftabstand", qty.spacingUsed === null ? "offen – PRUEFUNG" : `Festhaft ${fmtMm(qty.fixedSpacingUsed, 1)} / Schiebehaft ${fmtMm(qty.spacingUsed, 1)}`],
+      ["Haftanzahl vor Zuschlag", qty.clipsBeforeExtra === null ? "offen – PRUEFUNG" : `max. aus Fläche ${qty.clipsByArea} / Abstand ${qty.clipsBySpacing} = ${qty.clipsBeforeExtra} Stk.`],
+      ["Expliziter Haftzuschlag", `${fmt(input.clipExtraPercent, input.clipExtraPercent % 1 ? 1 : 0)} %`],
+      ["Hafte gesamt", qty.clipsTotal === null ? "offen – PRUEFUNG" : `${qty.clipsTotal} Stk. (${qty.fixedClips} fest / ${qty.slidingClips} gleitend)`],
+      ["Untergrund", `${qty.substrateLabel} · ${qty.clipMode === "legacy" ? "im Legacy-Rechenweg nicht bemessen" : qty.substrate === "wood" ? "keine Tragfähigkeitsberechnung" : "PRUEFUNG"}`],
+      ["Befestigungsmittel je Haft", qty.fastenersPerClip === null ? "offen – PRUEFUNG" : `${fmt(qty.fastenersPerClip, 0)} (${qty.fastenerSource}; ${qty.fastenerCalculationStatus})`],
+      ["Befestigungsmittel gesamt", qty.fasteners === null ? "offen – PRUEFUNG" : `${qty.fasteners} Stk.`],
       ["Thermische Dehnung grob", fmtMm(qty.expansionMm, 1)]
     ].map(([k, v]) => `<tr><th>${k}</th><td>${v}</td></tr>`).join("");
+
+    const passRows = [
+      `<tr>
+        <td>Passschar links</td>
+        <td class="num">1</td>
+        <td class="num">${fmtMm(layout.leftSide, layout.leftSide % 1 ? 1 : 0)}</td>
+        <td class="num">tatsächlich offen<br>Legacy ${fmtMm(layout.leftPassRawWidth, layout.leftPassRawWidth % 1 ? 1 : 0)}</td>
+        <td class="num">${fmtM(qty.lengthWithAllowanceM)}</td>
+        <td rowspan="2">Legacy-Mengenansatz: ${qty.bothPassFitOneCoil ? "beide Passscharen passen nebeneinander in eine Coilbreite" : "jede Passschar benötigt eine eigene Coil-Länge"}; tatsächliche Paarung nach Festlegung der Randdetails prüfen.</td>
+      </tr>`,
+      `<tr>
+        <td>Passschar rechts</td>
+        <td class="num">1</td>
+        <td class="num">${fmtMm(layout.rightSide, layout.rightSide % 1 ? 1 : 0)}</td>
+        <td class="num">tatsächlich offen<br>Legacy ${fmtMm(layout.rightPassRawWidth, layout.rightPassRawWidth % 1 ? 1 : 0)}</td>
+        <td class="num">${fmtM(qty.lengthWithAllowanceM)}</td>
+      </tr>`
+    ];
 
     $("scharTable").innerHTML = [
       `<tr>
         <td>Standardschar</td>
         <td class="num">${layout.full}</td>
         <td class="num">${fmtMm(layout.axis)}</td>
-        <td class="num">${fmtMm(layout.standardRawWidth)}</td>
+        <td class="num">${fmtMm(layout.standardRawWidth)}<br>bekannt/eingestellt</td>
         <td class="num">${fmtM(qty.lengthWithAllowanceM)}</td>
         <td>je Standardschar eine Coil-Länge</td>
       </tr>`,
-      `<tr>
-        <td>Passschar links/rechts</td>
-        <td class="num">2</td>
-        <td class="num">${fmtMm(layout.side, layout.side % 1 ? 1 : 0)}</td>
-        <td class="num">${fmtMm(layout.passRawWidth, layout.passRawWidth % 1 ? 1 : 0)}</td>
-        <td class="num">${fmtM(qty.lengthWithAllowanceM)}</td>
-        <td>${qty.bothPassFitOneCoil ? "beide Passscharen passen nebeneinander in eine Coilbreite" : "jede Passschar benötigt eigene Coil-Länge"}</td>
-      </tr>`
+      ...passRows
     ].join("");
   }
 
   function render() {
     const input = getInputs();
+    $("optimizationGoalRow").hidden = input.mode !== "optimize";
+    $("projectClipInputs").hidden = input.clipMode !== "project";
+    $("legacyClipSpacingLabel").hidden = input.clipMode === "project";
+    const geometry = geometryForInput(input);
     const layout = calculateLayout(input);
     const qty = calculateQuantities(input, layout);
     const messages = normMessages(input, layout, qty);
 
-    setText("rTotal", layout.totalScharen);
-    setText("rFull", layout.full);
-    setText("rSide", `2 × ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)}`);
-    setText("rGap", fmtMm(layout.jointTotal, layout.jointTotal % 1 ? 1 : 0));
-    setText("rOrderLm", fmtM(qty.orderCoilLm));
-    setText("rAreaWeight", `${fmtM2(qty.rawAreaM2)} / ${fmtKg(qty.weightKg)}`);
-    setText("rClips", `${qty.clipsTotal} Stk.`);
-    setText("rClipSplit", `${qty.fixedClips} / ${qty.slidingClips}`);
-    setText("rFasteners", `${qty.fasteners} Stk.`);
-    setText("rSealant", `${fmt(qty.sealantOrderLiters, 2)} l`);
+    const sideResult = layout.side !== null
+      ? `2 × ${fmtMm(layout.side, layout.side % 1 ? 1 : 0)}`
+      : `L ${fmtMm(layout.leftSide, layout.leftSide % 1 ? 1 : 0)} / R ${fmtMm(layout.rightSide, layout.rightSide % 1 ? 1 : 0)}`;
+    setText("rTotal", layout.valid ? layout.totalScharen : "–");
+    setText("rFull", layout.valid ? layout.full : "–");
+    setText("rSide", layout.valid ? sideResult : "–");
+    setText("rGap", layout.valid ? fmtMm(layout.jointTotal, layout.jointTotal % 1 ? 1 : 0) : "–");
+    setText("rOrderLm", layout.valid ? `${fmtM(qty.netCoilLm)} + ${fmtM(qty.reserveCoilLm)} = ${fmtM(qty.orderCoilLm)}` : "–");
+    setText("rAreaWeight", layout.valid ? `${fmtM2(qty.rawAreaM2)} / ${fmtKg(qty.weightKg)}` : "–");
+    setText("rWaste", layout.valid ? `${fmtM2(qty.legacyCutWasteM2)} / ${fmt(qty.legacyCutWastePercent, 1)} %` : "–");
+    setText("rClips", layout.valid ? (qty.clipsTotal === null ? "PRUEFUNG" : `${qty.clipsTotal} Stk. · ${qty.clipCalculationStatus}`) : "–");
+    setText("rClipSplit", layout.valid ? (qty.clipsTotal === null ? "PRUEFUNG" : `${qty.fixedClips} / ${qty.slidingClips}`) : "–");
+    setText("rClipSpacing", layout.valid ? (qty.spacingUsed === null ? "PRUEFUNG" : `F ${fmtMm(qty.fixedSpacingUsed, 1)} / S ${fmtMm(qty.spacingUsed, 1)}`) : "–");
+    setText("rClipSource", layout.valid ? `${qty.clipSource} · ${qty.clipCalculationStatus}` : "–");
+    setText("rFastenersPerClip", layout.valid ? (qty.fastenersPerClip === null ? "PRUEFUNG" : `${qty.fastenersPerClip} · ${qty.fastenerCalculationStatus}`) : "–");
+    setText("rFasteners", layout.valid ? (qty.fasteners === null ? "PRUEFUNG" : `${qty.fasteners} Stk. · ${qty.fastenerCalculationStatus}`) : "–");
+    setText("rSealant", layout.valid ? `${fmt(qty.sealantOrderLiters, 2)} l` : "–");
 
-    const dangerCount = messages.filter(m => m.type === "danger").length;
-    const warnCount = messages.filter(m => m.type === "warn").length;
-    const maxAxis = maxAxisForInput(input);
+    const statusCounts = countStatuses(messages);
+    const summaryClass = statusCounts.FEHLER
+      ? "danger"
+      : statusCounts.PRUEFUNG
+        ? "review"
+        : statusCounts.WARNUNG
+          ? "warn"
+          : "ok";
+    const widthResult = evaluateWidthRegime(input, geometry);
+    const scharWidthLabel = geometry.scharWidth === null
+      ? "Scharenbreite offen"
+      : `Scharenbreite ${fmtMm(geometry.scharWidth)}`;
 
     $("statusPills").innerHTML = [
-      `<span class="pill ${dangerCount ? "danger" : warnCount ? "warn" : "ok"}">${dangerCount ? dangerCount + " Fehler" : warnCount ? warnCount + " Warnungen" : "OK"}</span>`,
+      `<span class="pill ${summaryClass}">${statusSummaryText(statusCounts)}</span>`,
       `<span class="pill">${input.material.short}</span>`,
-      `<span class="pill ${input.axis <= maxAxis ? "ok" : "danger"}">Achsmaß ${fmtMm(input.axis)}</span>`,
-      `<span class="pill">Coil ${fmtM(qty.orderCoilLm)}</span>`,
-      `<span class="pill">Hafte ${qty.clipsTotal}</span>`
+      `<span class="pill ${widthResult.type}">${scharWidthLabel}</span>`,
+      ...(layout.valid ? [
+        `<span class="pill">Coil ${fmtM(qty.orderCoilLm)}</span>`,
+        `<span class="pill ${STATUS_CLASS[qty.clipCalculationStatus]}">Hafte ${qty.clipsTotal === null ? "PRUEFUNG" : qty.clipsTotal}</span>`
+      ] : [])
     ].join("");
 
     $("normList").innerHTML = messages.map(m => `<div class="norm-item ${m.type}">${m.text}</div>`).join("");
 
     renderTables(input, layout, qty);
+    renderPrintSheet(input, geometry, layout, qty, messages);
     drawSvg(input, layout, qty, messages);
   }
 
   function syncMaterialThickness() {
-    const material = MATERIALS[$("material").value] || MATERIALS.steel;
+    const material = resolveMaterial($("material").value);
     if (!$("sheetThickness").dataset.userChanged) {
       $("sheetThickness").value = material.defaultThickness.toFixed(2);
     }
+  }
+
+  function setInputView(view) {
+    const proMode = view === "pro";
+    document.querySelectorAll("[data-view='pro']").forEach((el) => {
+      el.hidden = !proMode;
+    });
+    $("quickModeBtn").setAttribute("aria-pressed", String(!proMode));
+    $("proModeBtn").setAttribute("aria-pressed", String(proMode));
+    $("quickModeBtn").classList.toggle("secondary", proMode);
+    $("proModeBtn").classList.toggle("secondary", !proMode);
+    $("inputViewHint").textContent = proMode
+      ? "Profimodus: Alle Regel-, Wind-, Befestigungs-, Temperatur-, Reserve-, Falzgel- und Profilwerte sind erreichbar."
+      : "Schnellansicht: Dach, Werkstoff, Profil und Einteilung. Erweiterte Regel- und Projektdaten sind im Profimodus erreichbar.";
   }
 
   document.addEventListener("input", (event) => {
@@ -1689,10 +4071,34 @@
     render();
   });
 
+  $("profileSelect").addEventListener("change", () => {
+    activeProjectProfileSnapshot = null;
+    activeMissingProfileId = null;
+    loadSelectedProfile();
+  });
+  $("profileSaveBtn").addEventListener("click", saveNewProfile);
+  $("profileUpdateBtn").addEventListener("click", updateSelectedProfile);
+  $("profileDeleteBtn").addEventListener("click", deleteSelectedProfile);
+
+  $("projectSelect").addEventListener("change", syncProjectActionState);
+  $("projectNewBtn").addEventListener("click", newProject);
+  $("projectSaveBtn").addEventListener("click", saveCurrentProject);
+  $("projectLoadBtn").addEventListener("click", loadSelectedProject);
+  $("projectDeleteBtn").addEventListener("click", deleteSelectedProject);
+  $("projectExportBtn").addEventListener("click", exportCurrentProject);
+  $("projectImportBtn").addEventListener("click", () => $("projectImportFile").click());
+  $("projectImportFile").addEventListener("change", importProjectFile);
+
+  $("quickModeBtn").addEventListener("click", () => setInputView("quick"));
+  $("proModeBtn").addEventListener("click", () => setInputView("pro"));
   $("calcBtn").addEventListener("click", render);
   $("printBtn").addEventListener("click", () => window.print());
 
+  applyAppMeta();
+  initializeProfileManagement();
   syncMaterialThickness();
+  setInputView("quick");
+  initializeProjectManagement();
   render();
   </script>
 </body>
